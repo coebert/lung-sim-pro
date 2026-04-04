@@ -132,7 +132,12 @@ const Index = () => {
           <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
         </div>
 
-        {/* Bottom bar */}
+        {/* Credit + Bottom bar */}
+        <div className="text-center py-0.5 bg-secondary border-t border-border">
+          <span className="text-[8px] text-muted-foreground/50 tracking-wide">
+            App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM
+          </span>
+        </div>
         <div className="flex border-t border-border bg-secondary shrink-0">
           <button
             onClick={() => setMobileOverlay(mobileOverlay === 'controls' ? 'none' : 'controls')}
