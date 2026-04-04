@@ -240,7 +240,7 @@ export function generateSpO2Pleth(time: number, hr: number): number {
   }
 }
 
-export function generateCapnography(time: number, rr: number, etco2: number): number {
+export function generateCapnography(time: number, rr: number, etco2: number, spontaneousRate: number = 0): number {
   const cycleTime = 60 / rr;
   const phase = (time % cycleTime) / cycleTime;
   const iRatio = 1 / 3; // Inspiration takes 1/3 of cycle
@@ -254,15 +254,31 @@ export function generateCapnography(time: number, rr: number, etco2: number): nu
     return 0;
   } else {
     const ePhase = (phase - iRatio) / (1 - iRatio);
+    let co2: number;
     if (ePhase < 0.08) {
       // Phase II - rapid upstroke
-      return etco2 * 0.75 * (ePhase / 0.08);
+      co2 = etco2 * 0.75 * (ePhase / 0.08);
     } else if (ePhase < 0.9) {
       // Phase III - alveolar plateau with slight upward slope
-      return etco2 * (0.75 + 0.25 * ((ePhase - 0.08) / 0.82));
+      co2 = etco2 * (0.75 + 0.25 * ((ePhase - 0.08) / 0.82));
     } else {
       // End of plateau at EtCO2 (just before next inspiration drops it)
-      return etco2;
+      co2 = etco2;
     }
+
+    // Curare cleft: spontaneous inspiratory effort during phase III
+    // creates a transient dip in CO2 as fresh gas is drawn in
+    if (spontaneousRate > 0 && ePhase >= 0.3 && ePhase <= 0.65) {
+      const cleftCenter = 0.475;
+      const cleftWidth = 0.12;
+      const cleftPos = (ePhase - cleftCenter) / cleftWidth;
+      if (Math.abs(cleftPos) < 1) {
+        // Smooth dip using cosine shape, depth proportional to effort
+        const cleftDepth = Math.min(0.25, spontaneousRate / 60) * etco2;
+        co2 -= cleftDepth * (0.5 + 0.5 * Math.cos(cleftPos * Math.PI));
+      }
+    }
+
+    return co2;
   }
 }
