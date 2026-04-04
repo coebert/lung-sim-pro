@@ -73,7 +73,7 @@ const Index = () => {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-screen flex flex-col bg-background overflow-hidden relative">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-1.5 bg-secondary border-b border-border gap-2">
         <div className="flex items-center gap-2 shrink-0">
@@ -158,6 +158,13 @@ const Index = () => {
             )}
           </div>
         )}
+      </div>
+
+      {/* Credit */}
+      <div className="absolute bottom-1 left-0 right-0 text-center pointer-events-none">
+        <span className="text-[8px] text-muted-foreground/50 tracking-wide">
+          App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM
+        </span>
       </div>
     </div>
   );
