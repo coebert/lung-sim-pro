@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 
 interface WaveformCanvasProps {
   data: number[];
@@ -10,6 +10,7 @@ interface WaveformCanvasProps {
   height?: number;
   showGrid?: boolean;
   currentValue?: string;
+  autoHeight?: boolean;
 }
 
 export function WaveformCanvas({
@@ -22,9 +23,29 @@ export function WaveformCanvas({
   height = 100,
   showGrid = true,
   currentValue,
+  autoHeight = false,
 }: WaveformCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState(height);
+
+  // Use ResizeObserver when autoHeight is enabled
+  useEffect(() => {
+    if (!autoHeight) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = entry.contentRect.height;
+        if (h > 0) setContainerHeight(h);
+      }
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [autoHeight]);
+
+  const effectiveHeight = autoHeight ? containerHeight : height;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -36,12 +57,14 @@ export function WaveformCanvas({
 
     const dpr = window.devicePixelRatio || 1;
     const rect = container.getBoundingClientRect();
+    const h = autoHeight ? rect.height : effectiveHeight;
+    if (h <= 0) return;
+
     canvas.width = rect.width * dpr;
-    canvas.height = height * dpr;
+    canvas.height = h * dpr;
     ctx.scale(dpr, dpr);
 
     const w = rect.width;
-    const h = height;
 
     // Clear
     ctx.fillStyle = 'hsl(220, 30%, 3%)';
@@ -59,7 +82,6 @@ export function WaveformCanvas({
         ctx.lineTo(w, y);
         ctx.stroke();
       }
-      // Vertical grid lines every 50 samples (1 second)
       for (let x = 0; x < w; x += w / 10) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
@@ -77,7 +99,7 @@ export function WaveformCanvas({
     ctx.beginPath();
 
     const range = maxValue - minValue;
-    const padding = 8;
+    const padding = Math.min(8, h * 0.1);
     const plotH = h - padding * 2;
 
     for (let i = 0; i < data.length; i++) {
@@ -91,16 +113,37 @@ export function WaveformCanvas({
     ctx.stroke();
 
     // Label
-    ctx.font = '11px monospace';
+    const fontSize = Math.max(8, Math.min(11, h * 0.15));
+    ctx.font = `${fontSize}px monospace`;
     ctx.fillStyle = color;
-    ctx.fillText(`${label} (${unit})`, 4, 12);
+    ctx.fillText(`${label} (${unit})`, 4, fontSize + 1);
 
     // Scale markers
     ctx.fillStyle = 'hsl(215, 15%, 40%)';
-    ctx.font = '9px monospace';
-    ctx.fillText(String(Math.round(maxValue)), w - 30, 12);
-    ctx.fillText(String(Math.round(minValue)), w - 30, h - 4);
-  }, [data, color, label, unit, minValue, maxValue, height, showGrid]);
+    const scaleFontSize = Math.max(7, Math.min(9, h * 0.12));
+    ctx.font = `${scaleFontSize}px monospace`;
+    ctx.fillText(String(Math.round(maxValue)), w - 30, scaleFontSize + 1);
+    ctx.fillText(String(Math.round(minValue)), w - 30, h - 2);
+  }, [data, color, label, unit, minValue, maxValue, effectiveHeight, showGrid, autoHeight]);
+
+  if (autoHeight) {
+    return (
+      <div ref={containerRef} className="relative w-full flex-1 min-h-0">
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full block"
+        />
+        {currentValue && (
+          <div
+            className="absolute top-1 right-10 monitor-text text-sm font-bold"
+            style={{ color }}
+          >
+            {currentValue}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="relative w-full" style={{ height }}>
