@@ -125,13 +125,16 @@ const Index = () => {
 
       {/* ===== MOBILE/TABLET LAYOUT (<md) ===== */}
       <div className="flex-1 flex flex-col min-h-0 md:hidden relative">
-        {/* Top half: Patient Monitor */}
-        <div className="flex-1 min-h-0 p-1 border-b border-border">
-          <MonitorPanel buffers={buffers} vitals={vitals} />
-        </div>
-        {/* Bottom half: Ventilator waveforms */}
-        <div className="flex-1 min-h-0 p-1">
-          <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
+        {/* Portrait: stacked, Landscape: side-by-side */}
+        <div className={`flex-1 min-h-0 flex ${isLandscape ? 'flex-row' : 'flex-col'}`}>
+          {/* Ventilator (left in landscape, bottom in portrait) */}
+          <div className={`flex-1 min-h-0 p-1 ${isLandscape ? 'border-r border-border order-first' : 'order-last'}`}>
+            <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
+          </div>
+          {/* Patient Monitor (right in landscape, top in portrait) */}
+          <div className={`flex-1 min-h-0 p-1 ${isLandscape ? 'order-last' : 'order-first border-b border-border'}`}>
+            <MonitorPanel buffers={buffers} vitals={vitals} />
+          </div>
         </div>
 
         {/* Credit + Bottom bar */}
@@ -169,6 +172,8 @@ const Index = () => {
               <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
             )}
           </div>
+        )}
+      </div>
         )}
       </div>
     </div>
