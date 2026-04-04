@@ -19,9 +19,7 @@ const Index = () => {
     measuredTV: 0, minuteVentilation: 0, measuredRR: 14, dynamicCompliance: 0,
   });
   const [buffers, setBuffers] = useState<WaveformBuffers>(createInitialBuffers());
-  const [mobileTab, setMobileTab] = useState<MobileTab>('ventilator');
-  const [controlsOpen, setControlsOpen] = useState(true);
-  const [patientsOpen, setPatientsOpen] = useState(false);
+  const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
 
   const timeRef = useRef(0);
   const settingsRef = useRef(settings);
