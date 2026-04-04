@@ -21,44 +21,46 @@ export function VentilatorPanel({ buffers, measured, settings }: VentilatorPanel
         </span>
       </div>
       
-      <div className="flex-1 flex flex-col gap-0.5 bg-monitor-bg rounded-b p-1">
-        <WaveformCanvas
-          data={buffers.pressure}
-          color="hsl(55, 100%, 50%)"
-          label="Paw"
-          unit="cmH₂O"
-          minValue={-5}
-          maxValue={maxPressure}
-          height={90}
-        />
-        <WaveformCanvas
-          data={buffers.flow}
-          color="hsl(180, 100%, 50%)"
-          label="Flow"
-          unit="L/min"
-          minValue={-maxFlow}
-          maxValue={maxFlow}
-          height={90}
-        />
-        <WaveformCanvas
-          data={buffers.volume}
-          color="hsl(120, 100%, 45%)"
-          label="Volume"
-          unit="mL"
-          minValue={0}
-          maxValue={maxVolume}
-          height={90}
-        />
-      </div>
-
-      {/* Measured values bar */}
-      <div className="grid grid-cols-3 gap-1 px-1">
-        <MeasuredBox label="PIP" value={measured.peakPressure} unit="cmH₂O" color="hsl(55, 100%, 50%)" />
-        <MeasuredBox label="PEEP" value={settings.peep} unit="cmH₂O" color="hsl(55, 100%, 50%)" />
-        <MeasuredBox label="Pmean" value={measured.meanPressure} unit="cmH₂O" color="hsl(55, 100%, 50%)" />
-        <MeasuredBox label="VTe" value={measured.measuredTV} unit="mL" color="hsl(120, 100%, 45%)" />
-        <MeasuredBox label="MV" value={measured.minuteVentilation} unit="L/min" color="hsl(120, 100%, 45%)" />
-        <MeasuredBox label="Cdyn" value={measured.dynamicCompliance} unit="mL/cmH₂O" color="hsl(180, 100%, 50%)" />
+      <div className="flex-1 flex min-h-0 bg-monitor-bg rounded-b p-1 gap-1">
+        {/* Waveforms */}
+        <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+          <WaveformCanvas
+            data={buffers.pressure}
+            color="hsl(55, 100%, 50%)"
+            label="Paw"
+            unit="cmH₂O"
+            minValue={-5}
+            maxValue={maxPressure}
+            height={90}
+          />
+          <WaveformCanvas
+            data={buffers.flow}
+            color="hsl(180, 100%, 50%)"
+            label="Flow"
+            unit="L/min"
+            minValue={-maxFlow}
+            maxValue={maxFlow}
+            height={90}
+          />
+          <WaveformCanvas
+            data={buffers.volume}
+            color="hsl(120, 100%, 45%)"
+            label="Volume"
+            unit="mL"
+            minValue={0}
+            maxValue={maxVolume}
+            height={90}
+          />
+        </div>
+        {/* Numerical values - right side */}
+        <div className="flex flex-col gap-1 w-[90px] shrink-0">
+          <MeasuredBox label="PIP" value={measured.peakPressure} unit="cmH₂O" color="hsl(55, 100%, 50%)" />
+          <MeasuredBox label="PEEP" value={settings.peep} unit="cmH₂O" color="hsl(55, 100%, 50%)" />
+          <MeasuredBox label="Pmean" value={measured.meanPressure} unit="cmH₂O" color="hsl(55, 100%, 50%)" />
+          <MeasuredBox label="VTe" value={measured.measuredTV} unit="mL" color="hsl(120, 100%, 45%)" />
+          <MeasuredBox label="MV" value={measured.minuteVentilation} unit="L/min" color="hsl(120, 100%, 45%)" />
+          <MeasuredBox label="Cdyn" value={measured.dynamicCompliance} unit="mL/cmH₂O" color="hsl(180, 100%, 50%)" />
+        </div>
       </div>
     </div>
   );
