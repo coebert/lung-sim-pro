@@ -32,7 +32,7 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
       </div>
 
       {/* Settings grid */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {/* Common settings */}
         {(settings.mode !== 'APRV') && (
           <SettingControl
