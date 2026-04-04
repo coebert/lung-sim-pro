@@ -70,7 +70,7 @@ const Index = () => {
       <span style={{ color: vitals.spo2 < 90 ? 'hsl(0,100%,55%)' : 'hsl(180,100%,55%)' }}>
         SpO₂ {Math.round(vitals.spo2)}%
       </span>
-      <span style={{ color: 'hsl(45,100%,70%)' }}>EtCO₂ {Math.round(vitals.etco2)}</span>
+      <span style={{ color: 'hsl(45,100%,70%)' }}>EtCO₂ {(vitals.etco2 / 7.501).toFixed(1)} kPa</span>
     </div>
   );
 
