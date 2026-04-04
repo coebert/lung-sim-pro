@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useIsLandscape } from '@/hooks/use-orientation';
 import { VentilatorPanel } from '@/components/simulator/VentilatorPanel';
 import { MonitorPanel } from '@/components/simulator/MonitorPanel';
 import { VentilatorControls } from '@/components/simulator/VentilatorControls';
