@@ -15,7 +15,7 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
   return (
     <div className="flex flex-col gap-2">
       {/* Mode selector */}
-      <div className="flex gap-1">
+      <div className="grid grid-cols-3 sm:flex gap-1">
         {MODES.map((mode) => (
           <button
             key={mode}
