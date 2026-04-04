@@ -117,7 +117,7 @@ const Index = () => {
       </div>
 
       {/* ===== MOBILE/TABLET LAYOUT (<md) ===== */}
-      <div className="flex-1 flex flex-col min-h-0 md:hidden">
+      <div className="flex-1 flex flex-col min-h-0 md:hidden relative">
         {/* Top half: Patient Monitor */}
         <div className="flex-1 min-h-0 p-1 border-b border-border">
           <MonitorPanel buffers={buffers} vitals={vitals} />
@@ -127,7 +127,7 @@ const Index = () => {
           <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
         </div>
 
-        {/* Floating action buttons */}
+        {/* Bottom bar */}
         <div className="flex border-t border-border bg-secondary shrink-0">
           <button
             onClick={() => setMobileOverlay(mobileOverlay === 'controls' ? 'none' : 'controls')}
@@ -147,7 +147,7 @@ const Index = () => {
           </button>
         </div>
 
-        {/* Slide-up overlay for controls/patients */}
+        {/* Slide-up overlay */}
         {mobileOverlay !== 'none' && (
           <div className="absolute bottom-[44px] left-0 right-0 bg-background border-t border-border max-h-[60vh] overflow-y-auto z-50 p-2 shadow-lg">
             {mobileOverlay === 'controls' && (
@@ -158,7 +158,6 @@ const Index = () => {
             )}
           </div>
         )}
-        </div>
       </div>
     </div>
   );
