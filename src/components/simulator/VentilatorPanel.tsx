@@ -52,11 +52,13 @@ export function VentilatorPanel({ buffers, measured, settings }: VentilatorPanel
       </div>
 
       {/* Measured values bar */}
-      <div className="grid grid-cols-4 gap-1 px-1">
-        <MeasuredBox label="Ppeak" value={measured.peakPressure} unit="cmH₂O" color="hsl(55, 100%, 50%)" />
+      <div className="grid grid-cols-3 gap-1 px-1">
+        <MeasuredBox label="PIP" value={measured.peakPressure} unit="cmH₂O" color="hsl(55, 100%, 50%)" />
+        <MeasuredBox label="PEEP" value={settings.peep} unit="cmH₂O" color="hsl(55, 100%, 50%)" />
         <MeasuredBox label="Pmean" value={measured.meanPressure} unit="cmH₂O" color="hsl(55, 100%, 50%)" />
         <MeasuredBox label="VTe" value={measured.measuredTV} unit="mL" color="hsl(120, 100%, 45%)" />
         <MeasuredBox label="MV" value={measured.minuteVentilation} unit="L/min" color="hsl(120, 100%, 45%)" />
+        <MeasuredBox label="Cdyn" value={measured.dynamicCompliance} unit="mL/cmH₂O" color="hsl(180, 100%, 50%)" />
       </div>
     </div>
   );
