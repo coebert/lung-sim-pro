@@ -244,24 +244,24 @@ export function generateCapnography(time: number, rr: number, etco2: number): nu
   const cycleTime = 60 / rr;
   const phase = (time % cycleTime) / cycleTime;
   const iRatio = 1 / 3; // Inspiration takes 1/3 of cycle
+  const dropDuration = 0.04; // fraction of cycle for the descending limb
 
-  if (phase < iRatio) {
-    // Inspiration - CO2 near zero
-    if (phase > iRatio - 0.05) {
-      // Sharp drop at end of expiration
-      return etco2 * Math.max(0, (iRatio - phase) / 0.05);
-    }
+  if (phase < dropDuration) {
+    // Descending limb - sharp drop from EtCO2 to 0 at start of inspiration
+    return etco2 * (1 - phase / dropDuration);
+  } else if (phase < iRatio) {
+    // Rest of inspiration - CO2 at zero (inspiratory baseline)
     return 0;
   } else {
     const ePhase = (phase - iRatio) / (1 - iRatio);
-    if (ePhase < 0.1) {
-      // Phase II - rapid rise
-      return etco2 * 0.7 * (ePhase / 0.1);
-    } else if (ePhase < 0.85) {
-      // Phase III - plateau (alveolar plateau)
-      return etco2 * (0.7 + 0.3 * ((ePhase - 0.1) / 0.75));
+    if (ePhase < 0.08) {
+      // Phase II - rapid upstroke
+      return etco2 * 0.75 * (ePhase / 0.08);
+    } else if (ePhase < 0.9) {
+      // Phase III - alveolar plateau with slight upward slope
+      return etco2 * (0.75 + 0.25 * ((ePhase - 0.08) / 0.82));
     } else {
-      // End of plateau
+      // End of plateau at EtCO2 (just before next inspiration drops it)
       return etco2;
     }
   }
