@@ -169,13 +169,6 @@ const Index = () => {
           </div>
         )}
       </div>
-
-      {/* Credit */}
-      <div className="absolute bottom-1 left-0 right-0 text-center pointer-events-none">
-        <span className="text-[8px] text-muted-foreground/50 tracking-wide">
-          App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM
-        </span>
-      </div>
     </div>
   );
 };
