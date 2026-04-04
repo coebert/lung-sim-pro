@@ -82,18 +82,24 @@ function pcvWaveform(time: number, s: VentSettings, p: PatientPhysiology) {
   const R = p.resistance;
   const tau = R * C;
 
+  // Calculate trapped volume from breath stacking
+  const deliveredVol = s.pInsp * C * (1 - Math.exp(-iTime / tau)) * 1000;
+  const trapped = calcTrappedVolume(s, p, deliveredVol);
+  const autoPEEP = (trapped / 1000) / C;
+
   if (phase < iTime) {
-    const volume = s.pInsp * C * (1 - Math.exp(-phase / tau)) * 1000;
+    const volume = trapped + s.pInsp * C * (1 - Math.exp(-phase / tau)) * 1000;
     const flow = (s.pInsp / R) * Math.exp(-phase / tau);
-    const pressure = s.peep + s.pInsp;
+    const pressure = s.peep + autoPEEP + s.pInsp;
     return { pressure, flow: flow * 60, volume };
   } else {
     const ePhase = phase - iTime;
-    const vol0 = s.pInsp * C * (1 - Math.exp(-iTime / tau)) * 1000;
-    const volume = vol0 * Math.exp(-ePhase / tau);
-    const flow = -(volume / 1000) / tau;
+    const vol0 = deliveredVol;
+    const exhaledVolume = vol0 * Math.exp(-ePhase / tau);
+    const volume = trapped + exhaledVolume;
+    const flow = -(exhaledVolume / 1000) / tau;
     const pressure = s.peep + (volume / 1000) / C;
-    return { pressure: Math.max(pressure, s.peep), flow: flow * 60, volume: Math.max(volume, 0) };
+    return { pressure: Math.max(pressure, s.peep + autoPEEP), flow: flow * 60, volume: Math.max(volume, 0) };
   }
 }
 
