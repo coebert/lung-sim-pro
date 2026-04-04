@@ -6,9 +6,9 @@ import { PatientSelector } from '@/components/simulator/PatientSelector';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffers } from '@/lib/simulation/types';
 import { patients, getDefaultSettings } from '@/lib/simulation/patients';
 import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
-import { Monitor, Wind, Settings, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Settings, Users } from 'lucide-react';
 
-type MobileTab = 'ventilator' | 'monitor' | 'controls' | 'patients';
+type MobileOverlay = 'none' | 'controls' | 'patients';
 
 const Index = () => {
   const [patient, setPatient] = useState<PatientPhysiology>(patients[0]);
@@ -19,9 +19,7 @@ const Index = () => {
     measuredTV: 0, minuteVentilation: 0, measuredRR: 14, dynamicCompliance: 0,
   });
   const [buffers, setBuffers] = useState<WaveformBuffers>(createInitialBuffers());
-  const [mobileTab, setMobileTab] = useState<MobileTab>('ventilator');
-  const [controlsOpen, setControlsOpen] = useState(true);
-  const [patientsOpen, setPatientsOpen] = useState(false);
+  const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
 
   const timeRef = useRef(0);
   const settingsRef = useRef(settings);
@@ -119,53 +117,47 @@ const Index = () => {
       </div>
 
       {/* ===== MOBILE/TABLET LAYOUT (<md) ===== */}
-      <div className="flex-1 flex flex-col min-h-0 md:hidden">
-        {/* Tab content */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {mobileTab === 'ventilator' && (
-            <div className="p-1 h-full">
-              <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
-            </div>
-          )}
-          {mobileTab === 'monitor' && (
-            <div className="p-1 h-full">
-              <MonitorPanel buffers={buffers} vitals={vitals} />
-            </div>
-          )}
-          {mobileTab === 'controls' && (
-            <div className="p-2">
-              <VentilatorControls settings={settings} onSettingsChange={setSettings} />
-            </div>
-          )}
-          {mobileTab === 'patients' && (
-            <div className="p-2">
-              <PatientSelector selectedPatient={patient} onSelectPatient={handlePatientChange} />
-            </div>
-          )}
+      <div className="flex-1 flex flex-col min-h-0 md:hidden relative">
+        {/* Top half: Patient Monitor */}
+        <div className="flex-1 min-h-0 p-1 border-b border-border">
+          <MonitorPanel buffers={buffers} vitals={vitals} />
+        </div>
+        {/* Bottom half: Ventilator waveforms */}
+        <div className="flex-1 min-h-0 p-1">
+          <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
         </div>
 
-        {/* Mobile tab bar */}
+        {/* Bottom bar */}
         <div className="flex border-t border-border bg-secondary shrink-0">
-          {([
-            { id: 'ventilator' as MobileTab, icon: Wind, label: 'Vent' },
-            { id: 'monitor' as MobileTab, icon: Monitor, label: 'Monitor' },
-            { id: 'controls' as MobileTab, icon: Settings, label: 'Settings' },
-            { id: 'patients' as MobileTab, icon: Users, label: 'Patient' },
-          ]).map(({ id, icon: Icon, label }) => (
-            <button
-              key={id}
-              onClick={() => setMobileTab(id)}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
-                ${mobileTab === id
-                  ? 'text-primary bg-muted'
-                  : 'text-muted-foreground'
-                }`}
-            >
-              <Icon className="w-4 h-4" />
-              {label}
-            </button>
-          ))}
+          <button
+            onClick={() => setMobileOverlay(mobileOverlay === 'controls' ? 'none' : 'controls')}
+            className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
+              ${mobileOverlay === 'controls' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
+          >
+            <Settings className="w-4 h-4" />
+            Settings
+          </button>
+          <button
+            onClick={() => setMobileOverlay(mobileOverlay === 'patients' ? 'none' : 'patients')}
+            className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
+              ${mobileOverlay === 'patients' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
+          >
+            <Users className="w-4 h-4" />
+            Patient
+          </button>
         </div>
+
+        {/* Slide-up overlay */}
+        {mobileOverlay !== 'none' && (
+          <div className="absolute bottom-[44px] left-0 right-0 bg-background border-t border-border max-h-[60vh] overflow-y-auto z-50 p-2 shadow-lg">
+            {mobileOverlay === 'controls' && (
+              <VentilatorControls settings={settings} onSettingsChange={setSettings} />
+            )}
+            {mobileOverlay === 'patients' && (
+              <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
