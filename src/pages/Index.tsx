@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useIsLandscape } from '@/hooks/use-orientation';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { VentilatorPanel } from '@/components/simulator/VentilatorPanel';
 import { MonitorPanel } from '@/components/simulator/MonitorPanel';
 import { VentilatorControls } from '@/components/simulator/VentilatorControls';
@@ -13,6 +14,8 @@ type MobileOverlay = 'none' | 'controls' | 'patients';
 
 const Index = () => {
   const isLandscape = useIsLandscape();
+  const isMobile = useIsMobile();
+  const isMobileLandscape = isLandscape && isMobile;
   const [patient, setPatient] = useState<PatientPhysiology>(patients[0]);
   const [settings, setSettings] = useState<VentSettings>(getDefaultSettings(patients[0]));
   const [vitals, setVitals] = useState<Vitals>(createInitialVitals(patients[0]));
@@ -76,23 +79,25 @@ const Index = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-secondary border-b border-border gap-2">
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" />
-          <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
-            ICU Vent Sim
-          </h1>
+      {/* Header - hidden on mobile landscape */}
+      {!isMobileLandscape && (
+        <div className="flex items-center justify-between px-3 py-1.5 bg-secondary border-b border-border gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" />
+            <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
+              ICU Vent Sim
+            </h1>
+          </div>
+          {/* Desktop: full patient info */}
+          <div className="hidden md:block text-[10px] text-muted-foreground monitor-text truncate">
+            Patient: {patient.name} | C: {patient.compliance} mL/cmH₂O | R: {patient.resistance} cmH₂O/L/s
+          </div>
+          {/* Mobile: compact vitals */}
+          <div className="md:hidden">
+            <VitalsBar />
+          </div>
         </div>
-        {/* Desktop: full patient info */}
-        <div className="hidden md:block text-[10px] text-muted-foreground monitor-text truncate">
-          Patient: {patient.name} | C: {patient.compliance} mL/cmH₂O | R: {patient.resistance} cmH₂O/L/s
-        </div>
-        {/* Mobile: compact vitals */}
-        <div className="md:hidden">
-          <VitalsBar />
-        </div>
-      </div>
+      )}
 
       {/* ===== DESKTOP LAYOUT (md+) ===== */}
       <div className="hidden md:flex flex-1 min-h-0">
