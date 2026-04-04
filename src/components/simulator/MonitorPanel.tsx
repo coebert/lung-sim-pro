@@ -82,18 +82,18 @@ export function MonitorPanel({ buffers, vitals }: MonitorPanelProps) {
         {/* Capnography */}
         <div className="relative">
           <WaveformCanvas
-            data={buffers.capno}
+          data={buffers.capno.map(v => v / 7.501)}
             color="hsl(45, 100%, 70%)"
             label="CO₂"
-            unit="mmHg"
-            minValue={-5}
-            maxValue={60}
+            unit="kPa"
+            minValue={-0.5}
+            maxValue={8}
             height={60}
           />
           <div className="absolute top-1 right-2 text-right">
             <div className="text-[10px]" style={{ color: 'hsl(45, 100%, 70%)' }}>EtCO₂</div>
             <div className="monitor-text text-2xl font-bold" style={{ color: 'hsl(45, 100%, 70%)' }}>
-              {Math.round(vitals.etco2)}
+              {(vitals.etco2 / 7.501).toFixed(1)}
             </div>
           </div>
         </div>
