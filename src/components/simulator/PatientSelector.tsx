@@ -12,7 +12,7 @@ export function PatientSelector({ selectedPatient, onSelectPatient }: PatientSel
       <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold px-1">
         Patient
       </span>
-      <div className="grid grid-cols-3 gap-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1">
         {patients.map((patient) => (
           <button
             key={patient.id}
