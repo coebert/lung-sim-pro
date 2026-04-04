@@ -111,9 +111,14 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Desktop patient selector */}
+      {/* Desktop patient selector + credit */}
       <div className="hidden md:block border-t border-border p-2">
         <PatientSelector selectedPatient={patient} onSelectPatient={handlePatientChange} />
+        <div className="text-center mt-1">
+          <span className="text-[8px] text-muted-foreground/50 tracking-wide">
+            App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM
+          </span>
+        </div>
       </div>
 
       {/* ===== MOBILE/TABLET LAYOUT (<md) ===== */}
