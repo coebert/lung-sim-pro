@@ -73,7 +73,7 @@ const Index = () => {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-screen flex flex-col bg-background overflow-hidden relative">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-1.5 bg-secondary border-b border-border gap-2">
         <div className="flex items-center gap-2 shrink-0">
