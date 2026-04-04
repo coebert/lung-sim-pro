@@ -6,9 +6,9 @@ import { PatientSelector } from '@/components/simulator/PatientSelector';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffers } from '@/lib/simulation/types';
 import { patients, getDefaultSettings } from '@/lib/simulation/patients';
 import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
-import { Monitor, Wind, Settings, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Settings, Users } from 'lucide-react';
 
-type MobileTab = 'ventilator' | 'monitor' | 'controls' | 'patients';
+type MobileOverlay = 'none' | 'controls' | 'patients';
 
 const Index = () => {
   const [patient, setPatient] = useState<PatientPhysiology>(patients[0]);
