@@ -57,6 +57,19 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        wave: {
+          pressure: "hsl(var(--wave-pressure))",
+          flow: "hsl(var(--wave-flow))",
+          volume: "hsl(var(--wave-volume))",
+          ecg: "hsl(var(--wave-ecg))",
+          abp: "hsl(var(--wave-abp))",
+          spo2: "hsl(var(--wave-spo2))",
+          capno: "hsl(var(--wave-capno))",
+        },
+        monitor: {
+          bg: "hsl(var(--monitor-bg))",
+          grid: "hsl(var(--monitor-grid))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,20 +78,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
