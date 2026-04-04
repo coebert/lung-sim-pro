@@ -50,22 +50,27 @@ function vcvWaveform(time: number, s: VentSettings, p: PatientPhysiology) {
   const phase = time % cycleTime;
   const C = p.compliance / 1000; // convert to L/cmH2O
   const R = p.resistance;
+  const tau = R * C;
+
+  // Calculate trapped volume from breath stacking
+  const trapped = calcTrappedVolume(s, p, s.tidalVolume);
+  const autoPEEP = (trapped / 1000) / C; // extra pressure from trapped gas
 
   if (phase < iTime) {
     // Inspiration - constant flow
     const flow = (s.tidalVolume / 1000) / iTime; // L/s
-    const volume = flow * phase * 1000; // mL
-    const pressure = s.peep + (volume / 1000) / C + flow * R;
+    const volume = trapped + flow * phase * 1000; // mL (stacked on trapped)
+    const pressure = s.peep + autoPEEP + ((flow * phase * 1000) / 1000) / C + flow * R;
     return { pressure, flow: flow * 60, volume }; // flow in L/min
   } else {
     // Expiration
     const ePhase = phase - iTime;
-    const tau = R * C;
     const vol0 = s.tidalVolume;
-    const volume = vol0 * Math.exp(-ePhase / tau) ;
-    const flow = -(volume / 1000) / tau; // L/s
+    const exhaledVolume = vol0 * Math.exp(-ePhase / tau);
+    const volume = trapped + exhaledVolume; // never fully empties
+    const flow = -(exhaledVolume / 1000) / tau; // L/s
     const pressure = s.peep + (volume / 1000) / C;
-    return { pressure: Math.max(pressure, s.peep), flow: flow * 60, volume: Math.max(volume, 0) };
+    return { pressure: Math.max(pressure, s.peep + autoPEEP), flow: flow * 60, volume: Math.max(volume, 0) };
   }
 }
 
