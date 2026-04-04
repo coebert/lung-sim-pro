@@ -2,6 +2,30 @@ import { PatientPhysiology, VentSettings } from './types';
 
 const SAMPLE_RATE = 50; // Hz
 
+// --- Breath Stacking / Air Trapping ---
+// For high-resistance patients, if expiratory time is too short relative to
+// the time constant (tau = R * C), exhaled volume doesn't reach zero before
+// the next breath, causing progressive volume stacking (auto-PEEP).
+
+function calcTrappedVolume(s: VentSettings, p: PatientPhysiology, deliveredVolumeMl: number): number {
+  const C = p.compliance / 1000; // L/cmH2O
+  const R = p.resistance;        // cmH2O/L/s
+  const tau = R * C;              // seconds
+  const cycleTime = 60 / s.respiratoryRate;
+  const iTime = cycleTime / (1 + s.ieRatio);
+  const eTime = cycleTime - iTime;
+
+  // Fraction of volume remaining after expiration = e^(-eTime/tau)
+  const retainedFraction = Math.exp(-eTime / tau);
+
+  // With repeated breaths, trapped volume converges to a geometric series:
+  // trappedVol = deliveredVol * retainedFraction / (1 - retainedFraction)
+  if (retainedFraction > 0.01) {
+    return (deliveredVolumeMl * retainedFraction) / (1 - retainedFraction);
+  }
+  return 0;
+}
+
 // --- Ventilator Waveforms ---
 
 export function generateVentWaveformPoint(
