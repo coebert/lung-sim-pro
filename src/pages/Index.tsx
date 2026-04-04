@@ -137,27 +137,29 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Credit + Bottom bar */}
-        <div className="text-center py-0.5 bg-secondary border-t border-border">
-          <span className="text-[8px] text-muted-foreground/50 tracking-wide">
-            App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM
-          </span>
-        </div>
+        {/* Credit bar - hidden in landscape */}
+        {!isLandscape && (
+          <div className="text-center py-0.5 bg-secondary border-t border-border">
+            <span className="text-[8px] text-muted-foreground/50 tracking-wide">
+              App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM
+            </span>
+          </div>
+        )}
         <div className="flex border-t border-border bg-secondary shrink-0">
           <button
             onClick={() => setMobileOverlay(mobileOverlay === 'controls' ? 'none' : 'controls')}
-            className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
+            className={`flex-1 flex items-center justify-center gap-1 ${isLandscape ? 'py-1' : 'flex-col gap-0.5 py-2'} text-[10px] transition-colors
               ${mobileOverlay === 'controls' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
           >
-            <Settings className="w-4 h-4" />
+            <Settings className={isLandscape ? 'w-3 h-3' : 'w-4 h-4'} />
             Settings
           </button>
           <button
             onClick={() => setMobileOverlay(mobileOverlay === 'patients' ? 'none' : 'patients')}
-            className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
+            className={`flex-1 flex items-center justify-center gap-1 ${isLandscape ? 'py-1' : 'flex-col gap-0.5 py-2'} text-[10px] transition-colors
               ${mobileOverlay === 'patients' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
           >
-            <Users className="w-4 h-4" />
+            <Users className={isLandscape ? 'w-3 h-3' : 'w-4 h-4'} />
             Patient
           </button>
         </div>
