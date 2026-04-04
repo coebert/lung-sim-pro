@@ -14,6 +14,8 @@ type MobileOverlay = 'none' | 'controls' | 'patients';
 
 const Index = () => {
   const isLandscape = useIsLandscape();
+  const isMobile = useIsMobile();
+  const isMobileLandscape = isLandscape && isMobile;
   const [patient, setPatient] = useState<PatientPhysiology>(patients[0]);
   const [settings, setSettings] = useState<VentSettings>(getDefaultSettings(patients[0]));
   const [vitals, setVitals] = useState<Vitals>(createInitialVitals(patients[0]));
