@@ -2,6 +2,30 @@ import { PatientPhysiology, VentSettings } from './types';
 
 const SAMPLE_RATE = 50; // Hz
 
+// --- Breath Stacking / Air Trapping ---
+// For high-resistance patients, if expiratory time is too short relative to
+// the time constant (tau = R * C), exhaled volume doesn't reach zero before
+// the next breath, causing progressive volume stacking (auto-PEEP).
+
+function calcTrappedVolume(s: VentSettings, p: PatientPhysiology, deliveredVolumeMl: number): number {
+  const C = p.compliance / 1000; // L/cmH2O
+  const R = p.resistance;        // cmH2O/L/s
+  const tau = R * C;              // seconds
+  const cycleTime = 60 / s.respiratoryRate;
+  const iTime = cycleTime / (1 + s.ieRatio);
+  const eTime = cycleTime - iTime;
+
+  // Fraction of volume remaining after expiration = e^(-eTime/tau)
+  const retainedFraction = Math.exp(-eTime / tau);
+
+  // With repeated breaths, trapped volume converges to a geometric series:
+  // trappedVol = deliveredVol * retainedFraction / (1 - retainedFraction)
+  if (retainedFraction > 0.01) {
+    return (deliveredVolumeMl * retainedFraction) / (1 - retainedFraction);
+  }
+  return 0;
+}
+
 // --- Ventilator Waveforms ---
 
 export function generateVentWaveformPoint(
@@ -26,22 +50,27 @@ function vcvWaveform(time: number, s: VentSettings, p: PatientPhysiology) {
   const phase = time % cycleTime;
   const C = p.compliance / 1000; // convert to L/cmH2O
   const R = p.resistance;
+  const tau = R * C;
+
+  // Calculate trapped volume from breath stacking
+  const trapped = calcTrappedVolume(s, p, s.tidalVolume);
+  const autoPEEP = (trapped / 1000) / C; // extra pressure from trapped gas
 
   if (phase < iTime) {
     // Inspiration - constant flow
     const flow = (s.tidalVolume / 1000) / iTime; // L/s
-    const volume = flow * phase * 1000; // mL
-    const pressure = s.peep + (volume / 1000) / C + flow * R;
+    const volume = trapped + flow * phase * 1000; // mL (stacked on trapped)
+    const pressure = s.peep + autoPEEP + ((flow * phase * 1000) / 1000) / C + flow * R;
     return { pressure, flow: flow * 60, volume }; // flow in L/min
   } else {
     // Expiration
     const ePhase = phase - iTime;
-    const tau = R * C;
     const vol0 = s.tidalVolume;
-    const volume = vol0 * Math.exp(-ePhase / tau) ;
-    const flow = -(volume / 1000) / tau; // L/s
+    const exhaledVolume = vol0 * Math.exp(-ePhase / tau);
+    const volume = trapped + exhaledVolume; // never fully empties
+    const flow = -(exhaledVolume / 1000) / tau; // L/s
     const pressure = s.peep + (volume / 1000) / C;
-    return { pressure: Math.max(pressure, s.peep), flow: flow * 60, volume: Math.max(volume, 0) };
+    return { pressure: Math.max(pressure, s.peep + autoPEEP), flow: flow * 60, volume: Math.max(volume, 0) };
   }
 }
 
@@ -53,18 +82,24 @@ function pcvWaveform(time: number, s: VentSettings, p: PatientPhysiology) {
   const R = p.resistance;
   const tau = R * C;
 
+  // Calculate trapped volume from breath stacking
+  const deliveredVol = s.pInsp * C * (1 - Math.exp(-iTime / tau)) * 1000;
+  const trapped = calcTrappedVolume(s, p, deliveredVol);
+  const autoPEEP = (trapped / 1000) / C;
+
   if (phase < iTime) {
-    const volume = s.pInsp * C * (1 - Math.exp(-phase / tau)) * 1000;
+    const volume = trapped + s.pInsp * C * (1 - Math.exp(-phase / tau)) * 1000;
     const flow = (s.pInsp / R) * Math.exp(-phase / tau);
-    const pressure = s.peep + s.pInsp;
+    const pressure = s.peep + autoPEEP + s.pInsp;
     return { pressure, flow: flow * 60, volume };
   } else {
     const ePhase = phase - iTime;
-    const vol0 = s.pInsp * C * (1 - Math.exp(-iTime / tau)) * 1000;
-    const volume = vol0 * Math.exp(-ePhase / tau);
-    const flow = -(volume / 1000) / tau;
+    const vol0 = deliveredVol;
+    const exhaledVolume = vol0 * Math.exp(-ePhase / tau);
+    const volume = trapped + exhaledVolume;
+    const flow = -(exhaledVolume / 1000) / tau;
     const pressure = s.peep + (volume / 1000) / C;
-    return { pressure: Math.max(pressure, s.peep), flow: flow * 60, volume: Math.max(volume, 0) };
+    return { pressure: Math.max(pressure, s.peep + autoPEEP), flow: flow * 60, volume: Math.max(volume, 0) };
   }
 }
 
