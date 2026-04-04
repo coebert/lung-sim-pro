@@ -43,7 +43,7 @@ export function simulationTick(
   const abp = generateABP(time, vitals.hr, vitals.sbp, vitals.dbp);
   const spo2 = generateSpO2Pleth(time, vitals.hr);
   const actualRR = settings.mode === 'PSV' ? (patient.spontaneousRate || 12) : settings.respiratoryRate;
-  const capno = generateCapnography(time, actualRR, vitals.etco2);
+  const capno = generateCapnography(time, actualRR, vitals.etco2, patient.spontaneousRate);
 
   // Push to buffers (shift left, add right)
   const newBuffers: WaveformBuffers = {
