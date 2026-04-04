@@ -80,7 +80,7 @@ const Index = () => {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header - hidden on mobile landscape */}
-      {!(isLandscape && typeof window !== 'undefined' && window.innerWidth < 768) && (
+      {!isMobileLandscape && (
         <div className="flex items-center justify-between px-3 py-1.5 bg-secondary border-b border-border gap-2">
           <div className="flex items-center gap-2 shrink-0">
             <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" />
