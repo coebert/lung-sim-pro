@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { VentSettings, VentMode } from '@/lib/simulation/types';
+
+type TimingMode = 'ie' | 'ti';
 
 interface VentilatorControlsProps {
   settings: VentSettings;
@@ -8,6 +11,8 @@ interface VentilatorControlsProps {
 const MODES: VentMode[] = ['VCV', 'PCV', 'PRVC', 'SIMV', 'PSV', 'APRV'];
 
 export function VentilatorControls({ settings, onSettingsChange }: VentilatorControlsProps) {
+  const [timingMode, setTimingMode] = useState<TimingMode>('ie');
+
   const update = (key: keyof VentSettings, value: number | string) => {
     onSettingsChange({ ...settings, [key]: value });
   };
