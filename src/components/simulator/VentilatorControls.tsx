@@ -81,23 +81,14 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               min={4} max={40} step={1}
               onChange={(v) => update('respiratoryRate', v)}
             />
-            <SettingControl
-              label="I:E"
-              value={settings.ieRatio}
-              unit={`1:${settings.ieRatio}`}
-              min={1} max={4} step={0.5}
-              onChange={(v) => update('ieRatio', v)}
+            <TimingToggleAndControl
+              timingMode={timingMode}
+              onTimingModeChange={setTimingMode}
+              settings={settings}
+              onUpdate={update}
+              computedIE={computedIE}
+              te={te}
             />
-            <SettingControl
-              label="Ti"
-              value={settings.inspiratoryTime}
-              unit="sec"
-              min={0.3} max={3.0} step={0.1}
-              onChange={(v) => update('inspiratoryTime', v)}
-            />
-            <ComputedIEDisplay ie={computedIE} te={te} />
-          </>
-        )}
 
         {/* PCV specific */}
         {settings.mode === 'PCV' && (
@@ -116,23 +107,14 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               min={4} max={40} step={1}
               onChange={(v) => update('respiratoryRate', v)}
             />
-            <SettingControl
-              label="I:E"
-              value={settings.ieRatio}
-              unit={`1:${settings.ieRatio}`}
-              min={1} max={4} step={0.5}
-              onChange={(v) => update('ieRatio', v)}
+            <TimingToggleAndControl
+              timingMode={timingMode}
+              onTimingModeChange={setTimingMode}
+              settings={settings}
+              onUpdate={update}
+              computedIE={computedIE}
+              te={te}
             />
-            <SettingControl
-              label="Ti"
-              value={settings.inspiratoryTime}
-              unit="sec"
-              min={0.3} max={3.0} step={0.1}
-              onChange={(v) => update('inspiratoryTime', v)}
-            />
-            <ComputedIEDisplay ie={computedIE} te={te} />
-          </>
-        )}
 
         {/* PRVC specific */}
         {settings.mode === 'PRVC' && (
@@ -158,23 +140,14 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               min={15} max={50} step={1}
               onChange={(v) => update('pMax', v)}
             />
-            <SettingControl
-              label="I:E"
-              value={settings.ieRatio}
-              unit={`1:${settings.ieRatio}`}
-              min={1} max={4} step={0.5}
-              onChange={(v) => update('ieRatio', v)}
+            <TimingToggleAndControl
+              timingMode={timingMode}
+              onTimingModeChange={setTimingMode}
+              settings={settings}
+              onUpdate={update}
+              computedIE={computedIE}
+              te={te}
             />
-            <SettingControl
-              label="Ti"
-              value={settings.inspiratoryTime}
-              unit="sec"
-              min={0.3} max={3.0} step={0.1}
-              onChange={(v) => update('inspiratoryTime', v)}
-            />
-            <ComputedIEDisplay ie={computedIE} te={te} />
-          </>
-        )}
 
         {/* SIMV additional */}
         {settings.mode === 'SIMV' && (
