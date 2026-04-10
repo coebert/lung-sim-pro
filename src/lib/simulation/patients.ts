@@ -145,5 +145,6 @@ export function getDefaultSettings(patient: PatientPhysiology) {
     tLow: 0.5,
     flowRate: 40,
     pMax: 35,
+    inspiratoryTime: 1.0,
   };
 }

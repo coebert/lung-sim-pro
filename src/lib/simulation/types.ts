@@ -15,6 +15,7 @@ export interface VentSettings {
   tLow: number;             // seconds (APRV)
   flowRate: number;         // L/min (VCV)
   pMax: number;             // cmH2O pressure limit (PRVC)
+  inspiratoryTime: number;  // seconds
 }
 
 export interface PatientPhysiology {
