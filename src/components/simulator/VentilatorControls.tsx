@@ -12,6 +12,13 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
     onSettingsChange({ ...settings, [key]: value });
   };
 
+  // Compute I:E and Te from Ti and RR
+  const cycleTime = 60 / settings.respiratoryRate;
+  const ti = settings.inspiratoryTime > 0 ? settings.inspiratoryTime : cycleTime / (1 + settings.ieRatio);
+  const te = Math.max(0, cycleTime - ti);
+  const eRatio = ti > 0 ? te / ti : 0;
+  const computedIE = `1:${eRatio.toFixed(1)}`;
+
   return (
     <div className="flex flex-col gap-2">
       {/* Mode selector */}
@@ -83,6 +90,7 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               min={0.3} max={3.0} step={0.1}
               onChange={(v) => update('inspiratoryTime', v)}
             />
+            <ComputedIEDisplay ie={computedIE} te={te} />
           </>
         )}
 
@@ -117,6 +125,7 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               min={0.3} max={3.0} step={0.1}
               onChange={(v) => update('inspiratoryTime', v)}
             />
+            <ComputedIEDisplay ie={computedIE} te={te} />
           </>
         )}
 
@@ -158,6 +167,7 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               min={0.3} max={3.0} step={0.1}
               onChange={(v) => update('inspiratoryTime', v)}
             />
+            <ComputedIEDisplay ie={computedIE} te={te} />
           </>
         )}
 
@@ -262,6 +272,19 @@ function SettingControl({
         </button>
       </div>
       <span className="text-[9px] text-muted-foreground">{unit}</span>
+    </div>
+  );
+}
+
+function ComputedIEDisplay({ ie, te }: { ie: string; te: number }) {
+  const isWarning = te < 0.5;
+  return (
+    <div className="bg-secondary rounded p-2 flex flex-col items-center justify-center gap-0.5">
+      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Computed</span>
+      <span className={`monitor-text text-sm font-bold ${isWarning ? 'text-destructive' : 'text-foreground'}`}>
+        {ie}
+      </span>
+      <span className="text-[9px] text-muted-foreground">Te {te.toFixed(1)}s</span>
     </div>
   );
 }
