@@ -76,6 +76,13 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               min={1} max={4} step={0.5}
               onChange={(v) => update('ieRatio', v)}
             />
+            <SettingControl
+              label="Ti"
+              value={settings.inspiratoryTime}
+              unit="sec"
+              min={0.3} max={3.0} step={0.1}
+              onChange={(v) => update('inspiratoryTime', v)}
+            />
           </>
         )}
 
@@ -102,6 +109,13 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               unit={`1:${settings.ieRatio}`}
               min={1} max={4} step={0.5}
               onChange={(v) => update('ieRatio', v)}
+            />
+            <SettingControl
+              label="Ti"
+              value={settings.inspiratoryTime}
+              unit="sec"
+              min={0.3} max={3.0} step={0.1}
+              onChange={(v) => update('inspiratoryTime', v)}
             />
           </>
         )}
@@ -136,6 +150,13 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               unit={`1:${settings.ieRatio}`}
               min={1} max={4} step={0.5}
               onChange={(v) => update('ieRatio', v)}
+            />
+            <SettingControl
+              label="Ti"
+              value={settings.inspiratoryTime}
+              unit="sec"
+              min={0.3} max={3.0} step={0.1}
+              onChange={(v) => update('inspiratoryTime', v)}
             />
           </>
         )}
