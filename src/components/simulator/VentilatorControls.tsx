@@ -12,6 +12,13 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
     onSettingsChange({ ...settings, [key]: value });
   };
 
+  // Compute I:E and Te from Ti and RR
+  const cycleTime = 60 / settings.respiratoryRate;
+  const ti = settings.inspiratoryTime > 0 ? settings.inspiratoryTime : cycleTime / (1 + settings.ieRatio);
+  const te = Math.max(0, cycleTime - ti);
+  const eRatio = ti > 0 ? te / ti : 0;
+  const computedIE = `1:${eRatio.toFixed(1)}`;
+
   return (
     <div className="flex flex-col gap-2">
       {/* Mode selector */}
