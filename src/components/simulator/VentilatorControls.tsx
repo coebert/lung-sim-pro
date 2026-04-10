@@ -90,6 +90,7 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               min={0.3} max={3.0} step={0.1}
               onChange={(v) => update('inspiratoryTime', v)}
             />
+            <ComputedIEDisplay ie={computedIE} te={te} />
           </>
         )}
 
@@ -124,6 +125,7 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               min={0.3} max={3.0} step={0.1}
               onChange={(v) => update('inspiratoryTime', v)}
             />
+            <ComputedIEDisplay ie={computedIE} te={te} />
           </>
         )}
 
@@ -165,6 +167,7 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               min={0.3} max={3.0} step={0.1}
               onChange={(v) => update('inspiratoryTime', v)}
             />
+            <ComputedIEDisplay ie={computedIE} te={te} />
           </>
         )}
 
