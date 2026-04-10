@@ -275,3 +275,16 @@ function SettingControl({
     </div>
   );
 }
+
+function ComputedIEDisplay({ ie, te }: { ie: string; te: number }) {
+  const isWarning = te < 0.5;
+  return (
+    <div className="bg-secondary rounded p-2 flex flex-col items-center justify-center gap-0.5">
+      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Computed</span>
+      <span className={`monitor-text text-sm font-bold ${isWarning ? 'text-destructive' : 'text-foreground'}`}>
+        {ie}
+      </span>
+      <span className="text-[9px] text-muted-foreground">Te {te.toFixed(1)}s</span>
+    </div>
+  );
+}
