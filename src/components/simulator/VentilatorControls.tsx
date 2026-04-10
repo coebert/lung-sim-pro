@@ -19,10 +19,13 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
 
   // Compute I:E and Te from Ti and RR
   const cycleTime = 60 / settings.respiratoryRate;
-  const ti = settings.inspiratoryTime > 0 ? settings.inspiratoryTime : cycleTime / (1 + settings.ieRatio);
+  const ti = timingMode === 'ti' && settings.inspiratoryTime > 0
+    ? settings.inspiratoryTime
+    : cycleTime / (1 + settings.ieRatio);
   const te = Math.max(0, cycleTime - ti);
   const eRatio = ti > 0 ? te / ti : 0;
   const computedIE = `1:${eRatio.toFixed(1)}`;
+  const computedTi = cycleTime / (1 + settings.ieRatio);
 
   return (
     <div className="flex flex-col gap-2">
@@ -87,8 +90,11 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               settings={settings}
               onUpdate={update}
               computedIE={computedIE}
+              computedTi={computedTi}
               te={te}
             />
+          </>
+        )}
 
         {/* PCV specific */}
         {settings.mode === 'PCV' && (
@@ -113,8 +119,11 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               settings={settings}
               onUpdate={update}
               computedIE={computedIE}
+              computedTi={computedTi}
               te={te}
             />
+          </>
+        )}
 
         {/* PRVC specific */}
         {settings.mode === 'PRVC' && (
@@ -146,8 +155,11 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               settings={settings}
               onUpdate={update}
               computedIE={computedIE}
+              computedTi={computedTi}
               te={te}
             />
+          </>
+        )}
 
         {/* SIMV additional */}
         {settings.mode === 'SIMV' && (
@@ -209,6 +221,91 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
   );
 }
 
+/* ── Timing toggle: I:E ↔ Ti ── */
+
+function TimingToggleAndControl({
+  timingMode,
+  onTimingModeChange,
+  settings,
+  onUpdate,
+  computedIE,
+  computedTi,
+  te,
+}: {
+  timingMode: TimingMode;
+  onTimingModeChange: (m: TimingMode) => void;
+  settings: VentSettings;
+  onUpdate: (key: keyof VentSettings, value: number) => void;
+  computedIE: string;
+  computedTi: number;
+  te: number;
+}) {
+  const isWarning = te < 0.5;
+
+  return (
+    <>
+      {/* Toggle button spanning one grid cell */}
+      <div className="bg-secondary rounded p-2 flex flex-col items-center gap-1">
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Timing</span>
+        <div className="flex rounded overflow-hidden border border-border">
+          <button
+            onClick={() => onTimingModeChange('ie')}
+            className={`px-2 py-1 text-[10px] font-bold transition-colors
+              ${timingMode === 'ie'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-accent'
+              }`}
+          >
+            I:E
+          </button>
+          <button
+            onClick={() => onTimingModeChange('ti')}
+            className={`px-2 py-1 text-[10px] font-bold transition-colors
+              ${timingMode === 'ti'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-accent'
+              }`}
+          >
+            Ti
+          </button>
+        </div>
+      </div>
+
+      {/* Active control */}
+      {timingMode === 'ie' ? (
+        <SettingControl
+          label="I:E"
+          value={settings.ieRatio}
+          unit={`1:${settings.ieRatio}`}
+          min={1} max={4} step={0.5}
+          onChange={(v) => onUpdate('ieRatio', v)}
+        />
+      ) : (
+        <SettingControl
+          label="Ti"
+          value={settings.inspiratoryTime}
+          unit="sec"
+          min={0.3} max={3.0} step={0.1}
+          onChange={(v) => onUpdate('inspiratoryTime', v)}
+        />
+      )}
+
+      {/* Computed readout */}
+      <div className="bg-secondary rounded p-2 flex flex-col items-center justify-center gap-0.5">
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+          {timingMode === 'ie' ? 'Computed Ti' : 'Computed I:E'}
+        </span>
+        <span className={`monitor-text text-sm font-bold ${isWarning ? 'text-destructive' : 'text-foreground'}`}>
+          {timingMode === 'ie' ? `${computedTi.toFixed(1)}s` : computedIE}
+        </span>
+        <span className="text-[9px] text-muted-foreground">Te {te.toFixed(1)}s</span>
+      </div>
+    </>
+  );
+}
+
+/* ── Setting control ── */
+
 function SettingControl({
   label,
   value,
@@ -250,19 +347,6 @@ function SettingControl({
         </button>
       </div>
       <span className="text-[9px] text-muted-foreground">{unit}</span>
-    </div>
-  );
-}
-
-function ComputedIEDisplay({ ie, te }: { ie: string; te: number }) {
-  const isWarning = te < 0.5;
-  return (
-    <div className="bg-secondary rounded p-2 flex flex-col items-center justify-center gap-0.5">
-      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Computed</span>
-      <span className={`monitor-text text-sm font-bold ${isWarning ? 'text-destructive' : 'text-foreground'}`}>
-        {ie}
-      </span>
-      <span className="text-[9px] text-muted-foreground">Te {te.toFixed(1)}s</span>
     </div>
   );
 }
