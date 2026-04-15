@@ -152,9 +152,21 @@ const Index = () => {
                 <MonitorPanel buffers={buffers} vitals={vitals} />
               </div>
             </div>
-            <div className="w-[220px] shrink-0 border-l border-border p-1 flex flex-col gap-1">
-              <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} />
-              <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+            <div className={`${tutorialActive ? 'w-[320px]' : 'w-[220px]'} shrink-0 border-l border-border p-1 flex flex-col gap-1 transition-all`}>
+              {tutorialActive ? (
+                <TutorialPanel
+                  patient={patient}
+                  settings={settings}
+                  vitals={vitals}
+                  measured={measured}
+                  onClose={() => setTutorialActive(false)}
+                />
+              ) : (
+                <>
+                  <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} />
+                  <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+                </>
+              )}
             </div>
           </div>
           <div className="border-t border-border p-2 shrink-0">
