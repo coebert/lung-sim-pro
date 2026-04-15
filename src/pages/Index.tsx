@@ -117,7 +117,6 @@ const Index = () => {
               ICU Vent Sim
               {frozen && <span className="ml-1.5 text-[10px] text-primary font-normal">FROZEN</span>}
             </h1>
-            </h1>
           </div>
           {isDesktop ? (
             <div className="text-[10px] text-muted-foreground monitor-text truncate">
