@@ -507,9 +507,9 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             {/* ═══ HEART (mediastinal, between lungs) ═══ */}
             <g
               transform={`translate(${100 - 18 * heartCompression}, 72) scale(${heartCompression * heartBeat}, ${heartBeat})`}
-              style={{ transformOrigin: '20px 35px', transition: 'transform 0.08s ease-out' }}
+              style={{ transformOrigin: '20px 35px', transition: heartTransition }}
               filter={tachyIntensity > 0.3 ? 'url(#tachy-glow)' : undefined}
-              opacity={1}
+              opacity={bradyIntensity > 0 ? 1 - bradyIntensity * 0.15 : 1}
             >
               {/* Tachycardia flush overlay — reddens the entire heart */}
               {tachyIntensity > 0 && (
