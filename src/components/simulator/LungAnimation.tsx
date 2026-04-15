@@ -737,17 +737,17 @@ function getObeseBasalPatches(score: number, expansion: number): AtelPatch[] {
   return [
     // ── CRESCENTIC BASAL BANDS — bilateral, confluent ──
     // Left base — broad crescentic atelectasis
-    { x: 34, y: 155, rx: 22 * expansion, ry: 10, opacity: score * 0.85, fill, rotate: -5 },
-    { x: 30, y: 145, rx: 18 * expansion, ry: 7, opacity: score * 0.7, fill, rotate: -3 },
-    { x: 38, y: 138, rx: 14 * expansion, ry: 5, opacity: score > 0.3 ? (score - 0.2) * 0.6 : 0, fill, rotate: -2 },
+    { x: 46, y: 155, rx: 22 * expansion, ry: 10, opacity: score * 0.85, fill, rotate: -5 },
+    { x: 42, y: 145, rx: 18 * expansion, ry: 7, opacity: score * 0.7, fill, rotate: -3 },
+    { x: 50, y: 138, rx: 14 * expansion, ry: 5, opacity: score > 0.3 ? (score - 0.2) * 0.6 : 0, fill, rotate: -2 },
 
     // Right base — slightly larger (more diaphragmatic surface area)
-    { x: 160, y: 158, rx: 24 * expansion, ry: 11, opacity: score * 0.88, fill, rotate: 5 },
-    { x: 164, y: 148, rx: 20 * expansion, ry: 8, opacity: score * 0.72, fill, rotate: 3 },
-    { x: 156, y: 140, rx: 15 * expansion, ry: 5, opacity: score > 0.3 ? (score - 0.2) * 0.6 : 0, fill, rotate: 2 },
+    { x: 148, y: 158, rx: 24 * expansion, ry: 11, opacity: score * 0.88, fill, rotate: 5 },
+    { x: 152, y: 148, rx: 20 * expansion, ry: 8, opacity: score * 0.72, fill, rotate: 3 },
+    { x: 144, y: 140, rx: 15 * expansion, ry: 5, opacity: score > 0.3 ? (score - 0.2) * 0.6 : 0, fill, rotate: 2 },
 
     // ── POSTERIOR DEPENDENT STRIP (supine compression) ──
-    { x: 42, y: 132, rx: 10 * expansion, ry: 4, opacity: score > 0.5 ? (score - 0.4) * 0.5 : 0, fill, rotate: -8 },
-    { x: 152, y: 134, rx: 11 * expansion, ry: 4, opacity: score > 0.5 ? (score - 0.4) * 0.5 : 0, fill, rotate: 8 },
+    { x: 54, y: 132, rx: 10 * expansion, ry: 4, opacity: score > 0.5 ? (score - 0.4) * 0.5 : 0, fill, rotate: -8 },
+    { x: 140, y: 134, rx: 11 * expansion, ry: 4, opacity: score > 0.5 ? (score - 0.4) * 0.5 : 0, fill, rotate: 8 },
   ].filter(p => p.opacity > 0.04);
 }
