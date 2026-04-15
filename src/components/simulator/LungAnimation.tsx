@@ -518,10 +518,17 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                   fill={`rgba(255, ${Math.round(60 - tachyIntensity * 40)}, ${Math.round(40 - tachyIntensity * 30)}, ${tachyIntensity * 0.25})`}
                 />
               )}
+              {/* Bradycardia dusky overlay — cyanotic blue-purple */}
+              {bradyIntensity > 0 && (
+                <path
+                  d="M18,0 C8,5 2,20 4,38 C6,52 14,62 22,68 C28,72 34,70 38,64 C44,54 42,38 40,24 C38,12 30,-2 18,0Z"
+                  fill={`rgba(${Math.round(60 + bradyIntensity * 20)}, ${Math.round(40 + bradyIntensity * 30)}, ${Math.round(100 + bradyIntensity * 55)}, ${bradyIntensity * 0.35})`}
+                />
+              )}
               {/* Pericardium outline */}
               <path
                 d="M18,0 C8,5 2,20 4,38 C6,52 14,62 22,68 C28,72 34,70 38,64 C44,54 42,38 40,24 C38,12 30,-2 18,0Z"
-                fill="none" stroke="#a06060" strokeWidth="0.6" opacity="0.4"
+                fill="none" stroke={bradyIntensity > 0 ? `rgba(${100 - bradyIntensity * 20}, ${80 - bradyIntensity * 20}, ${100 + bradyIntensity * 40}, 0.5)` : '#a06060'} strokeWidth="0.6" opacity="0.4"
               />
 
               {/* ── Right atrium (posterior-right, darker/venous) ── */}
