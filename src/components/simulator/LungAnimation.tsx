@@ -29,13 +29,33 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
 
   const pathology = patient.id;
 
-  // ARDS recruitment score
+  // APRV recruitment score (mirrors engine logic)
+  const aprvRecruitment = useMemo(() => {
+    if (settings.mode !== 'APRV') return null;
+    const { pHigh, pLow, tHigh, tLow } = settings;
+    const openingPressure = patient.optimalPEEP * 1.5;
+    const drivingPressure = pHigh - pLow;
+    const pHighScore = Math.max(0, Math.min(1, (drivingPressure - openingPressure * 0.5) / (openingPressure * 1.0)));
+    const tHighScore = Math.max(0, Math.min(1, (tHigh - 1.5) / 3.0));
+    let tLowScore: number;
+    if (tLow < 0.1) tLowScore = 0.1;
+    else if (tLow <= 0.8) tLowScore = Math.max(0, Math.min(1, tLow / 0.3));
+    else tLowScore = Math.max(0, Math.min(1, 1.0 - (tLow - 0.8) / 0.7));
+    const pLowPenalty = Math.max(0, Math.min(0.5, pLow / 10));
+    return Math.max(0, Math.min(1, pHighScore * tHighScore * tLowScore * (1 - pLowPenalty)));
+  }, [settings, patient.optimalPEEP]);
+
+  // ARDS recruitment score — uses APRV recruitment when in APRV mode
   const ardsRecruitment = useMemo(() => {
     if (pathology !== 'ards') return 1;
+    if (aprvRecruitment !== null) {
+      // In APRV mode, recruitment is driven by APRV-specific parameters
+      return Math.max(0.15, Math.min(1, aprvRecruitment));
+    }
     const peepScore = Math.min(settings.peep / patient.optimalPEEP, 1.2);
     const fio2Score = Math.min(settings.fio2 / patient.optimalFiO2, 1);
     return Math.max(0.15, Math.min(1, peepScore * 0.7 + fio2Score * 0.3));
-  }, [pathology, settings.peep, settings.fio2, patient.optimalPEEP, patient.optimalFiO2]);
+  }, [pathology, settings.peep, settings.fio2, patient.optimalPEEP, patient.optimalFiO2, aprvRecruitment]);
 
   // Obesity: basal atelectasis severity — improves with adequate PEEP
   const obeseAtelScore = useMemo(() => {
@@ -689,6 +709,45 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               </>
             )}
 
+            {/* ═══ APRV RECRUITMENT AERATION GLOW ═══ */}
+            {settings.mode === 'APRV' && aprvRecruitment !== null && aprvRecruitment > 0.3 && (
+              <g clipPath="url(#clip-lungs)" opacity={aprvRecruitment * 0.5}>
+                {/* Aeration glow spots — appear in dependent zones first as recruitment improves */}
+                {/* Left lower (dependent — recruits first) */}
+                <circle cx={lx(50)} cy={ly(140)} r={6 * e} fill="#e8b0b0" opacity={Math.min(1, aprvRecruitment * 1.2) * 0.3}>
+                  <animate attributeName="opacity" values={`${aprvRecruitment * 0.15};${aprvRecruitment * 0.35};${aprvRecruitment * 0.15}`} dur="3s" repeatCount="indefinite" />
+                </circle>
+                <circle cx={lx(42)} cy={ly(130)} r={4 * e} fill="#e8b0b0" opacity={Math.min(1, aprvRecruitment * 1.1) * 0.25}>
+                  <animate attributeName="opacity" values={`${aprvRecruitment * 0.12};${aprvRecruitment * 0.3};${aprvRecruitment * 0.12}`} dur="3.5s" repeatCount="indefinite" />
+                </circle>
+                {/* Right lower (dependent) */}
+                <circle cx={rx(148)} cy={ry(142)} r={7 * e} fill="#e8b0b0" opacity={Math.min(1, aprvRecruitment * 1.2) * 0.3}>
+                  <animate attributeName="opacity" values={`${aprvRecruitment * 0.15};${aprvRecruitment * 0.35};${aprvRecruitment * 0.15}`} dur="2.8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx={rx(155)} cy={ry(130)} r={5 * e} fill="#e8b0b0" opacity={Math.min(1, aprvRecruitment * 1.1) * 0.25}>
+                  <animate attributeName="opacity" values={`${aprvRecruitment * 0.12};${aprvRecruitment * 0.28};${aprvRecruitment * 0.12}`} dur="3.2s" repeatCount="indefinite" />
+                </circle>
+                {/* Mid zones (recruit at higher scores) */}
+                {aprvRecruitment > 0.5 && (<>
+                  <circle cx={lx(48)} cy={ly(110)} r={4 * e} fill="#d4a0a0" opacity={(aprvRecruitment - 0.5) * 0.4}>
+                    <animate attributeName="opacity" values={`${(aprvRecruitment - 0.5) * 0.2};${(aprvRecruitment - 0.5) * 0.45};${(aprvRecruitment - 0.5) * 0.2}`} dur="3.3s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx={rx(150)} cy={ry(108)} r={4 * e} fill="#d4a0a0" opacity={(aprvRecruitment - 0.5) * 0.4}>
+                    <animate attributeName="opacity" values={`${(aprvRecruitment - 0.5) * 0.2};${(aprvRecruitment - 0.5) * 0.45};${(aprvRecruitment - 0.5) * 0.2}`} dur="3.1s" repeatCount="indefinite" />
+                  </circle>
+                </>)}
+                {/* Upper zones (only at high recruitment) */}
+                {aprvRecruitment > 0.7 && (<>
+                  <circle cx={lx(50)} cy={ly(85)} r={3 * e} fill="#c89898" opacity={(aprvRecruitment - 0.7) * 0.35}>
+                    <animate attributeName="opacity" values={`${(aprvRecruitment - 0.7) * 0.15};${(aprvRecruitment - 0.7) * 0.4};${(aprvRecruitment - 0.7) * 0.15}`} dur="3.6s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx={rx(152)} cy={ry(80)} r={3 * e} fill="#c89898" opacity={(aprvRecruitment - 0.7) * 0.35}>
+                    <animate attributeName="opacity" values={`${(aprvRecruitment - 0.7) * 0.15};${(aprvRecruitment - 0.7) * 0.4};${(aprvRecruitment - 0.7) * 0.15}`} dur="3.4s" repeatCount="indefinite" />
+                  </circle>
+                </>)}
+              </g>
+            )}
+
             {/* ═══ PLEURAL REFLECTION LINES (costophrenic angles) ═══ */}
             <path d={`M${lx(28)},${my(diaphragmY)} Q${lx(24)},${my(diaphragmY - 8)} ${lx(22)},${my(diaphragmY - 20)}`}
               fill="none" stroke="#8a5560" strokeWidth="0.4" opacity="0.15" />
@@ -700,6 +759,30 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               <text x="100" y="212" textAnchor="middle" fill={statusColor} fontSize="8.5" fontFamily="monospace" fontWeight="bold">
                 {statusText}
               </text>
+            )}
+
+            {/* ═══ APRV RECRUITMENT PROGRESS INDICATOR ═══ */}
+            {settings.mode === 'APRV' && aprvRecruitment !== null && (
+              <g>
+                {/* Background bar */}
+                <rect x="30" y="196" width="140" height="6" rx="3" fill="#1a1a2e" stroke="#333" strokeWidth="0.5" />
+                {/* Fill bar — color transitions from red → yellow → green */}
+                <rect x="30" y="196" width={140 * aprvRecruitment} height="6" rx="3"
+                  fill={aprvRecruitment > 0.7 ? '#4ade80' : aprvRecruitment > 0.4 ? '#eab308' : '#ef4444'}
+                  opacity="0.85"
+                />
+                {/* Tick marks at 40% and 80% */}
+                <line x1={30 + 140 * 0.4} y1="195.5" x2={30 + 140 * 0.4} y2="202.5" stroke="#555" strokeWidth="0.4" />
+                <line x1={30 + 140 * 0.8} y1="195.5" x2={30 + 140 * 0.8} y2="202.5" stroke="#555" strokeWidth="0.4" />
+                {/* Label */}
+                <text x="100" y="194" textAnchor="middle" fill={aprvRecruitment > 0.7 ? '#4ade80' : aprvRecruitment > 0.4 ? '#eab308' : '#ef4444'} fontSize="6" fontFamily="monospace" fontWeight="bold">
+                  Recruitment {Math.round(aprvRecruitment * 100)}%
+                </text>
+                {/* Qualitative label */}
+                <text x="100" y="210" textAnchor="middle" fill="#888" fontSize="5" fontFamily="monospace">
+                  {aprvRecruitment > 0.8 ? 'Optimal — alveoli recruiting' : aprvRecruitment > 0.5 ? 'Partial — adjust settings' : 'Poor — review P High, T High, T Low'}
+                </text>
+              </g>
             )}
           </svg>
         </div>
