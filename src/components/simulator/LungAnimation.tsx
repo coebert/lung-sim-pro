@@ -52,6 +52,11 @@ export function LungAnimation({ patient, settings, buffers, compact = false }: L
   const inflationBase = pathology === 'bronchospasm' ? hyperinflation : 1;
   const expansion = inflationBase * (baseExpansion * 0.75 + breathPhase * 0.25);
 
+  // Heart compression from hyperinflation (1 = normal, <1 = compressed)
+  const heartCompression = pathology === 'bronchospasm'
+    ? Math.max(0.55, 1 - (hyperinflation - 1) * 0.6)
+    : 1;
+
   const lungFill = getLungGradientId(pathology);
   const lungOpacity = pathology === 'ards' ? 0.5 + ardsRecruitment * 0.45 : 0.92;
   const airwayWidth = pathology === 'bronchospasm' ? 2.2 : 3.5;
@@ -177,7 +182,39 @@ export function LungAnimation({ patient, settings, buffers, compact = false }: L
                 <stop offset="100%" stopColor="#3a2820" />
               </radialGradient>
 
-              {/* Vascular pattern filter */}
+              {/* ── Heart gradients ── */}
+              {/* Myocardium */}
+              <radialGradient id="heart-myo" cx="45%" cy="35%" r="60%">
+                <stop offset="0%" stopColor="#c84848" />
+                <stop offset="35%" stopColor="#a83838" />
+                <stop offset="70%" stopColor="#882828" />
+                <stop offset="100%" stopColor="#682020" />
+              </radialGradient>
+              {/* Right atrium / venous */}
+              <radialGradient id="heart-ra" cx="50%" cy="40%" r="55%">
+                <stop offset="0%" stopColor="#7848a0" />
+                <stop offset="100%" stopColor="#583078" />
+              </radialGradient>
+              {/* Left atrium / arterial */}
+              <radialGradient id="heart-la" cx="50%" cy="40%" r="55%">
+                <stop offset="0%" stopColor="#c04040" />
+                <stop offset="100%" stopColor="#982828" />
+              </radialGradient>
+              {/* Aorta */}
+              <linearGradient id="aorta-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#d04848" />
+                <stop offset="100%" stopColor="#a03030" />
+              </linearGradient>
+              {/* Great vessels */}
+              <linearGradient id="vein-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#6848a0" />
+                <stop offset="100%" stopColor="#483878" />
+              </linearGradient>
+              {/* Epicardial highlight */}
+              <radialGradient id="heart-sheen" cx="35%" cy="25%" r="65%">
+                <stop offset="0%" stopColor="rgba(255,200,200,0.2)" />
+                <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+              </radialGradient>
               <filter id="tissue-tex">
                 <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="3" result="noise" />
                 <feColorMatrix type="saturate" values="0" in="noise" result="grey" />
