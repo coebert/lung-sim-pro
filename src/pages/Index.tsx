@@ -11,6 +11,7 @@ import { Settings, Users, Pause, Play } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
+import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
 
 type MobileOverlay = 'none' | 'controls' | 'patients';
 
@@ -141,8 +142,9 @@ const Index = () => {
                 <MonitorPanel buffers={buffers} vitals={vitals} />
               </div>
             </div>
-            <div className="w-[200px] shrink-0 border-l border-border p-1">
+            <div className="w-[220px] shrink-0 border-l border-border p-1 flex flex-col gap-1">
               <LungAnimation patient={patient} settings={settings} buffers={buffers} />
+              <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
             </div>
           </div>
           <div className="border-t border-border p-2 shrink-0">
