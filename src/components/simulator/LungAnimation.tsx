@@ -29,13 +29,33 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
 
   const pathology = patient.id;
 
-  // ARDS recruitment score
+  // APRV recruitment score (mirrors engine logic)
+  const aprvRecruitment = useMemo(() => {
+    if (settings.mode !== 'APRV') return null;
+    const { pHigh, pLow, tHigh, tLow } = settings;
+    const openingPressure = patient.optimalPEEP * 1.5;
+    const drivingPressure = pHigh - pLow;
+    const pHighScore = Math.max(0, Math.min(1, (drivingPressure - openingPressure * 0.5) / (openingPressure * 1.0)));
+    const tHighScore = Math.max(0, Math.min(1, (tHigh - 1.5) / 3.0));
+    let tLowScore: number;
+    if (tLow < 0.1) tLowScore = 0.1;
+    else if (tLow <= 0.8) tLowScore = Math.max(0, Math.min(1, tLow / 0.3));
+    else tLowScore = Math.max(0, Math.min(1, 1.0 - (tLow - 0.8) / 0.7));
+    const pLowPenalty = Math.max(0, Math.min(0.5, pLow / 10));
+    return Math.max(0, Math.min(1, pHighScore * tHighScore * tLowScore * (1 - pLowPenalty)));
+  }, [settings, patient.optimalPEEP]);
+
+  // ARDS recruitment score — uses APRV recruitment when in APRV mode
   const ardsRecruitment = useMemo(() => {
     if (pathology !== 'ards') return 1;
+    if (aprvRecruitment !== null) {
+      // In APRV mode, recruitment is driven by APRV-specific parameters
+      return Math.max(0.15, Math.min(1, aprvRecruitment));
+    }
     const peepScore = Math.min(settings.peep / patient.optimalPEEP, 1.2);
     const fio2Score = Math.min(settings.fio2 / patient.optimalFiO2, 1);
     return Math.max(0.15, Math.min(1, peepScore * 0.7 + fio2Score * 0.3));
-  }, [pathology, settings.peep, settings.fio2, patient.optimalPEEP, patient.optimalFiO2]);
+  }, [pathology, settings.peep, settings.fio2, patient.optimalPEEP, patient.optimalFiO2, aprvRecruitment]);
 
   // Obesity: basal atelectasis severity — improves with adequate PEEP
   const obeseAtelScore = useMemo(() => {
