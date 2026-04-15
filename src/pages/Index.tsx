@@ -7,12 +7,13 @@ import { PatientSelector } from '@/components/simulator/PatientSelector';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffers } from '@/lib/simulation/types';
 import { patients, getDefaultSettings } from '@/lib/simulation/patients';
 import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
-import { Settings, Users, Pause, Play } from 'lucide-react';
+import { Settings, Users, Pause, Play, Stethoscope } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
+import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
 
-type MobileOverlay = 'none' | 'controls' | 'patients';
+type MobileOverlay = 'none' | 'controls' | 'patients' | 'feedback';
 
 const Index = () => {
   const layoutMode = useLayoutMode();
@@ -141,8 +142,9 @@ const Index = () => {
                 <MonitorPanel buffers={buffers} vitals={vitals} />
               </div>
             </div>
-            <div className="w-[200px] shrink-0 border-l border-border p-1">
+            <div className="w-[220px] shrink-0 border-l border-border p-1 flex flex-col gap-1">
               <LungAnimation patient={patient} settings={settings} buffers={buffers} />
+              <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
             </div>
           </div>
           <div className="border-t border-border p-2 shrink-0">
@@ -188,6 +190,14 @@ const Index = () => {
               <Users className="w-3 h-3" />
               Patient
             </button>
+            <button
+              onClick={() => setMobileOverlay(mobileOverlay === 'feedback' ? 'none' : 'feedback')}
+              className={`flex-1 flex items-center justify-center gap-1 py-0.5 text-[10px] transition-colors
+                ${mobileOverlay === 'feedback' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
+            >
+              <Stethoscope className="w-3 h-3" />
+              Clinical
+            </button>
           </div>
 
           {/* Slide-up overlay */}
@@ -198,6 +208,9 @@ const Index = () => {
               )}
               {mobileOverlay === 'patients' && (
                 <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
+              )}
+              {mobileOverlay === 'feedback' && (
+                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
               )}
             </div>
           )}
@@ -241,6 +254,14 @@ const Index = () => {
               <Users className="w-4 h-4" />
               Patient
             </button>
+            <button
+              onClick={() => setMobileOverlay(mobileOverlay === 'feedback' ? 'none' : 'feedback')}
+              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
+                ${mobileOverlay === 'feedback' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
+            >
+              <Stethoscope className="w-4 h-4" />
+              Clinical
+            </button>
           </div>
 
           {/* Slide-up overlay */}
@@ -251,6 +272,9 @@ const Index = () => {
               )}
               {mobileOverlay === 'patients' && (
                 <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
+              )}
+              {mobileOverlay === 'feedback' && (
+                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
               )}
             </div>
           )}
