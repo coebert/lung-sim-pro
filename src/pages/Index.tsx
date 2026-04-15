@@ -128,7 +128,7 @@ const Index = () => {
       {isDesktop && (
         <>
           <div className="flex flex-1 min-h-0">
-            <div className="flex-1 flex flex-col border-r border-border min-w-0">
+            <div className="flex-[2] flex flex-col border-r border-border min-w-0">
               <div className="flex-1 min-h-0 p-1">
                 <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
               </div>
@@ -136,10 +136,13 @@ const Index = () => {
                 <VentilatorControls settings={settings} onSettingsChange={setSettings} />
               </div>
             </div>
-            <div className="flex-1 flex flex-col min-w-0 border-l border-border">
+            <div className="flex-[2] flex flex-col min-w-0 border-l border-border">
               <div className="flex-1 min-h-0 p-1">
                 <MonitorPanel buffers={buffers} vitals={vitals} />
               </div>
+            </div>
+            <div className="w-[200px] shrink-0 border-l border-border p-1">
+              <LungAnimation patient={patient} settings={settings} buffers={buffers} />
             </div>
           </div>
           <div className="border-t border-border p-2 shrink-0">
@@ -204,11 +207,16 @@ const Index = () => {
       {/* ===== MOBILE PORTRAIT ===== */}
       {isPortrait && (
         <div className="flex-1 flex flex-col min-h-0 relative">
-          <div className="flex-1 min-h-0 p-1 border-b border-border">
+          <div className="flex-[3] min-h-0 p-1 border-b border-border">
             <MonitorPanel buffers={buffers} vitals={vitals} />
           </div>
-          <div className="flex-1 min-h-0 p-1">
-            <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
+          <div className="flex-[2] min-h-0 flex flex-row border-b border-border">
+            <div className="flex-1 min-h-0 p-1">
+              <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
+            </div>
+            <div className="w-[120px] shrink-0 border-l border-border p-0.5">
+              <LungAnimation patient={patient} settings={settings} buffers={buffers} compact />
+            </div>
           </div>
 
           <div className="text-center py-0.5 bg-secondary border-t border-border shrink-0">
