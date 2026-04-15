@@ -440,35 +440,43 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               />
 
               {/* ── Right atrium (posterior-right, darker/venous) ── */}
-              <path
-                d="M30,12 C36,16 40,24 39,34 C38,42 34,48 28,50 C26,42 28,28 30,12Z"
-                fill="url(#heart-ra)" opacity="0.85" stroke="#5a2868" strokeWidth="0.5"
-              />
+              <g transform={`scale(${1 + cardiacPhase.atrial * 0.08}, ${1 + cardiacPhase.atrial * 0.06})`} style={{ transformOrigin: '34px 30px', transition: 'transform 0.06s ease-out' }}>
+                <path
+                  d="M30,12 C36,16 40,24 39,34 C38,42 34,48 28,50 C26,42 28,28 30,12Z"
+                  fill="url(#heart-ra)" opacity={0.85 + cardiacPhase.atrial * 0.1} stroke="#5a2868" strokeWidth="0.5"
+                />
+              </g>
               {/* SVC entering RA */}
               <path d="M34,4 C36,8 36,12 34,16" fill="none" stroke="url(#vein-grad)" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
               {/* IVC entering RA */}
               <path d="M35,50 C37,54 37,58 36,62" fill="none" stroke="url(#vein-grad)" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
 
               {/* ── Right ventricle (anterior, facing sternum) ── */}
-              <path
-                d="M18,18 C22,16 28,18 30,24 C32,32 30,44 26,52 C22,58 16,56 14,48 C12,38 14,26 18,18Z"
-                fill="url(#heart-myo)" opacity="0.75" stroke="#802020" strokeWidth="0.5"
-              />
+              <g transform={`scale(${1 + cardiacPhase.ventricular * 0.10}, ${1 + cardiacPhase.ventricular * 0.06})`} style={{ transformOrigin: '22px 38px', transition: 'transform 0.05s ease-out' }}>
+                <path
+                  d="M18,18 C22,16 28,18 30,24 C32,32 30,44 26,52 C22,58 16,56 14,48 C12,38 14,26 18,18Z"
+                  fill="url(#heart-myo)" opacity={0.75 + cardiacPhase.ventricular * 0.15} stroke="#802020" strokeWidth="0.5"
+                />
+              </g>
 
               {/* ── Left atrium (posterior-left) ── */}
-              <path
-                d="M10,14 C6,18 4,26 6,34 C8,40 12,44 16,42 C14,34 12,24 10,14Z"
-                fill="url(#heart-la)" opacity="0.8" stroke="#802020" strokeWidth="0.4"
-              />
+              <g transform={`scale(${1 + cardiacPhase.atrial * 0.08}, ${1 + cardiacPhase.atrial * 0.06})`} style={{ transformOrigin: '10px 28px', transition: 'transform 0.06s ease-out' }}>
+                <path
+                  d="M10,14 C6,18 4,26 6,34 C8,40 12,44 16,42 C14,34 12,24 10,14Z"
+                  fill="url(#heart-la)" opacity={0.8 + cardiacPhase.atrial * 0.1} stroke="#802020" strokeWidth="0.4"
+                />
+              </g>
               {/* Pulmonary veins entering LA */}
               <path d="M4,20 C2,22 0,26 2,30" fill="none" stroke="#a04040" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
               <path d="M4,30 C2,34 0,38 2,42" fill="none" stroke="#a04040" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
 
               {/* ── Left ventricle (dominant, thick-walled, forms apex) ── */}
-              <path
-                d="M8,30 C4,36 2,46 6,56 C10,64 18,70 24,66 C28,62 26,52 24,44 C22,38 16,32 8,30Z"
-                fill="url(#heart-myo)" opacity="0.9" stroke="#802020" strokeWidth="0.6"
-              />
+              <g transform={`scale(${1 + cardiacPhase.ventricular * 0.12}, ${1 + cardiacPhase.ventricular * 0.08})`} style={{ transformOrigin: '15px 50px', transition: 'transform 0.05s ease-out' }}>
+                <path
+                  d="M8,30 C4,36 2,46 6,56 C10,64 18,70 24,66 C28,62 26,52 24,44 C22,38 16,32 8,30Z"
+                  fill="url(#heart-myo)" opacity={0.9 + cardiacPhase.ventricular * 0.1} stroke="#802020" strokeWidth="0.6"
+                />
+              </g>
               {/* LV wall thickness indicator — septal line */}
               <path d="M16,28 C18,38 20,50 18,60" fill="none" stroke="#601818" strokeWidth="0.5" opacity="0.4" />
 
