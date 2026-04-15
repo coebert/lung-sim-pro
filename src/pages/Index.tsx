@@ -8,6 +8,8 @@ import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffer
 import { patients, getDefaultSettings } from '@/lib/simulation/patients';
 import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
 import { Settings, Users } from 'lucide-react';
+import { AlarmBanner } from '@/components/simulator/AlarmBanner';
+import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
 
 type MobileOverlay = 'none' | 'controls' | 'patients';
 
@@ -26,6 +28,7 @@ const Index = () => {
   });
   const [buffers, setBuffers] = useState<WaveformBuffers>(createInitialBuffers());
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
+  const [alarms, setAlarms] = useState<Alarm[]>([]);
 
   const timeRef = useRef(0);
   const settingsRef = useRef(settings);
@@ -62,6 +65,7 @@ const Index = () => {
       setVitals(result.vitals);
       setMeasured(result.measured);
       setBuffers(result.buffers);
+      setAlarms(evaluateAlarms(result.measured, result.vitals, DEFAULT_ALARM_LIMITS));
     }, 20);
     return () => clearInterval(interval);
   }, []);
@@ -80,6 +84,8 @@ const Index = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
+      {/* Alarm banner */}
+      <AlarmBanner alarms={alarms} />
       {/* Header — hidden in mobile landscape to save vertical space */}
       {!isLandscape && (
         <div className="flex items-center justify-between px-3 py-1.5 bg-secondary border-b border-border gap-2 shrink-0">
