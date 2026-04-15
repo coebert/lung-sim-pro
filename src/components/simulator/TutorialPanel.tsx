@@ -1,7 +1,60 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { VentSettings, Vitals, MeasuredValues, PatientPhysiology } from '@/lib/simulation/types';
 import { getTutorialForPatient, TutorialScenario, TutorialStep } from '@/lib/simulation/tutorials';
-import { GraduationCap, ChevronRight, ChevronLeft, X, CheckCircle2, Lightbulb, RotateCcw, Trophy } from 'lucide-react';
+import { GraduationCap, ChevronRight, ChevronLeft, X, CheckCircle2, Lightbulb, RotateCcw, Trophy, Timer, Zap, Star } from 'lucide-react';
+
+/* ── Scoring helpers ─────────────────────────────────────────────── */
+
+interface StepScore {
+  timeSeconds: number;
+  adjustments: number;
+  grade: 'S' | 'A' | 'B' | 'C';
+  stars: number; // 1-3
+}
+
+function gradeStep(timeSeconds: number, adjustments: number): StepScore {
+  // S: ≤15s and ≤3 adjustments, A: ≤30s and ≤6, B: ≤60s and ≤12, C: else
+  let grade: StepScore['grade'] = 'C';
+  let stars = 1;
+  if (timeSeconds <= 15 && adjustments <= 3) { grade = 'S'; stars = 3; }
+  else if (timeSeconds <= 30 && adjustments <= 6) { grade = 'A'; stars = 3; }
+  else if (timeSeconds <= 60 && adjustments <= 12) { grade = 'B'; stars = 2; }
+  return { timeSeconds, adjustments, grade, stars };
+}
+
+function overallGrade(scores: StepScore[]): { grade: string; pct: number } {
+  if (scores.length === 0) return { grade: '-', pct: 0 };
+  const totalStars = scores.reduce((s, sc) => s + sc.stars, 0);
+  const maxStars = scores.length * 3;
+  const pct = Math.round((totalStars / maxStars) * 100);
+  const grade = pct >= 90 ? 'S' : pct >= 75 ? 'A' : pct >= 50 ? 'B' : 'C';
+  return { grade, pct };
+}
+
+const gradeColor: Record<string, string> = {
+  S: 'text-yellow-400',
+  A: 'text-green-400',
+  B: 'text-blue-400',
+  C: 'text-muted-foreground',
+};
+
+function formatTime(s: number) {
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
+}
+
+/* ── Stars component ─────────────────────────────────────────────── */
+
+function Stars({ count }: { count: number }) {
+  return (
+    <span className="inline-flex gap-0.5">
+      {[1, 2, 3].map(i => (
+        <Star key={i} className={`w-3 h-3 ${i <= count ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'}`} />
+      ))}
+    </span>
+  );
+}
+
+/* ── Main panel ──────────────────────────────────────────────────── */
 
 interface TutorialPanelProps {
   patient: PatientPhysiology;
@@ -18,6 +71,12 @@ export function TutorialPanel({ patient, settings, vitals, measured, onSelectPat
   const [showHint, setShowHint] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
 
+  // Scoring state
+  const [stepScores, setStepScores] = useState<Map<number, StepScore>>(new Map());
+  const stepStartTime = useRef(Date.now());
+  const adjustmentCount = useRef(0);
+  const prevSettings = useRef(settings);
+
   const tutorial = getTutorialForPatient(patient.id);
 
   // Reset when patient changes
@@ -26,7 +85,34 @@ export function TutorialPanel({ patient, settings, vitals, measured, onSelectPat
     setCompletedSteps(new Set());
     setShowHint(false);
     setShowComplete(false);
+    setStepScores(new Map());
+    stepStartTime.current = Date.now();
+    adjustmentCount.current = 0;
+    prevSettings.current = settings;
   }, [patient.id]);
+
+  // Track setting changes as adjustments
+  useEffect(() => {
+    const prev = prevSettings.current;
+    let changes = 0;
+    if (prev.tidalVolume !== settings.tidalVolume) changes++;
+    if (prev.respiratoryRate !== settings.respiratoryRate) changes++;
+    if (prev.peep !== settings.peep) changes++;
+    if (prev.fio2 !== settings.fio2) changes++;
+    if (prev.ieRatio !== settings.ieRatio) changes++;
+    if (prev.mode !== settings.mode) changes++;
+    if (prev.pressureSupport !== settings.pressureSupport) changes++;
+    adjustmentCount.current += changes;
+    prevSettings.current = settings;
+  }, [settings]);
+
+  // Reset timer when moving to a new step
+  useEffect(() => {
+    if (!completedSteps.has(currentStep)) {
+      stepStartTime.current = Date.now();
+      adjustmentCount.current = 0;
+    }
+  }, [currentStep]);
 
   // Check current step completion
   useEffect(() => {
@@ -35,6 +121,15 @@ export function TutorialPanel({ patient, settings, vitals, measured, onSelectPat
     if (!step || completedSteps.has(currentStep)) return;
 
     if (step.check(settings, vitals, measured)) {
+      const elapsed = Math.round((Date.now() - stepStartTime.current) / 1000);
+      const score = gradeStep(elapsed, adjustmentCount.current);
+
+      setStepScores(prev => {
+        const next = new Map(prev);
+        next.set(currentStep, score);
+        return next;
+      });
+
       setCompletedSteps(prev => {
         const next = new Set(prev);
         next.add(currentStep);
@@ -50,6 +145,16 @@ export function TutorialPanel({ patient, settings, vitals, measured, onSelectPat
       setShowComplete(true);
     }
   }, [completedSteps, tutorial, showComplete]);
+
+  const handleReset = useCallback(() => {
+    setCurrentStep(0);
+    setCompletedSteps(new Set());
+    setShowHint(false);
+    setShowComplete(false);
+    setStepScores(new Map());
+    stepStartTime.current = Date.now();
+    adjustmentCount.current = 0;
+  }, []);
 
   if (!tutorial) {
     return (
@@ -72,14 +177,10 @@ export function TutorialPanel({ patient, settings, vitals, measured, onSelectPat
   const isStepComplete = completedSteps.has(currentStep);
   const allComplete = completedSteps.size === tutorial.steps.length;
   const progress = (completedSteps.size / tutorial.steps.length) * 100;
+  const scoresArray = Array.from(stepScores.values());
+  const overall = overallGrade(scoresArray);
 
-  const handleReset = useCallback(() => {
-    setCurrentStep(0);
-    setCompletedSteps(new Set());
-    setShowHint(false);
-    setShowComplete(false);
-  }, []);
-
+  /* ── Completion screen ─────────────────────────────────── */
   if (showComplete && allComplete) {
     return (
       <div className="flex flex-col h-full bg-secondary rounded border border-border overflow-hidden">
@@ -93,27 +194,55 @@ export function TutorialPanel({ patient, settings, vitals, measured, onSelectPat
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-3">
-          <h3 className="text-sm font-bold text-foreground mb-2">{tutorial.title}</h3>
-          <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">{tutorial.summary}</p>
-          <div className="flex flex-col gap-1.5">
-            {tutorial.steps.map((s, i) => (
-              <div key={i} className="flex items-start gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                <span className="text-[10px] text-foreground">{s.title}</span>
-              </div>
-            ))}
+          {/* Overall grade */}
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-foreground">{tutorial.title}</h3>
+            <div className="flex items-center gap-1.5">
+              <span className={`text-lg font-black ${gradeColor[overall.grade]}`}>{overall.grade}</span>
+              <span className="text-[10px] text-muted-foreground">{overall.pct}%</span>
+            </div>
           </div>
+
+          {/* Per-step scores */}
+          <div className="flex flex-col gap-1.5 mb-3">
+            {tutorial.steps.map((s, i) => {
+              const sc = stepScores.get(i);
+              return (
+                <div key={i} className="flex items-center gap-1.5 p-1.5 bg-background/50 rounded border border-border">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                  <span className="text-[10px] text-foreground flex-1 truncate">{s.title}</span>
+                  {sc && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
+                        <Timer className="w-2.5 h-2.5" />{formatTime(sc.timeSeconds)}
+                      </span>
+                      <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
+                        <Zap className="w-2.5 h-2.5" />{sc.adjustments}
+                      </span>
+                      <Stars count={sc.stars} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="text-[10px] text-muted-foreground leading-relaxed mb-3">{tutorial.summary}</p>
+
           <button
             onClick={handleReset}
-            className="mt-3 flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors"
+            className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors"
           >
             <RotateCcw className="w-3 h-3" />
-            Try again
+            Try again for a better score
           </button>
         </div>
       </div>
     );
   }
+
+  /* ── Active tutorial screen ────────────────────────────── */
+  const currentScore = stepScores.get(currentStep);
 
   return (
     <div className="flex flex-col h-full bg-secondary rounded border border-border overflow-hidden">
@@ -123,9 +252,16 @@ export function TutorialPanel({ patient, settings, vitals, measured, onSelectPat
           <GraduationCap className="w-4 h-4 text-primary shrink-0" />
           <span className="text-[10px] font-bold text-foreground truncate">Tutorial</span>
         </div>
-        <button onClick={onClose} className="p-0.5 hover:bg-muted rounded shrink-0">
-          <X className="w-3.5 h-3.5 text-muted-foreground" />
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {scoresArray.length > 0 && (
+            <span className={`text-[10px] font-bold ${gradeColor[overall.grade]}`}>
+              {overall.grade} ({overall.pct}%)
+            </span>
+          )}
+          <button onClick={onClose} className="p-0.5 hover:bg-muted rounded">
+            <X className="w-3.5 h-3.5 text-muted-foreground" />
+          </button>
+        </div>
       </div>
 
       {/* Progress bar */}
@@ -185,9 +321,20 @@ export function TutorialPanel({ patient, settings, vitals, measured, onSelectPat
             {step.instruction}
           </p>
 
-          {isStepComplete && (
-            <div className="mt-1.5 ml-5 p-1.5 bg-green-500/10 rounded text-[10px] text-green-400 leading-relaxed">
-              ✓ {step.successMessage}
+          {isStepComplete && currentScore && (
+            <div className="mt-1.5 ml-5 p-1.5 bg-green-500/10 rounded">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-green-400">✓ {step.successMessage}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
+                  <Timer className="w-2.5 h-2.5" />{formatTime(currentScore.timeSeconds)}
+                </span>
+                <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
+                  <Zap className="w-2.5 h-2.5" />{currentScore.adjustments} adjustments
+                </span>
+                <Stars count={currentScore.stars} />
+              </div>
             </div>
           )}
 
