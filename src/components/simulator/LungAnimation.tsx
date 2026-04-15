@@ -101,7 +101,10 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
     const ventricularPhase = distFromPeak <= 6 ?
       Math.exp(-Math.pow(distFromPeak / 3, 2)) : 0;
 
+    // Bradycardia: weaken contraction force
+    const bradyScale = vitals.hr < 50 ? Math.max(0.4, vitals.hr / 50) : 1;
     const tachyScale = vitals.hr > 100 ? 1 + (Math.min(vitals.hr, 180) - 100) / 200 : 1;
+    const hrScale = bradyScale * tachyScale;
 
     return {
       atrial: atrialDist * tachyScale,
