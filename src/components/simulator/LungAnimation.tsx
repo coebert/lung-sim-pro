@@ -9,10 +9,18 @@ interface LungAnimationProps {
   buffers: WaveformBuffers;
   vitals: Vitals;
   compact?: boolean;
+  collapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-export function LungAnimation({ patient, settings, buffers, vitals, compact = false }: LungAnimationProps) {
-  const [collapsed, setCollapsed] = useState(false);
+export function LungAnimation({ patient, settings, buffers, vitals, compact = false, collapsed: controlledCollapsed, onCollapsedChange }: LungAnimationProps) {
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const collapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    if (onCollapsedChange) onCollapsedChange(next);
+    else setInternalCollapsed(next);
+  };
 
   const recentVolume = buffers.volume;
   const currentVol = recentVolume[recentVolume.length - 1] || 0;
