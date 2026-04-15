@@ -34,6 +34,7 @@ const Index = () => {
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [frozen, setFrozen] = useState(false);
   const [tutorialActive, setTutorialActive] = useState(false);
+  const [lungCollapsed, setLungCollapsed] = useState(false);
   const frozenRef = useRef(false);
 
   const timeRef = useRef(0);
@@ -152,22 +153,35 @@ const Index = () => {
                 <MonitorPanel buffers={buffers} vitals={vitals} />
               </div>
             </div>
-            <div className={`${tutorialActive ? 'w-[320px]' : 'w-[220px]'} shrink-0 border-l border-border p-1 flex flex-col gap-1 transition-all`}>
-              {tutorialActive ? (
-                <TutorialPanel
-                  patient={patient}
-                  settings={settings}
-                  vitals={vitals}
-                  measured={measured}
-                  onClose={() => setTutorialActive(false)}
-                />
-              ) : (
-                <>
-                  <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} />
-                  <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
-                </>
-              )}
-            </div>
+            {(!lungCollapsed || tutorialActive) && (
+              <div className={`${tutorialActive ? 'w-[320px]' : 'w-[220px]'} shrink-0 border-l border-border p-1 flex flex-col gap-1 transition-all`}>
+                {tutorialActive ? (
+                  <TutorialPanel
+                    patient={patient}
+                    settings={settings}
+                    vitals={vitals}
+                    measured={measured}
+                    onClose={() => setTutorialActive(false)}
+                  />
+                ) : (
+                  <>
+                    <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} collapsed={lungCollapsed} onCollapsedChange={setLungCollapsed} />
+                    <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+                  </>
+                )}
+              </div>
+            )}
+            {lungCollapsed && !tutorialActive && (
+              <div className="shrink-0 border-l border-border">
+                <button
+                  onClick={() => setLungCollapsed(false)}
+                  className="flex items-center justify-center px-1 py-2 h-full hover:bg-muted transition-colors"
+                  title="Show Lung View"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
+              </div>
+            )}
           </div>
           <div className="border-t border-border p-2 shrink-0">
             <PatientSelector selectedPatient={patient} onSelectPatient={handlePatientChange} />
