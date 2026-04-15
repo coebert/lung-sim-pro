@@ -61,6 +61,16 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
   const inflationBase = pathology === 'bronchospasm' ? hyperinflation : 1;
   const expansion = inflationBase * (baseExpansion * 0.75 + breathPhase * 0.25);
 
+  // Scaling helpers: transform coordinates relative to each lung's hilum
+  // so airways, vessels, and patches move proportionally with lung expansion
+  const e = expansion;
+  // Left lung hilum at (75, 68)
+  const lx = (x: number) => 75 + (x - 75) * e;
+  const ly = (y: number) => 68 + (y - 68) * e;
+  // Right lung hilum at (125, 62)
+  const rx = (x: number) => 125 + (x - 125) * e;
+  const ry = (y: number) => 62 + (y - 62) * e;
+
   // Heart compression from hyperinflation (1 = normal, <1 = compressed)
   const heartCompression = pathology === 'bronchospasm'
     ? Math.max(0.55, 1 - (hyperinflation - 1) * 0.6)
@@ -298,6 +308,11 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 <stop offset="50%" stopColor="#a89888" />
                 <stop offset="100%" stopColor="#908070" />
               </linearGradient>
+              {/* Clip paths for lung outlines */}
+              <clipPath id="clip-lungs">
+                <path d={leftLungPath(expansion)} />
+                <path d={rightLungPath(expansion)} />
+              </clipPath>
             </defs>
 
             {/* ═══ RIB CAGE — behind all soft tissue ═══ */}
@@ -381,49 +396,49 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             {/* ═══ MAIN BRONCHI ═══ */}
             {/* Left main — longer, more horizontal (anatomical) */}
             <path
-              d={`M100,50 C90,56 ${82 - (expansion - 1) * 3},61 ${75 - (expansion - 1) * 4},68`}
+              d={`M100,50 C90,56 ${82 - (e - 1) * 3},61 75,68`}
               fill="none" stroke="url(#aw-grad)" strokeWidth={airwayWidth} strokeLinecap="round"
             />
             {/* Right main — shorter, steeper (anatomical) */}
             <path
-              d={`M100,50 C108,54 ${118 + (expansion - 1) * 3},57 ${125 + (expansion - 1) * 4},62`}
+              d={`M100,50 C108,54 ${118 + (e - 1) * 3},57 125,62`}
               fill="none" stroke="url(#aw-grad)" strokeWidth={airwayWidth} strokeLinecap="round"
             />
 
-            {/* ═══ LEFT LOBAR BRONCHI ═══ */}
+            {/* ═══ LEFT LOBAR BRONCHI (scale with expansion) ═══ */}
             {/* Upper lobe */}
-            <path d={`M${75 - (expansion - 1) * 4},68 C67,72 59,70 ${53 - expansion * 1.5},74`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M75,68 C${lx(67)},${ly(72)} ${lx(59)},${ly(70)} ${lx(51.5)},${ly(74)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Lingula */}
-            <path d={`M${75 - (expansion - 1) * 4},68 C69,78 63,86 ${59 - expansion},94`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M75,68 C${lx(69)},${ly(78)} ${lx(63)},${ly(86)} ${lx(58)},${ly(94)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Lower lobe */}
-            <path d={`M${75 - (expansion - 1) * 4},68 C77,80 75,90 ${71},100`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M75,68 C${lx(77)},${ly(80)} ${lx(75)},${ly(90)} ${lx(71)},${ly(100)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
 
-            {/* ═══ RIGHT LOBAR BRONCHI ═══ */}
-            {/* Upper lobe (eparterial) */}
-            <path d={`M${120 + (expansion - 1) * 3},58 C128,56 138,54 ${144 + expansion},58`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            {/* ═══ RIGHT LOBAR BRONCHI (scale with expansion) ═══ */}
+            {/* Upper lobe (eparterial — branches before hilum) */}
+            <path d={`M${rx(120)},${ry(58)} C${rx(128)},${ry(56)} ${rx(138)},${ry(54)} ${rx(144)},${ry(58)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Middle lobe */}
-            <path d={`M${125 + (expansion - 1) * 4},62 C133,70 141,76 ${147 + expansion * 1.5},83`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M125,62 C${rx(133)},${ry(70)} ${rx(141)},${ry(76)} ${rx(147)},${ry(83)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Lower lobe */}
-            <path d={`M${125 + (expansion - 1) * 4},62 C127,74 125,84 ${123},94`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M125,62 C${rx(127)},${ry(74)} ${rx(125)},${ry(84)} ${rx(123)},${ry(94)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
 
-            {/* ═══ SEGMENTAL AIRWAYS ═══ */}
+            {/* ═══ SEGMENTAL AIRWAYS (scale with expansion) ═══ */}
             {/* Left upper segments */}
-            <path d={`M${53 - expansion * 1.5},74 C47,78 41,84 ${37},90`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${53 - expansion * 1.5},74 C51,82 45,88 ${43},96`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${lx(51.5)},${ly(74)} C${lx(47)},${ly(78)} ${lx(41)},${ly(84)} ${lx(37)},${ly(90)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${lx(51.5)},${ly(74)} C${lx(51)},${ly(82)} ${lx(45)},${ly(88)} ${lx(43)},${ly(96)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Left lingular segments */}
-            <path d={`M${59 - expansion},94 C53,100 47,106 ${43},113`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${lx(58)},${ly(94)} C${lx(53)},${ly(100)} ${lx(47)},${ly(106)} ${lx(43)},${ly(113)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Left lower segments */}
-            <path d={`M${71},100 C67,108 61,116 ${57},124`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${71},100 C75,110 73,120 ${69},128`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${lx(71)},${ly(100)} C${lx(67)},${ly(108)} ${lx(61)},${ly(116)} ${lx(57)},${ly(124)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${lx(71)},${ly(100)} C${lx(75)},${ly(110)} ${lx(73)},${ly(120)} ${lx(69)},${ly(128)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
 
             {/* Right upper segments */}
-            <path d={`M${144 + expansion},58 C150,62 156,66 ${160},72`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${144 + expansion},58 C148,64 152,70 ${154},78`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${rx(144)},${ry(58)} C${rx(150)},${ry(62)} ${rx(156)},${ry(66)} ${rx(160)},${ry(72)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${rx(144)},${ry(58)} C${rx(148)},${ry(64)} ${rx(152)},${ry(70)} ${rx(154)},${ry(78)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Right middle segments */}
-            <path d={`M${147 + expansion * 1.5},83 C153,88 159,94 ${163},100`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${rx(147)},${ry(83)} C${rx(153)},${ry(88)} ${rx(159)},${ry(94)} ${rx(163)},${ry(100)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Right lower segments */}
-            <path d={`M${123},94 C127,104 131,114 ${133},124`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${123},94 C119,104 115,114 ${113},124`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${rx(123)},${ry(94)} C${rx(127)},${ry(104)} ${rx(131)},${ry(114)} ${rx(133)},${ry(124)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${rx(123)},${ry(94)} C${rx(119)},${ry(104)} ${rx(115)},${ry(114)} ${rx(113)},${ry(124)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" />
 
             {/* ═══ LEFT LUNG PARENCHYMA ═══ */}
             <path
@@ -453,56 +468,56 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             {/* Right horizontal fissure */}
             <path d={rightHorizontalFissure(expansion)} fill="none" stroke="#7a4a55" strokeWidth="0.7" strokeDasharray="4,2" opacity="0.45" />
 
-            {/* ═══ PULMONARY VASCULATURE — detailed vascular tree ═══ */}
+            {/* ═══ PULMONARY VASCULATURE (scale with expansion) ═══ */}
             {/* Left pulmonary artery branches */}
-            <path d="M98,52 C94,58 88,68 82,78" fill="none" stroke="#7a4060" strokeWidth="0.7" opacity="0.22" />
-            <path d="M82,78 C74,88 62,102 50,118" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.18" />
-            <path d="M82,78 C76,86 66,94 56,104" fill="none" stroke="#7a4060" strokeWidth="0.45" opacity="0.16" />
-            <path d="M50,118 C44,126 38,136 34,146" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
-            <path d="M56,104 C50,112 42,122 36,132" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            <path d={`M98,52 C${lx(94)},${ly(58)} ${lx(88)},${ly(68)} ${lx(82)},${ly(78)}`} fill="none" stroke="#7a4060" strokeWidth="0.7" opacity="0.22" />
+            <path d={`M${lx(82)},${ly(78)} C${lx(74)},${ly(88)} ${lx(62)},${ly(102)} ${lx(50)},${ly(118)}`} fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.18" />
+            <path d={`M${lx(82)},${ly(78)} C${lx(76)},${ly(86)} ${lx(66)},${ly(94)} ${lx(56)},${ly(104)}`} fill="none" stroke="#7a4060" strokeWidth="0.45" opacity="0.16" />
+            <path d={`M${lx(50)},${ly(118)} C${lx(44)},${ly(126)} ${lx(38)},${ly(136)} ${lx(34)},${ly(146)}`} fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            <path d={`M${lx(56)},${ly(104)} C${lx(50)},${ly(112)} ${lx(42)},${ly(122)} ${lx(36)},${ly(132)}`} fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
             {/* Left upper lobe arterioles */}
-            <path d="M88,66 C80,62 70,64 62,70" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.14" />
-            <path d="M62,70 C54,76 46,84 40,94" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.11" />
-            <path d="M70,64 C62,58 54,60 46,66" fill="none" stroke="#7a4060" strokeWidth="0.25" opacity="0.10" />
+            <path d={`M${lx(88)},${ly(66)} C${lx(80)},${ly(62)} ${lx(70)},${ly(64)} ${lx(62)},${ly(70)}`} fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.14" />
+            <path d={`M${lx(62)},${ly(70)} C${lx(54)},${ly(76)} ${lx(46)},${ly(84)} ${lx(40)},${ly(94)}`} fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.11" />
+            <path d={`M${lx(70)},${ly(64)} C${lx(62)},${ly(58)} ${lx(54)},${ly(60)} ${lx(46)},${ly(66)}`} fill="none" stroke="#7a4060" strokeWidth="0.25" opacity="0.10" />
             {/* Left lingular vessels */}
-            <path d="M74,86 C64,94 56,106 50,116" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.12" />
-            {/* Left pulmonary veins (slightly bluer) */}
-            <path d="M92,70 C84,80 72,90 62,98" fill="none" stroke="#605080" strokeWidth="0.4" opacity="0.14" />
-            <path d="M62,98 C52,108 44,120 38,134" fill="none" stroke="#605080" strokeWidth="0.3" opacity="0.11" />
-            <path d="M78,76 C68,70 58,68 48,74" fill="none" stroke="#605080" strokeWidth="0.25" opacity="0.10" />
+            <path d={`M${lx(74)},${ly(86)} C${lx(64)},${ly(94)} ${lx(56)},${ly(106)} ${lx(50)},${ly(116)}`} fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.12" />
+            {/* Left pulmonary veins */}
+            <path d={`M${lx(92)},${ly(70)} C${lx(84)},${ly(80)} ${lx(72)},${ly(90)} ${lx(62)},${ly(98)}`} fill="none" stroke="#605080" strokeWidth="0.4" opacity="0.14" />
+            <path d={`M${lx(62)},${ly(98)} C${lx(52)},${ly(108)} ${lx(44)},${ly(120)} ${lx(38)},${ly(134)}`} fill="none" stroke="#605080" strokeWidth="0.3" opacity="0.11" />
+            <path d={`M${lx(78)},${ly(76)} C${lx(68)},${ly(70)} ${lx(58)},${ly(68)} ${lx(48)},${ly(74)}`} fill="none" stroke="#605080" strokeWidth="0.25" opacity="0.10" />
 
             {/* Right pulmonary artery branches */}
-            <path d="M102,52 C106,58 114,66 122,74" fill="none" stroke="#7a4060" strokeWidth="0.7" opacity="0.22" />
-            <path d="M122,74 C130,82 142,96 150,110" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.18" />
-            <path d="M122,74 C128,82 136,92 144,102" fill="none" stroke="#7a4060" strokeWidth="0.45" opacity="0.16" />
-            <path d="M150,110 C156,120 162,132 166,142" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
-            <path d="M144,102 C150,112 158,124 164,134" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            <path d={`M102,52 C${rx(106)},${ry(58)} ${rx(114)},${ry(66)} ${rx(122)},${ry(74)}`} fill="none" stroke="#7a4060" strokeWidth="0.7" opacity="0.22" />
+            <path d={`M${rx(122)},${ry(74)} C${rx(130)},${ry(82)} ${rx(142)},${ry(96)} ${rx(150)},${ry(110)}`} fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.18" />
+            <path d={`M${rx(122)},${ry(74)} C${rx(128)},${ry(82)} ${rx(136)},${ry(92)} ${rx(144)},${ry(102)}`} fill="none" stroke="#7a4060" strokeWidth="0.45" opacity="0.16" />
+            <path d={`M${rx(150)},${ry(110)} C${rx(156)},${ry(120)} ${rx(162)},${ry(132)} ${rx(166)},${ry(142)}`} fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            <path d={`M${rx(144)},${ry(102)} C${rx(150)},${ry(112)} ${rx(158)},${ry(124)} ${rx(164)},${ry(134)}`} fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
             {/* Right upper lobe arterioles */}
-            <path d="M114,60 C124,56 134,54 144,58" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.14" />
-            <path d="M144,58 C152,62 160,70 166,80" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.11" />
-            <path d="M130,54 C138,50 146,52 154,58" fill="none" stroke="#7a4060" strokeWidth="0.25" opacity="0.10" />
+            <path d={`M${rx(114)},${ry(60)} C${rx(124)},${ry(56)} ${rx(134)},${ry(54)} ${rx(144)},${ry(58)}`} fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.14" />
+            <path d={`M${rx(144)},${ry(58)} C${rx(152)},${ry(62)} ${rx(160)},${ry(70)} ${rx(166)},${ry(80)}`} fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.11" />
+            <path d={`M${rx(130)},${ry(54)} C${rx(138)},${ry(50)} ${rx(146)},${ry(52)} ${rx(154)},${ry(58)}`} fill="none" stroke="#7a4060" strokeWidth="0.25" opacity="0.10" />
             {/* Right middle lobe vessels */}
-            <path d="M134,80 C144,86 154,94 162,104" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.12" />
+            <path d={`M${rx(134)},${ry(80)} C${rx(144)},${ry(86)} ${rx(154)},${ry(94)} ${rx(162)},${ry(104)}`} fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.12" />
             {/* Right pulmonary veins */}
-            <path d="M110,64 C120,74 132,84 142,92" fill="none" stroke="#605080" strokeWidth="0.4" opacity="0.14" />
-            <path d="M142,92 C150,102 158,116 164,128" fill="none" stroke="#605080" strokeWidth="0.3" opacity="0.11" />
-            <path d="M126,68 C136,64 146,62 156,66" fill="none" stroke="#605080" strokeWidth="0.25" opacity="0.10" />
+            <path d={`M${rx(110)},${ry(64)} C${rx(120)},${ry(74)} ${rx(132)},${ry(84)} ${rx(142)},${ry(92)}`} fill="none" stroke="#605080" strokeWidth="0.4" opacity="0.14" />
+            <path d={`M${rx(142)},${ry(92)} C${rx(150)},${ry(102)} ${rx(158)},${ry(116)} ${rx(164)},${ry(128)}`} fill="none" stroke="#605080" strokeWidth="0.3" opacity="0.11" />
+            <path d={`M${rx(126)},${ry(68)} C${rx(136)},${ry(64)} ${rx(146)},${ry(62)} ${rx(156)},${ry(66)}`} fill="none" stroke="#605080" strokeWidth="0.25" opacity="0.10" />
 
-            {/* Peripheral capillary blush — tiny scattered marks */}
+            {/* Peripheral capillary blush */}
             {/* Left lung */}
-            <circle cx="44" cy="86" r="0.6" fill="#7a4060" opacity="0.08" />
-            <circle cx="38" cy="108" r="0.5" fill="#7a4060" opacity="0.07" />
-            <circle cx="52" cy="128" r="0.7" fill="#7a4060" opacity="0.06" />
-            <circle cx="60" cy="114" r="0.5" fill="#7a4060" opacity="0.07" />
-            <circle cx="48" cy="96" r="0.4" fill="#7a4060" opacity="0.08" />
-            <circle cx="42" cy="122" r="0.6" fill="#7a4060" opacity="0.06" />
+            <circle cx={lx(44)} cy={ly(86)} r="0.6" fill="#7a4060" opacity="0.08" />
+            <circle cx={lx(38)} cy={ly(108)} r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx={lx(52)} cy={ly(128)} r="0.7" fill="#7a4060" opacity="0.06" />
+            <circle cx={lx(60)} cy={ly(114)} r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx={lx(48)} cy={ly(96)} r="0.4" fill="#7a4060" opacity="0.08" />
+            <circle cx={lx(42)} cy={ly(122)} r="0.6" fill="#7a4060" opacity="0.06" />
             {/* Right lung */}
-            <circle cx="156" cy="84" r="0.6" fill="#7a4060" opacity="0.08" />
-            <circle cx="164" cy="106" r="0.5" fill="#7a4060" opacity="0.07" />
-            <circle cx="148" cy="124" r="0.7" fill="#7a4060" opacity="0.06" />
-            <circle cx="140" cy="110" r="0.5" fill="#7a4060" opacity="0.07" />
-            <circle cx="158" cy="94" r="0.4" fill="#7a4060" opacity="0.08" />
-            <circle cx="162" cy="120" r="0.6" fill="#7a4060" opacity="0.06" />
+            <circle cx={rx(156)} cy={ry(84)} r="0.6" fill="#7a4060" opacity="0.08" />
+            <circle cx={rx(164)} cy={ry(106)} r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx={rx(148)} cy={ry(124)} r="0.7" fill="#7a4060" opacity="0.06" />
+            <circle cx={rx(140)} cy={ry(110)} r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx={rx(158)} cy={ry(94)} r="0.4" fill="#7a4060" opacity="0.08" />
+            <circle cx={rx(162)} cy={ry(120)} r="0.6" fill="#7a4060" opacity="0.06" />
 
             {/* ═══ HEART (mediastinal, between lungs) ═══ */}
             <g
@@ -627,26 +642,33 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               </text>
             )}
 
-            {/* ═══ ATELECTASIS / CONSOLIDATION PATCHES ═══ */}
-            {atelPatches.map((p, i) => (
-              <ellipse
-                key={i} cx={p.x} cy={p.y}
-                rx={p.rx} ry={p.ry}
-                fill={p.fill || 'url(#consol-grad)'}
-                opacity={p.opacity}
-                transform={p.rotate ? `rotate(${p.rotate} ${p.x} ${p.y})` : undefined}
-              />
-            ))}
+            {/* ═══ ATELECTASIS / CONSOLIDATION PATCHES (clipped to lung outlines) ═══ */}
+            <g clipPath="url(#clip-lungs)">
+              {atelPatches.map((p, i) => {
+                const isLeft = p.x < 100;
+                const sx = isLeft ? lx(p.x) : rx(p.x);
+                const sy = isLeft ? ly(p.y) : ry(p.y);
+                return (
+                  <ellipse
+                    key={i} cx={sx} cy={sy}
+                    rx={p.rx} ry={p.ry}
+                    fill={p.fill || 'url(#consol-grad)'}
+                    opacity={p.opacity}
+                    transform={p.rotate ? `rotate(${p.rotate} ${sx} ${sy})` : undefined}
+                  />
+                );
+              })}
+            </g>
 
-            {/* ═══ BRONCHOSPASM: airway inflammation ═══ */}
+            {/* ═══ BRONCHOSPASM: airway inflammation (scale with expansion) ═══ */}
             {pathology === 'bronchospasm' && (
               <>
-                <circle cx="65" cy="71" r="2" fill="#e8c040" opacity="0.45" />
-                <circle cx="133" cy="65" r="2" fill="#e8c040" opacity="0.45" />
-                <circle cx="52" cy="88" r="1.5" fill="#e8c040" opacity="0.35" />
-                <circle cx="150" cy="81" r="1.5" fill="#e8c040" opacity="0.35" />
-                <ellipse cx="58" cy="80" rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
-                <ellipse cx="143" cy="74" rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
+                <circle cx={lx(65)} cy={ly(71)} r="2" fill="#e8c040" opacity="0.45" />
+                <circle cx={rx(133)} cy={ry(65)} r="2" fill="#e8c040" opacity="0.45" />
+                <circle cx={lx(52)} cy={ly(88)} r="1.5" fill="#e8c040" opacity="0.35" />
+                <circle cx={rx(150)} cy={ry(81)} r="1.5" fill="#e8c040" opacity="0.35" />
+                <ellipse cx={lx(58)} cy={ly(80)} rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
+                <ellipse cx={rx(143)} cy={ry(74)} rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
               </>
             )}
 
