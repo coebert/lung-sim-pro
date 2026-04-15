@@ -721,6 +721,30 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 {statusText}
               </text>
             )}
+
+            {/* ═══ APRV RECRUITMENT PROGRESS INDICATOR ═══ */}
+            {settings.mode === 'APRV' && aprvRecruitment !== null && (
+              <g>
+                {/* Background bar */}
+                <rect x="30" y="196" width="140" height="6" rx="3" fill="#1a1a2e" stroke="#333" strokeWidth="0.5" />
+                {/* Fill bar — color transitions from red → yellow → green */}
+                <rect x="30" y="196" width={140 * aprvRecruitment} height="6" rx="3"
+                  fill={aprvRecruitment > 0.7 ? '#4ade80' : aprvRecruitment > 0.4 ? '#eab308' : '#ef4444'}
+                  opacity="0.85"
+                />
+                {/* Tick marks at 40% and 80% */}
+                <line x1={30 + 140 * 0.4} y1="195.5" x2={30 + 140 * 0.4} y2="202.5" stroke="#555" strokeWidth="0.4" />
+                <line x1={30 + 140 * 0.8} y1="195.5" x2={30 + 140 * 0.8} y2="202.5" stroke="#555" strokeWidth="0.4" />
+                {/* Label */}
+                <text x="100" y="194" textAnchor="middle" fill={aprvRecruitment > 0.7 ? '#4ade80' : aprvRecruitment > 0.4 ? '#eab308' : '#ef4444'} fontSize="6" fontFamily="monospace" fontWeight="bold">
+                  Recruitment {Math.round(aprvRecruitment * 100)}%
+                </text>
+                {/* Qualitative label */}
+                <text x="100" y="210" textAnchor="middle" fill="#888" fontSize="5" fontFamily="monospace">
+                  {aprvRecruitment > 0.8 ? 'Optimal — alveoli recruiting' : aprvRecruitment > 0.5 ? 'Partial — adjust settings' : 'Poor — review P High, T High, T Low'}
+                </text>
+              </g>
+            )}
           </svg>
         </div>
       )}
