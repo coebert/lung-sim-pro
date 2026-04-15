@@ -101,11 +101,14 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
     const ventricularPhase = distFromPeak <= 6 ?
       Math.exp(-Math.pow(distFromPeak / 3, 2)) : 0;
 
+    // Bradycardia: weaken contraction force
+    const bradyScale = vitals.hr < 50 ? Math.max(0.4, vitals.hr / 50) : 1;
     const tachyScale = vitals.hr > 100 ? 1 + (Math.min(vitals.hr, 180) - 100) / 200 : 1;
+    const hrScale = bradyScale * tachyScale;
 
     return {
-      atrial: atrialDist * tachyScale,
-      ventricular: ventricularPhase * tachyScale,
+      atrial: atrialDist * hrScale,
+      ventricular: ventricularPhase * hrScale,
     };
   }, [buffers.ecg, vitals.hr]);
 
@@ -114,6 +117,13 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
 
   // Tachycardia visual intensity (0 = normal, 1 = severe tachy ≥150)
   const tachyIntensity = Math.max(0, Math.min(1, (vitals.hr - 100) / 60));
+
+  // Bradycardia visual intensity (0 = normal, 1 = severe brady ≤30)
+  const bradyIntensity = Math.max(0, Math.min(1, (50 - vitals.hr) / 20));
+
+  // Bradycardia slows transitions and adds dusky colour shift
+  const heartTransition = bradyIntensity > 0 ? `transform ${0.08 + bradyIntensity * 0.3}s ease-out` : 'transform 0.08s ease-out';
+  const chamberTransitionSlow = bradyIntensity > 0 ? `transform ${0.06 + bradyIntensity * 0.2}s ease-out` : undefined;
 
   const lungFill = getLungGradientId(pathology);
   const lungOpacity = pathology === 'ards' ? 0.5 + ardsRecruitment * 0.45 : 0.92;
@@ -497,9 +507,9 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             {/* ═══ HEART (mediastinal, between lungs) ═══ */}
             <g
               transform={`translate(${100 - 18 * heartCompression}, 72) scale(${heartCompression * heartBeat}, ${heartBeat})`}
-              style={{ transformOrigin: '20px 35px', transition: 'transform 0.08s ease-out' }}
+              style={{ transformOrigin: '20px 35px', transition: heartTransition }}
               filter={tachyIntensity > 0.3 ? 'url(#tachy-glow)' : undefined}
-              opacity={1}
+              opacity={bradyIntensity > 0 ? 1 - bradyIntensity * 0.15 : 1}
             >
               {/* Tachycardia flush overlay — reddens the entire heart */}
               {tachyIntensity > 0 && (
@@ -508,14 +518,21 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                   fill={`rgba(255, ${Math.round(60 - tachyIntensity * 40)}, ${Math.round(40 - tachyIntensity * 30)}, ${tachyIntensity * 0.25})`}
                 />
               )}
+              {/* Bradycardia dusky overlay — cyanotic blue-purple */}
+              {bradyIntensity > 0 && (
+                <path
+                  d="M18,0 C8,5 2,20 4,38 C6,52 14,62 22,68 C28,72 34,70 38,64 C44,54 42,38 40,24 C38,12 30,-2 18,0Z"
+                  fill={`rgba(${Math.round(60 + bradyIntensity * 20)}, ${Math.round(40 + bradyIntensity * 30)}, ${Math.round(100 + bradyIntensity * 55)}, ${bradyIntensity * 0.35})`}
+                />
+              )}
               {/* Pericardium outline */}
               <path
                 d="M18,0 C8,5 2,20 4,38 C6,52 14,62 22,68 C28,72 34,70 38,64 C44,54 42,38 40,24 C38,12 30,-2 18,0Z"
-                fill="none" stroke="#a06060" strokeWidth="0.6" opacity="0.4"
+                fill="none" stroke={bradyIntensity > 0 ? `rgba(${100 - bradyIntensity * 20}, ${80 - bradyIntensity * 20}, ${100 + bradyIntensity * 40}, 0.5)` : '#a06060'} strokeWidth="0.6" opacity="0.4"
               />
 
               {/* ── Right atrium (posterior-right, darker/venous) ── */}
-              <g transform={`scale(${1 + cardiacPhase.atrial * 0.08}, ${1 + cardiacPhase.atrial * 0.06})`} style={{ transformOrigin: '34px 30px', transition: 'transform 0.06s ease-out' }}>
+              <g transform={`scale(${1 + cardiacPhase.atrial * 0.08}, ${1 + cardiacPhase.atrial * 0.06})`} style={{ transformOrigin: '34px 30px', transition: chamberTransitionSlow || 'transform 0.06s ease-out' }}>
                 <path
                   d="M30,12 C36,16 40,24 39,34 C38,42 34,48 28,50 C26,42 28,28 30,12Z"
                   fill="url(#heart-ra)" opacity={0.85 + cardiacPhase.atrial * 0.1} stroke="#5a2868" strokeWidth="0.5"
@@ -527,7 +544,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               <path d="M35,50 C37,54 37,58 36,62" fill="none" stroke="url(#vein-grad)" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
 
               {/* ── Right ventricle (anterior, facing sternum) ── */}
-              <g transform={`scale(${1 + cardiacPhase.ventricular * 0.10}, ${1 + cardiacPhase.ventricular * 0.06})`} style={{ transformOrigin: '22px 38px', transition: 'transform 0.05s ease-out' }}>
+              <g transform={`scale(${1 + cardiacPhase.ventricular * 0.10}, ${1 + cardiacPhase.ventricular * 0.06})`} style={{ transformOrigin: '22px 38px', transition: chamberTransitionSlow || 'transform 0.05s ease-out' }}>
                 <path
                   d="M18,18 C22,16 28,18 30,24 C32,32 30,44 26,52 C22,58 16,56 14,48 C12,38 14,26 18,18Z"
                   fill="url(#heart-myo)" opacity={0.75 + cardiacPhase.ventricular * 0.15} stroke="#802020" strokeWidth="0.5"
@@ -535,7 +552,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               </g>
 
               {/* ── Left atrium (posterior-left) ── */}
-              <g transform={`scale(${1 + cardiacPhase.atrial * 0.08}, ${1 + cardiacPhase.atrial * 0.06})`} style={{ transformOrigin: '10px 28px', transition: 'transform 0.06s ease-out' }}>
+              <g transform={`scale(${1 + cardiacPhase.atrial * 0.08}, ${1 + cardiacPhase.atrial * 0.06})`} style={{ transformOrigin: '10px 28px', transition: chamberTransitionSlow || 'transform 0.06s ease-out' }}>
                 <path
                   d="M10,14 C6,18 4,26 6,34 C8,40 12,44 16,42 C14,34 12,24 10,14Z"
                   fill="url(#heart-la)" opacity={0.8 + cardiacPhase.atrial * 0.1} stroke="#802020" strokeWidth="0.4"
@@ -546,7 +563,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               <path d="M4,30 C2,34 0,38 2,42" fill="none" stroke="#a04040" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
 
               {/* ── Left ventricle (dominant, thick-walled, forms apex) ── */}
-              <g transform={`scale(${1 + cardiacPhase.ventricular * 0.12}, ${1 + cardiacPhase.ventricular * 0.08})`} style={{ transformOrigin: '15px 50px', transition: 'transform 0.05s ease-out' }}>
+              <g transform={`scale(${1 + cardiacPhase.ventricular * 0.12}, ${1 + cardiacPhase.ventricular * 0.08})`} style={{ transformOrigin: '15px 50px', transition: chamberTransitionSlow || 'transform 0.05s ease-out' }}>
                 <path
                   d="M8,30 C4,36 2,46 6,56 C10,64 18,70 24,66 C28,62 26,52 24,44 C22,38 16,32 8,30Z"
                   fill="url(#heart-myo)" opacity={0.9 + cardiacPhase.ventricular * 0.1} stroke="#802020" strokeWidth="0.6"
@@ -602,6 +619,11 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             {tachyIntensity > 0.3 && heartCompression >= 0.75 && (
               <text x="100" y="145" textAnchor="middle" fill="#e05050" fontSize="7" fontFamily="monospace" fontWeight="bold" opacity={0.5 + tachyIntensity * 0.4}>
                 {vitals.hr >= 150 ? '⚠ Severe Tachycardia' : '⚠ Tachycardia'} ({Math.round(vitals.hr)} bpm)
+              </text>
+            )}
+            {bradyIntensity > 0 && heartCompression >= 0.75 && (
+              <text x="100" y="145" textAnchor="middle" fill="#7080d0" fontSize="7" fontFamily="monospace" fontWeight="bold" opacity={0.5 + bradyIntensity * 0.4}>
+                {vitals.hr <= 30 ? '⚠ Severe Bradycardia' : '⚠ Bradycardia'} ({Math.round(vitals.hr)} bpm)
               </text>
             )}
 
