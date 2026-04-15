@@ -220,6 +220,14 @@ const Index = () => {
               <Stethoscope className="w-3 h-3" />
               Clinical
             </button>
+            <button
+              onClick={() => setMobileOverlay(mobileOverlay === 'tutorial' ? 'none' : 'tutorial')}
+              className={`flex-1 flex items-center justify-center gap-1 py-0.5 text-[10px] transition-colors
+                ${mobileOverlay === 'tutorial' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
+            >
+              <GraduationCap className="w-3 h-3" />
+              Tutorial
+            </button>
           </div>
 
           {/* Slide-up overlay */}
@@ -233,6 +241,9 @@ const Index = () => {
               )}
               {mobileOverlay === 'feedback' && (
                 <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+              )}
+              {mobileOverlay === 'tutorial' && (
+                <TutorialPanel patient={patient} settings={settings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
               )}
             </div>
           )}
@@ -284,6 +295,14 @@ const Index = () => {
               <Stethoscope className="w-4 h-4" />
               Clinical
             </button>
+            <button
+              onClick={() => setMobileOverlay(mobileOverlay === 'tutorial' ? 'none' : 'tutorial')}
+              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
+                ${mobileOverlay === 'tutorial' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
+            >
+              <GraduationCap className="w-4 h-4" />
+              Tutorial
+            </button>
           </div>
 
           {/* Slide-up overlay */}
@@ -297,6 +316,9 @@ const Index = () => {
               )}
               {mobileOverlay === 'feedback' && (
                 <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+              )}
+              {mobileOverlay === 'tutorial' && (
+                <TutorialPanel patient={patient} settings={settings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
               )}
             </div>
           )}
