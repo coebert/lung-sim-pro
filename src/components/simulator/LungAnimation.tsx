@@ -58,6 +58,19 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
     ? Math.max(0.55, 1 - (hyperinflation - 1) * 0.6)
     : 1;
 
+  // Heartbeat animation driven by ECG buffer peaks
+  const heartBeat = useMemo(() => {
+    const ecg = buffers.ecg;
+    if (!ecg || ecg.length < 2) return 1;
+    // Use last few samples to detect if we're near an R-wave peak
+    const recent = ecg.slice(-8);
+    const peak = Math.max(...recent);
+    const baseline = 0.3; // approximate ECG baseline
+    const amplitude = Math.max(peak - baseline, 0);
+    // Map to a scale: 1.0 at rest, up to 1.12 at systole
+    return 1 + Math.min(amplitude, 1) * 0.12;
+  }, [buffers.ecg]);
+
   const lungFill = getLungGradientId(pathology);
   const lungOpacity = pathology === 'ards' ? 0.5 + ardsRecruitment * 0.45 : 0.92;
   const airwayWidth = pathology === 'bronchospasm' ? 2.2 : 3.5;
@@ -318,7 +331,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             <path d="M130,82 C140,92 155,108 165,125" fill="none" stroke="#7a4060" strokeWidth="0.4" opacity="0.15" />
 
             {/* ═══ HEART (mediastinal, between lungs) ═══ */}
-            <g transform={`translate(${100 - 18 * heartCompression}, 72) scale(${heartCompression}, 1)`}>
+            <g transform={`translate(${100 - 18 * heartCompression}, 72) scale(${heartCompression * heartBeat}, ${heartBeat})`} style={{ transformOrigin: '20px 35px', transition: 'transform 0.08s ease-out' }}>
               {/* Pericardium outline */}
               <path
                 d="M18,0 C8,5 2,20 4,38 C6,52 14,62 22,68 C28,72 34,70 38,64 C44,54 42,38 40,24 C38,12 30,-2 18,0Z"
