@@ -552,7 +552,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               </g>
 
               {/* ── Left atrium (posterior-left) ── */}
-              <g transform={`scale(${1 + cardiacPhase.atrial * 0.08}, ${1 + cardiacPhase.atrial * 0.06})`} style={{ transformOrigin: '10px 28px', transition: 'transform 0.06s ease-out' }}>
+              <g transform={`scale(${1 + cardiacPhase.atrial * 0.08}, ${1 + cardiacPhase.atrial * 0.06})`} style={{ transformOrigin: '10px 28px', transition: chamberTransitionSlow || 'transform 0.06s ease-out' }}>
                 <path
                   d="M10,14 C6,18 4,26 6,34 C8,40 12,44 16,42 C14,34 12,24 10,14Z"
                   fill="url(#heart-la)" opacity={0.8 + cardiacPhase.atrial * 0.1} stroke="#802020" strokeWidth="0.4"
