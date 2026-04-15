@@ -61,6 +61,16 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
   const inflationBase = pathology === 'bronchospasm' ? hyperinflation : 1;
   const expansion = inflationBase * (baseExpansion * 0.75 + breathPhase * 0.25);
 
+  // Scaling helpers: transform coordinates relative to each lung's hilum
+  // so airways, vessels, and patches move proportionally with lung expansion
+  const e = expansion;
+  // Left lung hilum at (75, 68)
+  const lx = (x: number) => 75 + (x - 75) * e;
+  const ly = (y: number) => 68 + (y - 68) * e;
+  // Right lung hilum at (125, 62)
+  const rx = (x: number) => 125 + (x - 125) * e;
+  const ry = (y: number) => 62 + (y - 62) * e;
+
   // Heart compression from hyperinflation (1 = normal, <1 = compressed)
   const heartCompression = pathology === 'bronchospasm'
     ? Math.max(0.55, 1 - (hyperinflation - 1) * 0.6)
