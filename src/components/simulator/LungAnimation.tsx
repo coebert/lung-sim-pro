@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { PatientPhysiology, VentSettings, WaveformBuffers } from '@/lib/simulation/types';
+import { PatientPhysiology, VentSettings, Vitals, WaveformBuffers } from '@/lib/simulation/types';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
@@ -7,10 +7,11 @@ interface LungAnimationProps {
   patient: PatientPhysiology;
   settings: VentSettings;
   buffers: WaveformBuffers;
+  vitals: Vitals;
   compact?: boolean;
 }
 
-export function LungAnimation({ patient, settings, buffers, compact = false }: LungAnimationProps) {
+export function LungAnimation({ patient, settings, buffers, vitals, compact = false }: LungAnimationProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   const recentVolume = buffers.volume;
