@@ -111,10 +111,18 @@ const Index = () => {
             >
               {frozen ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
             </button>
+            <button
+              onClick={() => setTutorialActive(t => !t)}
+              className={`p-1 rounded transition-colors ${tutorialActive ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+              title={tutorialActive ? 'Exit tutorial' : 'Start tutorial'}
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+            </button>
             <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" />
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
               ICU Vent Sim
               {frozen && <span className="ml-1.5 text-[10px] text-primary font-normal">FROZEN</span>}
+              {tutorialActive && <span className="ml-1.5 text-[10px] text-primary font-normal">TUTORIAL</span>}
             </h1>
           </div>
           {isDesktop ? (
