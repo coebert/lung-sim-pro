@@ -62,14 +62,17 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
   const heartBeat = useMemo(() => {
     const ecg = buffers.ecg;
     if (!ecg || ecg.length < 2) return 1;
-    // Use last few samples to detect if we're near an R-wave peak
     const recent = ecg.slice(-8);
     const peak = Math.max(...recent);
-    const baseline = 0.3; // approximate ECG baseline
+    const baseline = 0.3;
     const amplitude = Math.max(peak - baseline, 0);
-    // Map to a scale: 1.0 at rest, up to 1.12 at systole
-    return 1 + Math.min(amplitude, 1) * 0.12;
-  }, [buffers.ecg]);
+    // Tachycardia: bigger, more vigorous contractions
+    const tachyScale = vitals.hr > 100 ? 1 + (Math.min(vitals.hr, 180) - 100) / 200 : 1;
+    return 1 + Math.min(amplitude, 1) * 0.12 * tachyScale;
+  }, [buffers.ecg, vitals.hr]);
+
+  // Tachycardia visual intensity (0 = normal, 1 = severe tachy ≥150)
+  const tachyIntensity = Math.max(0, Math.min(1, (vitals.hr - 100) / 60));
 
   const lungFill = getLungGradientId(pathology);
   const lungOpacity = pathology === 'ards' ? 0.5 + ardsRecruitment * 0.45 : 0.92;
@@ -230,6 +233,14 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 <stop offset="100%" stopColor="rgba(255,255,255,0)" />
               </radialGradient>
               {/* tissue texture removed — was causing fog */}
+              {/* Tachycardia glow */}
+              <filter id="tachy-glow">
+                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
 
             {/* ═══ TRACHEA ═══ */}
@@ -376,7 +387,19 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             <circle cx="168" cy="122" r="0.6" fill="#7a4060" opacity="0.06" />
 
             {/* ═══ HEART (mediastinal, between lungs) ═══ */}
-            <g transform={`translate(${100 - 18 * heartCompression}, 72) scale(${heartCompression * heartBeat}, ${heartBeat})`} style={{ transformOrigin: '20px 35px', transition: 'transform 0.08s ease-out' }}>
+            <g
+              transform={`translate(${100 - 18 * heartCompression}, 72) scale(${heartCompression * heartBeat}, ${heartBeat})`}
+              style={{ transformOrigin: '20px 35px', transition: 'transform 0.08s ease-out' }}
+              filter={tachyIntensity > 0.3 ? 'url(#tachy-glow)' : undefined}
+              opacity={1}
+            >
+              {/* Tachycardia flush overlay — reddens the entire heart */}
+              {tachyIntensity > 0 && (
+                <path
+                  d="M18,0 C8,5 2,20 4,38 C6,52 14,62 22,68 C28,72 34,70 38,64 C44,54 42,38 40,24 C38,12 30,-2 18,0Z"
+                  fill={`rgba(255, ${Math.round(60 - tachyIntensity * 40)}, ${Math.round(40 - tachyIntensity * 30)}, ${tachyIntensity * 0.25})`}
+                />
+              )}
               {/* Pericardium outline */}
               <path
                 d="M18,0 C8,5 2,20 4,38 C6,52 14,62 22,68 C28,72 34,70 38,64 C44,54 42,38 40,24 C38,12 30,-2 18,0Z"
@@ -454,10 +477,15 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               <circle cx="20" cy="68" r="1.5" fill="#a03030" opacity="0.5" />
             </g>
 
-            {/* Heart compression warning */}
+            {/* Heart status warnings */}
             {heartCompression < 0.75 && (
               <text x="100" y="145" textAnchor="middle" fill="#e08050" fontSize="7" fontFamily="monospace" fontWeight="bold" opacity="0.8">
                 Cardiac Compression
+              </text>
+            )}
+            {tachyIntensity > 0.3 && heartCompression >= 0.75 && (
+              <text x="100" y="145" textAnchor="middle" fill="#e05050" fontSize="7" fontFamily="monospace" fontWeight="bold" opacity={0.5 + tachyIntensity * 0.4}>
+                {vitals.hr >= 150 ? '⚠ Severe Tachycardia' : '⚠ Tachycardia'} ({Math.round(vitals.hr)} bpm)
               </text>
             )}
 
