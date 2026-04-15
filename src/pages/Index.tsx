@@ -7,7 +7,7 @@ import { PatientSelector } from '@/components/simulator/PatientSelector';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffers } from '@/lib/simulation/types';
 import { patients, getDefaultSettings } from '@/lib/simulation/patients';
 import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
-import { Settings, Users } from 'lucide-react';
+import { Settings, Users, Pause, Play } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
@@ -30,6 +30,8 @@ const Index = () => {
   const [buffers, setBuffers] = useState<WaveformBuffers>(createInitialBuffers());
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
   const [alarms, setAlarms] = useState<Alarm[]>([]);
+  const [frozen, setFrozen] = useState(false);
+  const frozenRef = useRef(false);
 
   const timeRef = useRef(0);
   const settingsRef = useRef(settings);
@@ -51,8 +53,16 @@ const Index = () => {
     timeRef.current = 0;
   }, []);
 
+  const toggleFreeze = useCallback(() => {
+    setFrozen(f => {
+      frozenRef.current = !f;
+      return !f;
+    });
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
+      if (frozenRef.current) return;
       timeRef.current += 0.02;
       const result = simulationTick(
         timeRef.current,
@@ -95,9 +105,18 @@ const Index = () => {
       {!isLandscape && (
         <div className="flex items-center justify-between px-3 py-1.5 bg-secondary border-b border-border gap-2 shrink-0">
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={toggleFreeze}
+              className={`p-1 rounded transition-colors ${frozen ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+              title={frozen ? 'Resume waveforms' : 'Freeze waveforms'}
+            >
+              {frozen ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+            </button>
             <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" />
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
               ICU Vent Sim
+              {frozen && <span className="ml-1.5 text-[10px] text-primary font-normal">FROZEN</span>}
+            </h1>
             </h1>
           </div>
           {isDesktop ? (
