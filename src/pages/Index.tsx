@@ -7,13 +7,14 @@ import { PatientSelector } from '@/components/simulator/PatientSelector';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffers } from '@/lib/simulation/types';
 import { patients, getDefaultSettings } from '@/lib/simulation/patients';
 import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
-import { Settings, Users, Pause, Play, Stethoscope } from 'lucide-react';
+import { Settings, Users, Pause, Play, Stethoscope, GraduationCap } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
+import { TutorialPanel } from '@/components/simulator/TutorialPanel';
 
-type MobileOverlay = 'none' | 'controls' | 'patients' | 'feedback';
+type MobileOverlay = 'none' | 'controls' | 'patients' | 'feedback' | 'tutorial';
 
 const Index = () => {
   const layoutMode = useLayoutMode();
@@ -32,6 +33,7 @@ const Index = () => {
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [frozen, setFrozen] = useState(false);
+  const [tutorialActive, setTutorialActive] = useState(false);
   const frozenRef = useRef(false);
 
   const timeRef = useRef(0);
@@ -109,10 +111,18 @@ const Index = () => {
             >
               {frozen ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
             </button>
+            <button
+              onClick={() => setTutorialActive(t => !t)}
+              className={`p-1 rounded transition-colors ${tutorialActive ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+              title={tutorialActive ? 'Exit tutorial' : 'Start tutorial'}
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+            </button>
             <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" />
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
               ICU Vent Sim
               {frozen && <span className="ml-1.5 text-[10px] text-primary font-normal">FROZEN</span>}
+              {tutorialActive && <span className="ml-1.5 text-[10px] text-primary font-normal">TUTORIAL</span>}
             </h1>
           </div>
           {isDesktop ? (
@@ -142,9 +152,21 @@ const Index = () => {
                 <MonitorPanel buffers={buffers} vitals={vitals} />
               </div>
             </div>
-            <div className="w-[220px] shrink-0 border-l border-border p-1 flex flex-col gap-1">
-              <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} />
-              <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+            <div className={`${tutorialActive ? 'w-[320px]' : 'w-[220px]'} shrink-0 border-l border-border p-1 flex flex-col gap-1 transition-all`}>
+              {tutorialActive ? (
+                <TutorialPanel
+                  patient={patient}
+                  settings={settings}
+                  vitals={vitals}
+                  measured={measured}
+                  onClose={() => setTutorialActive(false)}
+                />
+              ) : (
+                <>
+                  <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} />
+                  <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+                </>
+              )}
             </div>
           </div>
           <div className="border-t border-border p-2 shrink-0">
@@ -198,6 +220,14 @@ const Index = () => {
               <Stethoscope className="w-3 h-3" />
               Clinical
             </button>
+            <button
+              onClick={() => setMobileOverlay(mobileOverlay === 'tutorial' ? 'none' : 'tutorial')}
+              className={`flex-1 flex items-center justify-center gap-1 py-0.5 text-[10px] transition-colors
+                ${mobileOverlay === 'tutorial' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
+            >
+              <GraduationCap className="w-3 h-3" />
+              Tutorial
+            </button>
           </div>
 
           {/* Slide-up overlay */}
@@ -211,6 +241,9 @@ const Index = () => {
               )}
               {mobileOverlay === 'feedback' && (
                 <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+              )}
+              {mobileOverlay === 'tutorial' && (
+                <TutorialPanel patient={patient} settings={settings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
               )}
             </div>
           )}
@@ -262,6 +295,14 @@ const Index = () => {
               <Stethoscope className="w-4 h-4" />
               Clinical
             </button>
+            <button
+              onClick={() => setMobileOverlay(mobileOverlay === 'tutorial' ? 'none' : 'tutorial')}
+              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
+                ${mobileOverlay === 'tutorial' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
+            >
+              <GraduationCap className="w-4 h-4" />
+              Tutorial
+            </button>
           </div>
 
           {/* Slide-up overlay */}
@@ -275,6 +316,9 @@ const Index = () => {
               )}
               {mobileOverlay === 'feedback' && (
                 <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+              )}
+              {mobileOverlay === 'tutorial' && (
+                <TutorialPanel patient={patient} settings={settings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
               )}
             </div>
           )}
