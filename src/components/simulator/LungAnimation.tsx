@@ -320,6 +320,92 @@ export function LungAnimation({ patient, settings, buffers, compact = false }: L
             <path d="M102,52 C108,60 120,72 130,82" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.2" />
             <path d="M130,82 C140,92 155,108 165,125" fill="none" stroke="#7a4060" strokeWidth="0.4" opacity="0.15" />
 
+            {/* ═══ HEART (mediastinal, between lungs) ═══ */}
+            <g transform={`translate(${100 - 18 * heartCompression}, 72) scale(${heartCompression}, 1)`}>
+              {/* Pericardium outline */}
+              <path
+                d="M18,0 C8,5 2,20 4,38 C6,52 14,62 22,68 C28,72 34,70 38,64 C44,54 42,38 40,24 C38,12 30,-2 18,0Z"
+                fill="none" stroke="#a06060" strokeWidth="0.6" opacity="0.4"
+              />
+
+              {/* ── Right atrium (posterior-right, darker/venous) ── */}
+              <path
+                d="M30,12 C36,16 40,24 39,34 C38,42 34,48 28,50 C26,42 28,28 30,12Z"
+                fill="url(#heart-ra)" opacity="0.85" stroke="#5a2868" strokeWidth="0.5"
+              />
+              {/* SVC entering RA */}
+              <path d="M34,4 C36,8 36,12 34,16" fill="none" stroke="url(#vein-grad)" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
+              {/* IVC entering RA */}
+              <path d="M35,50 C37,54 37,58 36,62" fill="none" stroke="url(#vein-grad)" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+
+              {/* ── Right ventricle (anterior, facing sternum) ── */}
+              <path
+                d="M18,18 C22,16 28,18 30,24 C32,32 30,44 26,52 C22,58 16,56 14,48 C12,38 14,26 18,18Z"
+                fill="url(#heart-myo)" opacity="0.75" stroke="#802020" strokeWidth="0.5"
+              />
+
+              {/* ── Left atrium (posterior-left) ── */}
+              <path
+                d="M10,14 C6,18 4,26 6,34 C8,40 12,44 16,42 C14,34 12,24 10,14Z"
+                fill="url(#heart-la)" opacity="0.8" stroke="#802020" strokeWidth="0.4"
+              />
+              {/* Pulmonary veins entering LA */}
+              <path d="M4,20 C2,22 0,26 2,30" fill="none" stroke="#a04040" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+              <path d="M4,30 C2,34 0,38 2,42" fill="none" stroke="#a04040" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+
+              {/* ── Left ventricle (dominant, thick-walled, forms apex) ── */}
+              <path
+                d="M8,30 C4,36 2,46 6,56 C10,64 18,70 24,66 C28,62 26,52 24,44 C22,38 16,32 8,30Z"
+                fill="url(#heart-myo)" opacity="0.9" stroke="#802020" strokeWidth="0.6"
+              />
+              {/* LV wall thickness indicator — septal line */}
+              <path d="M16,28 C18,38 20,50 18,60" fill="none" stroke="#601818" strokeWidth="0.5" opacity="0.4" />
+
+              {/* ── Interventricular septum ── */}
+              <path d="M18,20 C20,30 22,44 20,56" fill="none" stroke="#6a2020" strokeWidth="0.8" opacity="0.35" />
+
+              {/* ── Aortic arch ── */}
+              <path d="M16,8 C14,2 16,-4 22,-6 C28,-6 34,-2 32,6" fill="none" stroke="url(#aorta-grad)" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+              {/* Ascending aorta */}
+              <path d="M18,18 C17,14 16,10 16,8" fill="none" stroke="url(#aorta-grad)" strokeWidth="2.8" strokeLinecap="round" opacity="0.75" />
+              {/* Arch branches (brachiocephalic, L carotid, L subclavian) */}
+              <path d="M24,-5 C26,-10 28,-14" fill="none" stroke="#c04040" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+              <path d="M22,-6 C22,-12 22,-16" fill="none" stroke="#c04040" strokeWidth="1" strokeLinecap="round" opacity="0.45" />
+              <path d="M20,-5 C18,-10 16,-14" fill="none" stroke="#c04040" strokeWidth="1" strokeLinecap="round" opacity="0.45" />
+              {/* Descending aorta */}
+              <path d="M32,6 C34,16 34,30 32,44" fill="none" stroke="url(#aorta-grad)" strokeWidth="2.2" strokeLinecap="round" opacity="0.6" />
+
+              {/* ── Pulmonary trunk ── */}
+              <path d="M20,14 C18,8 14,4 10,6 C6,8 4,14 6,18" fill="none" stroke="#7050a0" strokeWidth="2.2" strokeLinecap="round" opacity="0.65" />
+              {/* PA bifurcation */}
+              <path d="M10,6 C6,2 2,2 0,6" fill="none" stroke="#7050a0" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
+              <path d="M10,6 C14,2 18,0 20,2" fill="none" stroke="#7050a0" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
+
+              {/* ── Epicardial surface sheen ── */}
+              <path
+                d="M8,30 C4,36 2,46 6,56 C10,64 18,70 24,66 C28,62 26,52 24,44 C22,38 16,32 8,30Z"
+                fill="url(#heart-sheen)" opacity="0.6"
+              />
+
+              {/* ── Coronary arteries ── */}
+              {/* LAD */}
+              <path d="M16,16 C14,24 12,34 14,48" fill="none" stroke="#d05050" strokeWidth="0.6" opacity="0.4" strokeDasharray="2,1" />
+              {/* RCA */}
+              <path d="M24,14 C28,20 30,30 28,42" fill="none" stroke="#d05050" strokeWidth="0.6" opacity="0.35" strokeDasharray="2,1" />
+              {/* Circumflex */}
+              <path d="M14,18 C8,24 6,32 8,42" fill="none" stroke="#d05050" strokeWidth="0.5" opacity="0.3" strokeDasharray="2,1" />
+
+              {/* ── Apex indicator ── */}
+              <circle cx="20" cy="68" r="1.5" fill="#a03030" opacity="0.5" />
+            </g>
+
+            {/* Heart compression warning */}
+            {heartCompression < 0.75 && (
+              <text x="100" y="145" textAnchor="middle" fill="#e08050" fontSize="7" fontFamily="monospace" fontWeight="bold" opacity="0.8">
+                Cardiac Compression
+              </text>
+            )}
+
             {/* ═══ ATELECTASIS / CONSOLIDATION PATCHES ═══ */}
             {atelPatches.map((p, i) => (
               <ellipse
