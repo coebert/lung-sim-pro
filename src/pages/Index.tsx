@@ -190,6 +190,14 @@ const Index = () => {
               <Users className="w-3 h-3" />
               Patient
             </button>
+            <button
+              onClick={() => setMobileOverlay(mobileOverlay === 'feedback' ? 'none' : 'feedback')}
+              className={`flex-1 flex items-center justify-center gap-1 py-0.5 text-[10px] transition-colors
+                ${mobileOverlay === 'feedback' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
+            >
+              <Stethoscope className="w-3 h-3" />
+              Clinical
+            </button>
           </div>
 
           {/* Slide-up overlay */}
@@ -200,6 +208,9 @@ const Index = () => {
               )}
               {mobileOverlay === 'patients' && (
                 <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
+              )}
+              {mobileOverlay === 'feedback' && (
+                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
               )}
             </div>
           )}
