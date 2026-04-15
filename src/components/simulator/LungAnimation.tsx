@@ -621,6 +621,11 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 {vitals.hr >= 150 ? '⚠ Severe Tachycardia' : '⚠ Tachycardia'} ({Math.round(vitals.hr)} bpm)
               </text>
             )}
+            {bradyIntensity > 0 && heartCompression >= 0.75 && (
+              <text x="100" y="145" textAnchor="middle" fill="#7080d0" fontSize="7" fontFamily="monospace" fontWeight="bold" opacity={0.5 + bradyIntensity * 0.4}>
+                {vitals.hr <= 30 ? '⚠ Severe Bradycardia' : '⚠ Bradycardia'} ({Math.round(vitals.hr)} bpm)
+              </text>
+            )}
 
             {/* ═══ ATELECTASIS / CONSOLIDATION PATCHES ═══ */}
             {atelPatches.map((p, i) => (
