@@ -10,6 +10,7 @@ import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib
 import { Settings, Users } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
+import { LungAnimation } from '@/components/simulator/LungAnimation';
 
 type MobileOverlay = 'none' | 'controls' | 'patients';
 
@@ -83,7 +84,11 @@ const Index = () => {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-screen flex flex-col bg-background overflow-hidden relative">
+      {/* Lung animation - top right corner */}
+      <div className="absolute top-1 right-1 z-40 w-[100px] h-[120px] sm:w-[130px] sm:h-[150px] pointer-events-none opacity-80">
+        <LungAnimation patient={patient} settings={settings} buffers={buffers} />
+      </div>
       {/* Alarm banner */}
       <AlarmBanner alarms={alarms} />
       {/* Header — hidden in mobile landscape to save vertical space */}
