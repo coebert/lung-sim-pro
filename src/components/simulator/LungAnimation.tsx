@@ -616,21 +616,21 @@ function rightLungPath(exp: number): string {
 
 function leftFissure(exp: number): string {
   const w = 42 * exp; const h = 95 * exp;
-  const cx = 58; const top = 60;
+  const cx = 70; const top = 60;
   return `M${cx - w * 0.05},${top + h * 0.28}
     C${cx - w * 0.3},${top + h * 0.5} ${cx - w * 0.55},${top + h * 0.7} ${cx - w * 0.75},${top + h * 0.88}`;
 }
 
 function rightObliqueFissure(exp: number): string {
   const w = 45 * exp; const h = 100 * exp;
-  const cx = 142; const top = 56;
+  const cx = 130; const top = 56;
   return `M${cx + w * 0.08},${top + h * 0.22}
     C${cx + w * 0.35},${top + h * 0.48} ${cx + w * 0.55},${top + h * 0.68} ${cx + w * 0.78},${top + h * 0.88}`;
 }
 
 function rightHorizontalFissure(exp: number): string {
   const w = 45 * exp; const h = 100 * exp;
-  const cx = 142; const top = 56;
+  const cx = 130; const top = 56;
   const y = top + h * 0.36;
   return `M${cx + w * 0.08},${y}
     C${cx + w * 0.25},${y - 2} ${cx + w * 0.5},${y + 1} ${cx + w * 0.72},${y - 1}`;
