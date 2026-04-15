@@ -642,26 +642,33 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               </text>
             )}
 
-            {/* ═══ ATELECTASIS / CONSOLIDATION PATCHES ═══ */}
-            {atelPatches.map((p, i) => (
-              <ellipse
-                key={i} cx={p.x} cy={p.y}
-                rx={p.rx} ry={p.ry}
-                fill={p.fill || 'url(#consol-grad)'}
-                opacity={p.opacity}
-                transform={p.rotate ? `rotate(${p.rotate} ${p.x} ${p.y})` : undefined}
-              />
-            ))}
+            {/* ═══ ATELECTASIS / CONSOLIDATION PATCHES (clipped to lung outlines) ═══ */}
+            <g clipPath="url(#clip-lungs)">
+              {atelPatches.map((p, i) => {
+                const isLeft = p.x < 100;
+                const sx = isLeft ? lx(p.x) : rx(p.x);
+                const sy = isLeft ? ly(p.y) : ry(p.y);
+                return (
+                  <ellipse
+                    key={i} cx={sx} cy={sy}
+                    rx={p.rx} ry={p.ry}
+                    fill={p.fill || 'url(#consol-grad)'}
+                    opacity={p.opacity}
+                    transform={p.rotate ? `rotate(${p.rotate} ${sx} ${sy})` : undefined}
+                  />
+                );
+              })}
+            </g>
 
-            {/* ═══ BRONCHOSPASM: airway inflammation ═══ */}
+            {/* ═══ BRONCHOSPASM: airway inflammation (scale with expansion) ═══ */}
             {pathology === 'bronchospasm' && (
               <>
-                <circle cx="65" cy="71" r="2" fill="#e8c040" opacity="0.45" />
-                <circle cx="133" cy="65" r="2" fill="#e8c040" opacity="0.45" />
-                <circle cx="52" cy="88" r="1.5" fill="#e8c040" opacity="0.35" />
-                <circle cx="150" cy="81" r="1.5" fill="#e8c040" opacity="0.35" />
-                <ellipse cx="58" cy="80" rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
-                <ellipse cx="143" cy="74" rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
+                <circle cx={lx(65)} cy={ly(71)} r="2" fill="#e8c040" opacity="0.45" />
+                <circle cx={rx(133)} cy={ry(65)} r="2" fill="#e8c040" opacity="0.45" />
+                <circle cx={lx(52)} cy={ly(88)} r="1.5" fill="#e8c040" opacity="0.35" />
+                <circle cx={rx(150)} cy={ry(81)} r="1.5" fill="#e8c040" opacity="0.35" />
+                <ellipse cx={lx(58)} cy={ly(80)} rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
+                <ellipse cx={rx(143)} cy={ry(74)} rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
               </>
             )}
 
