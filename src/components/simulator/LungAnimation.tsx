@@ -58,18 +58,51 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
     ? Math.max(0.55, 1 - (hyperinflation - 1) * 0.6)
     : 1;
 
-  // Heartbeat animation driven by ECG buffer peaks
-  const heartBeat = useMemo(() => {
+  // Cardiac cycle phases from ECG buffer
+  // We track the ECG signal to derive atrial vs ventricular contraction timing
+  const cardiacPhase = useMemo(() => {
     const ecg = buffers.ecg;
-    if (!ecg || ecg.length < 2) return 1;
-    const recent = ecg.slice(-8);
-    const peak = Math.max(...recent);
-    const baseline = 0.3;
-    const amplitude = Math.max(peak - baseline, 0);
-    // Tachycardia: bigger, more vigorous contractions
+    if (!ecg || ecg.length < 30) return { atrial: 0, ventricular: 0 };
+
+    // Look at the last ~30 samples to find the cardiac cycle phase
+    const window = ecg.slice(-30);
+    const max = Math.max(...window);
+    const min = Math.min(...window);
+    const range = max - min || 1;
+
+    // Normalise the recent window
+    const norm = window.map(v => (v - min) / range);
+
+    // Find the R-wave peak position (highest value in recent window)
+    let rPeakIdx = 0;
+    let rPeakVal = 0;
+    for (let i = 0; i < norm.length; i++) {
+      if (norm[i] > rPeakVal) { rPeakVal = norm[i]; rPeakIdx = i; }
+    }
+
+    // Current position relative to R-peak
+    const distFromPeak = norm.length - 1 - rPeakIdx;
+
+    // Atrial systole: P-wave occurs ~6-10 samples before R-peak
+    // Peaks when we're ~8 samples before R, decays quickly
+    const atrialDist = Math.abs(distFromPeak - 0) < 3 ? 0 : // near R-peak, atria relaxed
+      distFromPeak >= 5 && distFromPeak <= 12 ? // P-wave zone
+        Math.exp(-Math.pow((distFromPeak - 8) / 2.5, 2)) : 0;
+
+    // Ventricular systole: QRS/early systole, peaks at R-wave, sustained briefly
+    const ventricularPhase = distFromPeak <= 6 ?
+      Math.exp(-Math.pow(distFromPeak / 3, 2)) : 0;
+
     const tachyScale = vitals.hr > 100 ? 1 + (Math.min(vitals.hr, 180) - 100) / 200 : 1;
-    return 1 + Math.min(amplitude, 1) * 0.12 * tachyScale;
+
+    return {
+      atrial: atrialDist * tachyScale,
+      ventricular: ventricularPhase * tachyScale,
+    };
   }, [buffers.ecg, vitals.hr]);
+
+  // Overall heart scale for the whole organ (ventricular dominant)
+  const heartBeat = 1 + cardiacPhase.ventricular * 0.10;
 
   // Tachycardia visual intensity (0 = normal, 1 = severe tachy ≥150)
   const tachyIntensity = Math.max(0, Math.min(1, (vitals.hr - 100) / 60));
