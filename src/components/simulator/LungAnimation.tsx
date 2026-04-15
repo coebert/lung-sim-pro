@@ -585,7 +585,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
 function leftLungPath(exp: number): string {
   const w = 42 * exp;
   const h = 95 * exp;
-  const cx = 58;
+  const cx = 70;
   const top = 60;
   // Left lung: narrower apex, lateral convexity, flat base, cardiac notch on medial surface
   return `M${cx},${top}
@@ -602,7 +602,7 @@ function leftLungPath(exp: number): string {
 function rightLungPath(exp: number): string {
   const w = 45 * exp;
   const h = 100 * exp;
-  const cx = 142;
+  const cx = 130;
   const top = 56;
   // Right lung: larger, 3 lobes, no cardiac notch, straighter medial border
   return `M${cx},${top}
