@@ -302,49 +302,49 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             {/* ═══ MAIN BRONCHI ═══ */}
             {/* Left main — longer, more horizontal (anatomical) */}
             <path
-              d={`M100,50 C86,57 ${70 - (expansion - 1) * 4},62 ${60 - (expansion - 1) * 5},70`}
+              d={`M100,50 C90,56 ${82 - (expansion - 1) * 3},61 ${75 - (expansion - 1) * 4},68`}
               fill="none" stroke="url(#aw-grad)" strokeWidth={airwayWidth} strokeLinecap="round"
             />
             {/* Right main — shorter, steeper (anatomical) */}
             <path
-              d={`M100,50 C110,54 ${126 + (expansion - 1) * 4},57 ${138 + (expansion - 1) * 5},64`}
+              d={`M100,50 C108,54 ${118 + (expansion - 1) * 3},57 ${125 + (expansion - 1) * 4},62`}
               fill="none" stroke="url(#aw-grad)" strokeWidth={airwayWidth} strokeLinecap="round"
             />
 
             {/* ═══ LEFT LOBAR BRONCHI ═══ */}
             {/* Upper lobe */}
-            <path d={`M${60 - (expansion - 1) * 5},70 C52,74 44,72 ${38 - expansion * 1.5},76`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M${75 - (expansion - 1) * 4},68 C67,72 59,70 ${53 - expansion * 1.5},74`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Lingula */}
-            <path d={`M${60 - (expansion - 1) * 5},70 C54,80 48,88 ${44 - expansion},96`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M${75 - (expansion - 1) * 4},68 C69,78 63,86 ${59 - expansion},94`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Lower lobe */}
-            <path d={`M${60 - (expansion - 1) * 5},70 C62,82 60,92 ${56},102`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M${75 - (expansion - 1) * 4},68 C77,80 75,90 ${71},100`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
 
             {/* ═══ RIGHT LOBAR BRONCHI ═══ */}
             {/* Upper lobe (eparterial) */}
-            <path d={`M${132 + (expansion - 1) * 3},60 C140,58 150,56 ${156 + expansion},60`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M${120 + (expansion - 1) * 3},58 C128,56 138,54 ${144 + expansion},58`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Middle lobe */}
-            <path d={`M${138 + (expansion - 1) * 5},64 C146,72 154,78 ${160 + expansion * 1.5},85`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M${125 + (expansion - 1) * 4},62 C133,70 141,76 ${147 + expansion * 1.5},83`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Lower lobe */}
-            <path d={`M${138 + (expansion - 1) * 5},64 C140,76 138,86 ${136},96`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M${125 + (expansion - 1) * 4},62 C127,74 125,84 ${123},94`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
 
             {/* ═══ SEGMENTAL AIRWAYS ═══ */}
             {/* Left upper segments */}
-            <path d={`M${38 - expansion * 1.5},76 C32,80 26,86 ${22},92`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${38 - expansion * 1.5},76 C36,84 30,90 ${28},98`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${53 - expansion * 1.5},74 C47,78 41,84 ${37},90`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${53 - expansion * 1.5},74 C51,82 45,88 ${43},96`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Left lingular segments */}
-            <path d={`M${44 - expansion},96 C38,102 32,108 ${28},115`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${59 - expansion},94 C53,100 47,106 ${43},113`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Left lower segments */}
-            <path d={`M${56},102 C52,110 46,118 ${42},126`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${56},102 C60,112 58,122 ${54},130`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${71},100 C67,108 61,116 ${57},124`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${71},100 C75,110 73,120 ${69},128`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
 
             {/* Right upper segments */}
-            <path d={`M${156 + expansion},60 C162,64 168,68 ${172},74`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${156 + expansion},60 C160,66 164,72 ${166},80`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${144 + expansion},58 C150,62 156,66 ${160},72`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${144 + expansion},58 C148,64 152,70 ${154},78`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Right middle segments */}
-            <path d={`M${160 + expansion * 1.5},85 C166,90 172,96 ${176},102`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${147 + expansion * 1.5},83 C153,88 159,94 ${163},100`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Right lower segments */}
-            <path d={`M${136},96 C140,106 144,116 ${146},126`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${136},96 C132,106 128,116 ${126},126`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${123},94 C127,104 131,114 ${133},124`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${123},94 C119,104 115,114 ${113},124`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
 
             {/* ═══ LEFT LUNG PARENCHYMA ═══ */}
             <path
@@ -353,7 +353,6 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               opacity={lungOpacity}
               stroke="#8a5560"
               strokeWidth="1.2"
-              
             />
             <path d={leftLungPath(expansion)} fill="url(#pl-l)" opacity="0.45" />
 
@@ -367,7 +366,6 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               opacity={lungOpacity}
               stroke="#8a5560"
               strokeWidth="1.2"
-              
             />
             <path d={rightLungPath(expansion)} fill="url(#pl-r)" opacity="0.45" />
 
@@ -378,54 +376,54 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
 
             {/* ═══ PULMONARY VASCULATURE — detailed vascular tree ═══ */}
             {/* Left pulmonary artery branches */}
-            <path d="M98,52 C92,60 84,70 76,80" fill="none" stroke="#7a4060" strokeWidth="0.7" opacity="0.22" />
-            <path d="M76,80 C68,90 56,104 44,120" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.18" />
-            <path d="M76,80 C70,88 60,96 50,106" fill="none" stroke="#7a4060" strokeWidth="0.45" opacity="0.16" />
-            <path d="M44,120 C38,128 32,138 28,148" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
-            <path d="M50,106 C44,114 36,124 30,134" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            <path d="M98,52 C94,58 88,68 82,78" fill="none" stroke="#7a4060" strokeWidth="0.7" opacity="0.22" />
+            <path d="M82,78 C74,88 62,102 50,118" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.18" />
+            <path d="M82,78 C76,86 66,94 56,104" fill="none" stroke="#7a4060" strokeWidth="0.45" opacity="0.16" />
+            <path d="M50,118 C44,126 38,136 34,146" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            <path d="M56,104 C50,112 42,122 36,132" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
             {/* Left upper lobe arterioles */}
-            <path d="M82,68 C74,64 64,66 56,72" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.14" />
-            <path d="M56,72 C48,78 40,86 34,96" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.11" />
-            <path d="M64,66 C56,60 48,62 40,68" fill="none" stroke="#7a4060" strokeWidth="0.25" opacity="0.10" />
+            <path d="M88,66 C80,62 70,64 62,70" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.14" />
+            <path d="M62,70 C54,76 46,84 40,94" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.11" />
+            <path d="M70,64 C62,58 54,60 46,66" fill="none" stroke="#7a4060" strokeWidth="0.25" opacity="0.10" />
             {/* Left lingular vessels */}
-            <path d="M68,88 C58,96 50,108 44,118" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.12" />
+            <path d="M74,86 C64,94 56,106 50,116" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.12" />
             {/* Left pulmonary veins (slightly bluer) */}
-            <path d="M86,72 C78,82 66,92 56,100" fill="none" stroke="#605080" strokeWidth="0.4" opacity="0.14" />
-            <path d="M56,100 C46,110 38,122 32,136" fill="none" stroke="#605080" strokeWidth="0.3" opacity="0.11" />
-            <path d="M72,78 C62,72 52,70 42,76" fill="none" stroke="#605080" strokeWidth="0.25" opacity="0.10" />
+            <path d="M92,70 C84,80 72,90 62,98" fill="none" stroke="#605080" strokeWidth="0.4" opacity="0.14" />
+            <path d="M62,98 C52,108 44,120 38,134" fill="none" stroke="#605080" strokeWidth="0.3" opacity="0.11" />
+            <path d="M78,76 C68,70 58,68 48,74" fill="none" stroke="#605080" strokeWidth="0.25" opacity="0.10" />
 
             {/* Right pulmonary artery branches */}
-            <path d="M102,52 C108,58 118,66 128,74" fill="none" stroke="#7a4060" strokeWidth="0.7" opacity="0.22" />
-            <path d="M128,74 C136,82 148,96 156,110" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.18" />
-            <path d="M128,74 C134,82 142,92 150,102" fill="none" stroke="#7a4060" strokeWidth="0.45" opacity="0.16" />
-            <path d="M156,110 C162,120 168,132 172,142" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
-            <path d="M150,102 C156,112 164,124 170,134" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            <path d="M102,52 C106,58 114,66 122,74" fill="none" stroke="#7a4060" strokeWidth="0.7" opacity="0.22" />
+            <path d="M122,74 C130,82 142,96 150,110" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.18" />
+            <path d="M122,74 C128,82 136,92 144,102" fill="none" stroke="#7a4060" strokeWidth="0.45" opacity="0.16" />
+            <path d="M150,110 C156,120 162,132 166,142" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            <path d="M144,102 C150,112 158,124 164,134" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
             {/* Right upper lobe arterioles */}
-            <path d="M120,62 C130,58 140,56 150,60" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.14" />
-            <path d="M150,60 C158,64 166,72 172,82" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.11" />
-            <path d="M136,56 C144,52 152,54 160,60" fill="none" stroke="#7a4060" strokeWidth="0.25" opacity="0.10" />
+            <path d="M114,60 C124,56 134,54 144,58" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.14" />
+            <path d="M144,58 C152,62 160,70 166,80" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.11" />
+            <path d="M130,54 C138,50 146,52 154,58" fill="none" stroke="#7a4060" strokeWidth="0.25" opacity="0.10" />
             {/* Right middle lobe vessels */}
-            <path d="M140,82 C150,88 160,96 168,106" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.12" />
+            <path d="M134,80 C144,86 154,94 162,104" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.12" />
             {/* Right pulmonary veins */}
-            <path d="M116,66 C126,76 138,86 148,94" fill="none" stroke="#605080" strokeWidth="0.4" opacity="0.14" />
-            <path d="M148,94 C156,104 164,118 170,130" fill="none" stroke="#605080" strokeWidth="0.3" opacity="0.11" />
-            <path d="M132,70 C142,66 152,64 162,68" fill="none" stroke="#605080" strokeWidth="0.25" opacity="0.10" />
+            <path d="M110,64 C120,74 132,84 142,92" fill="none" stroke="#605080" strokeWidth="0.4" opacity="0.14" />
+            <path d="M142,92 C150,102 158,116 164,128" fill="none" stroke="#605080" strokeWidth="0.3" opacity="0.11" />
+            <path d="M126,68 C136,64 146,62 156,66" fill="none" stroke="#605080" strokeWidth="0.25" opacity="0.10" />
 
             {/* Peripheral capillary blush — tiny scattered marks */}
             {/* Left lung */}
-            <circle cx="38" cy="88" r="0.6" fill="#7a4060" opacity="0.08" />
-            <circle cx="32" cy="110" r="0.5" fill="#7a4060" opacity="0.07" />
-            <circle cx="46" cy="130" r="0.7" fill="#7a4060" opacity="0.06" />
-            <circle cx="54" cy="116" r="0.5" fill="#7a4060" opacity="0.07" />
-            <circle cx="42" cy="98" r="0.4" fill="#7a4060" opacity="0.08" />
-            <circle cx="36" cy="124" r="0.6" fill="#7a4060" opacity="0.06" />
+            <circle cx="44" cy="86" r="0.6" fill="#7a4060" opacity="0.08" />
+            <circle cx="38" cy="108" r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx="52" cy="128" r="0.7" fill="#7a4060" opacity="0.06" />
+            <circle cx="60" cy="114" r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx="48" cy="96" r="0.4" fill="#7a4060" opacity="0.08" />
+            <circle cx="42" cy="122" r="0.6" fill="#7a4060" opacity="0.06" />
             {/* Right lung */}
-            <circle cx="162" cy="86" r="0.6" fill="#7a4060" opacity="0.08" />
-            <circle cx="170" cy="108" r="0.5" fill="#7a4060" opacity="0.07" />
-            <circle cx="154" cy="126" r="0.7" fill="#7a4060" opacity="0.06" />
-            <circle cx="146" cy="112" r="0.5" fill="#7a4060" opacity="0.07" />
-            <circle cx="164" cy="96" r="0.4" fill="#7a4060" opacity="0.08" />
-            <circle cx="168" cy="122" r="0.6" fill="#7a4060" opacity="0.06" />
+            <circle cx="156" cy="84" r="0.6" fill="#7a4060" opacity="0.08" />
+            <circle cx="164" cy="106" r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx="148" cy="124" r="0.7" fill="#7a4060" opacity="0.06" />
+            <circle cx="140" cy="110" r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx="158" cy="94" r="0.4" fill="#7a4060" opacity="0.08" />
+            <circle cx="162" cy="120" r="0.6" fill="#7a4060" opacity="0.06" />
 
             {/* ═══ HEART (mediastinal, between lungs) ═══ */}
             <g
@@ -552,12 +550,12 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             {/* ═══ BRONCHOSPASM: airway inflammation ═══ */}
             {pathology === 'bronchospasm' && (
               <>
-                <circle cx="53" cy="73" r="2" fill="#e8c040" opacity="0.45" />
-                <circle cx="145" cy="67" r="2" fill="#e8c040" opacity="0.45" />
-                <circle cx="40" cy="90" r="1.5" fill="#e8c040" opacity="0.35" />
-                <circle cx="162" cy="83" r="1.5" fill="#e8c040" opacity="0.35" />
-                <ellipse cx="46" cy="82" rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
-                <ellipse cx="155" cy="76" rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
+                <circle cx="65" cy="71" r="2" fill="#e8c040" opacity="0.45" />
+                <circle cx="133" cy="65" r="2" fill="#e8c040" opacity="0.45" />
+                <circle cx="52" cy="88" r="1.5" fill="#e8c040" opacity="0.35" />
+                <circle cx="150" cy="81" r="1.5" fill="#e8c040" opacity="0.35" />
+                <ellipse cx="58" cy="80" rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
+                <ellipse cx="143" cy="74" rx="2.5" ry="1" fill="#c8a830" opacity="0.35" />
               </>
             )}
 
@@ -587,7 +585,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
 function leftLungPath(exp: number): string {
   const w = 42 * exp;
   const h = 95 * exp;
-  const cx = 58;
+  const cx = 70;
   const top = 60;
   // Left lung: narrower apex, lateral convexity, flat base, cardiac notch on medial surface
   return `M${cx},${top}
@@ -604,7 +602,7 @@ function leftLungPath(exp: number): string {
 function rightLungPath(exp: number): string {
   const w = 45 * exp;
   const h = 100 * exp;
-  const cx = 142;
+  const cx = 130;
   const top = 56;
   // Right lung: larger, 3 lobes, no cardiac notch, straighter medial border
   return `M${cx},${top}
@@ -618,21 +616,21 @@ function rightLungPath(exp: number): string {
 
 function leftFissure(exp: number): string {
   const w = 42 * exp; const h = 95 * exp;
-  const cx = 58; const top = 60;
+  const cx = 70; const top = 60;
   return `M${cx - w * 0.05},${top + h * 0.28}
     C${cx - w * 0.3},${top + h * 0.5} ${cx - w * 0.55},${top + h * 0.7} ${cx - w * 0.75},${top + h * 0.88}`;
 }
 
 function rightObliqueFissure(exp: number): string {
   const w = 45 * exp; const h = 100 * exp;
-  const cx = 142; const top = 56;
+  const cx = 130; const top = 56;
   return `M${cx + w * 0.08},${top + h * 0.22}
     C${cx + w * 0.35},${top + h * 0.48} ${cx + w * 0.55},${top + h * 0.68} ${cx + w * 0.78},${top + h * 0.88}`;
 }
 
 function rightHorizontalFissure(exp: number): string {
   const w = 45 * exp; const h = 100 * exp;
-  const cx = 142; const top = 56;
+  const cx = 130; const top = 56;
   const y = top + h * 0.36;
   return `M${cx + w * 0.08},${y}
     C${cx + w * 0.25},${y - 2} ${cx + w * 0.5},${y + 1} ${cx + w * 0.72},${y - 1}`;
@@ -688,37 +686,37 @@ function getArdsPatches(recruitment: number, expansion: number): AtelPatch[] {
   const allPatches: AtelPatch[] = [
     // ── DEPENDENT / BASAL (always affected first in ARDS) ──
     // Left lower lobe base
-    { x: 34, y: 152, rx: 16 * expansion, ry: 8, opacity: severity * 0.85, fill: consol, rotate: -10 },
-    { x: 26, y: 142, rx: 12 * expansion, ry: 7, opacity: severity * 0.75, fill: consol, rotate: -15 },
-    { x: 44, y: 148, rx: 10 * expansion, ry: 5, opacity: severity * 0.7, fill: consol, rotate: 5 },
+    { x: 46, y: 152, rx: 16 * expansion, ry: 8, opacity: severity * 0.85, fill: consol, rotate: -10 },
+    { x: 38, y: 142, rx: 12 * expansion, ry: 7, opacity: severity * 0.75, fill: consol, rotate: -15 },
+    { x: 56, y: 148, rx: 10 * expansion, ry: 5, opacity: severity * 0.7, fill: consol, rotate: 5 },
     // Right lower lobe base (slightly worse — gravity dependent in supine)
-    { x: 162, y: 155, rx: 18 * expansion, ry: 9, opacity: severity * 0.88, fill: consol, rotate: 10 },
-    { x: 172, y: 145, rx: 13 * expansion, ry: 7, opacity: severity * 0.78, fill: consol, rotate: 15 },
-    { x: 150, y: 150, rx: 10 * expansion, ry: 5, opacity: severity * 0.65, fill: consol, rotate: -5 },
+    { x: 150, y: 155, rx: 18 * expansion, ry: 9, opacity: severity * 0.88, fill: consol, rotate: 10 },
+    { x: 160, y: 145, rx: 13 * expansion, ry: 7, opacity: severity * 0.78, fill: consol, rotate: 15 },
+    { x: 138, y: 150, rx: 10 * expansion, ry: 5, opacity: severity * 0.65, fill: consol, rotate: -5 },
 
     // ── MID-ZONES (patchy, scattered — characteristic of ARDS) ──
     // Left mid
-    { x: 30, y: 125, rx: 9 * expansion, ry: 5, opacity: severity > 0.3 ? (severity - 0.3) * 0.9 : 0, fill: consol, rotate: -8 },
-    { x: 48, y: 118, rx: 7 * expansion, ry: 4, opacity: severity > 0.35 ? (severity - 0.35) * 0.8 : 0, fill: consol, rotate: 12 },
-    { x: 38, y: 110, rx: 6 * expansion, ry: 3.5, opacity: severity > 0.4 ? (severity - 0.4) * 0.7 : 0, fill: consol, rotate: -20 },
+    { x: 42, y: 125, rx: 9 * expansion, ry: 5, opacity: severity > 0.3 ? (severity - 0.3) * 0.9 : 0, fill: consol, rotate: -8 },
+    { x: 60, y: 118, rx: 7 * expansion, ry: 4, opacity: severity > 0.35 ? (severity - 0.35) * 0.8 : 0, fill: consol, rotate: 12 },
+    { x: 50, y: 110, rx: 6 * expansion, ry: 3.5, opacity: severity > 0.4 ? (severity - 0.4) * 0.7 : 0, fill: consol, rotate: -20 },
     // Right mid (heterogeneous scatter)
-    { x: 168, y: 120, rx: 10 * expansion, ry: 5, opacity: severity > 0.3 ? (severity - 0.3) * 0.85 : 0, fill: consol, rotate: 8 },
-    { x: 148, y: 112, rx: 7 * expansion, ry: 4, opacity: severity > 0.35 ? (severity - 0.35) * 0.75 : 0, fill: consol, rotate: -12 },
-    { x: 158, y: 105, rx: 5 * expansion, ry: 3, opacity: severity > 0.45 ? (severity - 0.45) * 0.7 : 0, fill: consol, rotate: 25 },
+    { x: 156, y: 120, rx: 10 * expansion, ry: 5, opacity: severity > 0.3 ? (severity - 0.3) * 0.85 : 0, fill: consol, rotate: 8 },
+    { x: 136, y: 112, rx: 7 * expansion, ry: 4, opacity: severity > 0.35 ? (severity - 0.35) * 0.75 : 0, fill: consol, rotate: -12 },
+    { x: 146, y: 105, rx: 5 * expansion, ry: 3, opacity: severity > 0.45 ? (severity - 0.45) * 0.7 : 0, fill: consol, rotate: 25 },
 
     // ── NON-DEPENDENT / UPPER (only in severe ARDS) ──
     // Left upper
-    { x: 34, y: 90, rx: 6 * expansion, ry: 3, opacity: severity > 0.6 ? (severity - 0.6) * 0.8 : 0, fill: consol, rotate: -15 },
-    { x: 42, y: 82, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.7 ? (severity - 0.7) * 0.7 : 0, fill: consol, rotate: 10 },
+    { x: 46, y: 90, rx: 6 * expansion, ry: 3, opacity: severity > 0.6 ? (severity - 0.6) * 0.8 : 0, fill: consol, rotate: -15 },
+    { x: 54, y: 82, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.7 ? (severity - 0.7) * 0.7 : 0, fill: consol, rotate: 10 },
     // Right upper
-    { x: 165, y: 85, rx: 6 * expansion, ry: 3, opacity: severity > 0.6 ? (severity - 0.6) * 0.75 : 0, fill: consol, rotate: 18 },
-    { x: 156, y: 78, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.7 ? (severity - 0.7) * 0.65 : 0, fill: consol, rotate: -10 },
+    { x: 153, y: 85, rx: 6 * expansion, ry: 3, opacity: severity > 0.6 ? (severity - 0.6) * 0.75 : 0, fill: consol, rotate: 18 },
+    { x: 144, y: 78, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.7 ? (severity - 0.7) * 0.65 : 0, fill: consol, rotate: -10 },
 
     // ── SCATTERED MICRO-PATCHES (ARDS heterogeneity) ──
-    { x: 22, y: 132, rx: 4 * expansion, ry: 2, opacity: severity > 0.25 ? severity * 0.4 : 0, fill: consol, rotate: 30 },
-    { x: 52, y: 135, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.3 ? severity * 0.35 : 0, fill: consol, rotate: -25 },
-    { x: 175, y: 130, rx: 4 * expansion, ry: 2, opacity: severity > 0.25 ? severity * 0.4 : 0, fill: consol, rotate: -30 },
-    { x: 142, y: 128, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.3 ? severity * 0.35 : 0, fill: consol, rotate: 22 },
+    { x: 34, y: 132, rx: 4 * expansion, ry: 2, opacity: severity > 0.25 ? severity * 0.4 : 0, fill: consol, rotate: 30 },
+    { x: 64, y: 135, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.3 ? severity * 0.35 : 0, fill: consol, rotate: -25 },
+    { x: 163, y: 130, rx: 4 * expansion, ry: 2, opacity: severity > 0.25 ? severity * 0.4 : 0, fill: consol, rotate: -30 },
+    { x: 130, y: 128, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.3 ? severity * 0.35 : 0, fill: consol, rotate: 22 },
   ];
 
   return allPatches.filter(p => p.opacity > 0.04);
@@ -739,17 +737,17 @@ function getObeseBasalPatches(score: number, expansion: number): AtelPatch[] {
   return [
     // ── CRESCENTIC BASAL BANDS — bilateral, confluent ──
     // Left base — broad crescentic atelectasis
-    { x: 34, y: 155, rx: 22 * expansion, ry: 10, opacity: score * 0.85, fill, rotate: -5 },
-    { x: 30, y: 145, rx: 18 * expansion, ry: 7, opacity: score * 0.7, fill, rotate: -3 },
-    { x: 38, y: 138, rx: 14 * expansion, ry: 5, opacity: score > 0.3 ? (score - 0.2) * 0.6 : 0, fill, rotate: -2 },
+    { x: 46, y: 155, rx: 22 * expansion, ry: 10, opacity: score * 0.85, fill, rotate: -5 },
+    { x: 42, y: 145, rx: 18 * expansion, ry: 7, opacity: score * 0.7, fill, rotate: -3 },
+    { x: 50, y: 138, rx: 14 * expansion, ry: 5, opacity: score > 0.3 ? (score - 0.2) * 0.6 : 0, fill, rotate: -2 },
 
     // Right base — slightly larger (more diaphragmatic surface area)
-    { x: 160, y: 158, rx: 24 * expansion, ry: 11, opacity: score * 0.88, fill, rotate: 5 },
-    { x: 164, y: 148, rx: 20 * expansion, ry: 8, opacity: score * 0.72, fill, rotate: 3 },
-    { x: 156, y: 140, rx: 15 * expansion, ry: 5, opacity: score > 0.3 ? (score - 0.2) * 0.6 : 0, fill, rotate: 2 },
+    { x: 148, y: 158, rx: 24 * expansion, ry: 11, opacity: score * 0.88, fill, rotate: 5 },
+    { x: 152, y: 148, rx: 20 * expansion, ry: 8, opacity: score * 0.72, fill, rotate: 3 },
+    { x: 144, y: 140, rx: 15 * expansion, ry: 5, opacity: score > 0.3 ? (score - 0.2) * 0.6 : 0, fill, rotate: 2 },
 
     // ── POSTERIOR DEPENDENT STRIP (supine compression) ──
-    { x: 42, y: 132, rx: 10 * expansion, ry: 4, opacity: score > 0.5 ? (score - 0.4) * 0.5 : 0, fill, rotate: -8 },
-    { x: 152, y: 134, rx: 11 * expansion, ry: 4, opacity: score > 0.5 ? (score - 0.4) * 0.5 : 0, fill, rotate: 8 },
+    { x: 54, y: 132, rx: 10 * expansion, ry: 4, opacity: score > 0.5 ? (score - 0.4) * 0.5 : 0, fill, rotate: -8 },
+    { x: 140, y: 134, rx: 11 * expansion, ry: 4, opacity: score > 0.5 ? (score - 0.4) * 0.5 : 0, fill, rotate: 8 },
   ].filter(p => p.opacity > 0.04);
 }
