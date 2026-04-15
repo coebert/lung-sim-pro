@@ -7,13 +7,14 @@ import { PatientSelector } from '@/components/simulator/PatientSelector';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffers } from '@/lib/simulation/types';
 import { patients, getDefaultSettings } from '@/lib/simulation/patients';
 import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
-import { Settings, Users, Pause, Play, Stethoscope } from 'lucide-react';
+import { Settings, Users, Pause, Play, Stethoscope, GraduationCap } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
+import { TutorialPanel } from '@/components/simulator/TutorialPanel';
 
-type MobileOverlay = 'none' | 'controls' | 'patients' | 'feedback';
+type MobileOverlay = 'none' | 'controls' | 'patients' | 'feedback' | 'tutorial';
 
 const Index = () => {
   const layoutMode = useLayoutMode();
