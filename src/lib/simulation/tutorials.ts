@@ -239,6 +239,64 @@ export const tutorials: TutorialScenario[] = [
     summary:
       'You supported a spontaneously breathing patient with PSV, appropriate pressure support, and minimal PEEP/FiO₂. Key principle: support, don\'t suppress the patient\'s own respiratory drive.',
   },
+  {
+    patientId: 'ards',
+    title: 'APRV: Airway Pressure Release Ventilation for ARDS',
+    introduction:
+      'This ARDS patient has diffuse atelectasis and refractory hypoxaemia. APRV uses sustained high pressure (P High) to recruit collapsed alveoli, with brief releases (T Low) for CO₂ clearance. Your goal is to optimise all four APRV parameters to maximise recruitment while maintaining ventilation.',
+    steps: [
+      {
+        title: 'Switch to APRV mode',
+        instruction:
+          'APRV is a pressure-based mode that maintains a high continuous pressure with intermittent brief releases. Switch the ventilator mode to APRV.',
+        hint: 'Select APRV from the mode selector.',
+        check: (s) => s.mode === 'APRV',
+        successMessage: 'APRV mode is active. You now control P High, P Low, T High, and T Low.',
+      },
+      {
+        title: 'Set P High for recruitment',
+        instruction:
+          'P High is the sustained inflation pressure that recruits collapsed alveoli. Set it high enough to exceed the alveolar opening pressure (typically 25–30 cmH₂O in ARDS) but below 35 cmH₂O to avoid barotrauma.',
+        hint: 'Try P High 28 cmH₂O — enough to recruit without causing injury.',
+        check: (s) => (s.pHigh ?? 0) >= 25 && (s.pHigh ?? 0) <= 35,
+        successMessage: 'P High is in the therapeutic range. The sustained pressure is opening collapsed alveoli.',
+      },
+      {
+        title: 'Set P Low to maximise pressure differential',
+        instruction:
+          'P Low should be set to 0 cmH₂O to maximise the driving pressure during the release phase, which aids CO₂ elimination. The brief T Low will prevent complete de-recruitment.',
+        hint: 'Set P Low to 0 cmH₂O.',
+        check: (s) => (s.pLow ?? 5) <= 2,
+        successMessage: 'P Low at 0 maximises the pressure differential for CO₂ clearance during the release.',
+      },
+      {
+        title: 'Set T High for sustained recruitment',
+        instruction:
+          'T High is the duration spent at P High. Longer times (4–6 seconds) allow more complete alveolar recruitment. Too short and alveoli will not fully open.',
+        hint: 'Set T High to 4–5 seconds.',
+        check: (s) => (s.tHigh ?? 0) >= 4 && (s.tHigh ?? 0) <= 6,
+        successMessage: 'T High provides adequate time for alveolar recruitment. Watch the lung animation — atelectasis should be clearing.',
+      },
+      {
+        title: 'Set T Low to prevent de-recruitment',
+        instruction:
+          'T Low is the critical parameter — the brief release for CO₂ clearance. It must be short enough (0.3–0.8 s) to maintain auto-PEEP and prevent alveolar collapse, but long enough for some gas exchange.',
+        hint: 'Set T Low to 0.5 seconds. Watch the recruitment indicator.',
+        check: (s) => (s.tLow ?? 0) >= 0.3 && (s.tLow ?? 0) <= 0.8,
+        successMessage: 'T Low is optimal — short enough to maintain auto-PEEP and prevent de-recruitment during the release phase.',
+      },
+      {
+        title: 'Increase FiO₂ and confirm oxygenation',
+        instruction:
+          'With APRV settings optimised, adjust FiO₂ to achieve SpO₂ ≥ 88%. The high mean airway pressure from APRV should dramatically improve oxygenation compared to conventional ventilation.',
+        hint: 'Try FiO₂ 0.6–0.8. Watch the recruitment progress bar and SpO₂.',
+        check: (_s, v) => v.spo2 >= 86,
+        successMessage: 'Oxygenation is improving with recruited lungs and adequate FiO₂. Excellent APRV management!',
+      },
+    ],
+    summary:
+      'You successfully applied APRV to an ARDS patient. Key principles: P High 25–30 cmH₂O for recruitment, P Low 0 for maximal driving pressure, T High 4–6 s for sustained opening, and T Low 0.3–0.8 s to prevent de-recruitment. APRV maintains a high mean airway pressure that keeps alveoli open while brief releases allow CO₂ clearance.',
+  },
 ];
 
 export function getTutorialForPatient(patientId: string): TutorialScenario | undefined {
