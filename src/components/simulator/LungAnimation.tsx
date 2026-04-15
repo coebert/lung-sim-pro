@@ -107,8 +107,8 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
     const hrScale = bradyScale * tachyScale;
 
     return {
-      atrial: atrialDist * tachyScale,
-      ventricular: ventricularPhase * tachyScale,
+      atrial: atrialDist * hrScale,
+      ventricular: ventricularPhase * hrScale,
     };
   }, [buffers.ecg, vitals.hr]);
 
