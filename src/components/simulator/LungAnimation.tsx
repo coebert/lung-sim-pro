@@ -324,11 +324,56 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             {/* Right horizontal fissure */}
             <path d={rightHorizontalFissure(expansion)} fill="none" stroke="#7a4a55" strokeWidth="0.7" strokeDasharray="4,2" opacity="0.45" />
 
-            {/* ═══ PULMONARY VASCULATURE hints ═══ */}
-            <path d="M98,52 C92,62 80,75 70,85" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.2" />
-            <path d="M70,85 C60,95 45,110 35,130" fill="none" stroke="#7a4060" strokeWidth="0.4" opacity="0.15" />
-            <path d="M102,52 C108,60 120,72 130,82" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.2" />
-            <path d="M130,82 C140,92 155,108 165,125" fill="none" stroke="#7a4060" strokeWidth="0.4" opacity="0.15" />
+            {/* ═══ PULMONARY VASCULATURE — detailed vascular tree ═══ */}
+            {/* Left pulmonary artery branches */}
+            <path d="M98,52 C92,60 84,70 76,80" fill="none" stroke="#7a4060" strokeWidth="0.7" opacity="0.22" />
+            <path d="M76,80 C68,90 56,104 44,120" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.18" />
+            <path d="M76,80 C70,88 60,96 50,106" fill="none" stroke="#7a4060" strokeWidth="0.45" opacity="0.16" />
+            <path d="M44,120 C38,128 32,138 28,148" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            <path d="M50,106 C44,114 36,124 30,134" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            {/* Left upper lobe arterioles */}
+            <path d="M82,68 C74,64 64,66 56,72" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.14" />
+            <path d="M56,72 C48,78 40,86 34,96" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.11" />
+            <path d="M64,66 C56,60 48,62 40,68" fill="none" stroke="#7a4060" strokeWidth="0.25" opacity="0.10" />
+            {/* Left lingular vessels */}
+            <path d="M68,88 C58,96 50,108 44,118" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.12" />
+            {/* Left pulmonary veins (slightly bluer) */}
+            <path d="M86,72 C78,82 66,92 56,100" fill="none" stroke="#605080" strokeWidth="0.4" opacity="0.14" />
+            <path d="M56,100 C46,110 38,122 32,136" fill="none" stroke="#605080" strokeWidth="0.3" opacity="0.11" />
+            <path d="M72,78 C62,72 52,70 42,76" fill="none" stroke="#605080" strokeWidth="0.25" opacity="0.10" />
+
+            {/* Right pulmonary artery branches */}
+            <path d="M102,52 C108,58 118,66 128,74" fill="none" stroke="#7a4060" strokeWidth="0.7" opacity="0.22" />
+            <path d="M128,74 C136,82 148,96 156,110" fill="none" stroke="#7a4060" strokeWidth="0.5" opacity="0.18" />
+            <path d="M128,74 C134,82 142,92 150,102" fill="none" stroke="#7a4060" strokeWidth="0.45" opacity="0.16" />
+            <path d="M156,110 C162,120 168,132 172,142" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            <path d="M150,102 C156,112 164,124 170,134" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.12" />
+            {/* Right upper lobe arterioles */}
+            <path d="M120,62 C130,58 140,56 150,60" fill="none" stroke="#7a4060" strokeWidth="0.35" opacity="0.14" />
+            <path d="M150,60 C158,64 166,72 172,82" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.11" />
+            <path d="M136,56 C144,52 152,54 160,60" fill="none" stroke="#7a4060" strokeWidth="0.25" opacity="0.10" />
+            {/* Right middle lobe vessels */}
+            <path d="M140,82 C150,88 160,96 168,106" fill="none" stroke="#7a4060" strokeWidth="0.3" opacity="0.12" />
+            {/* Right pulmonary veins */}
+            <path d="M116,66 C126,76 138,86 148,94" fill="none" stroke="#605080" strokeWidth="0.4" opacity="0.14" />
+            <path d="M148,94 C156,104 164,118 170,130" fill="none" stroke="#605080" strokeWidth="0.3" opacity="0.11" />
+            <path d="M132,70 C142,66 152,64 162,68" fill="none" stroke="#605080" strokeWidth="0.25" opacity="0.10" />
+
+            {/* Peripheral capillary blush — tiny scattered marks */}
+            {/* Left lung */}
+            <circle cx="38" cy="88" r="0.6" fill="#7a4060" opacity="0.08" />
+            <circle cx="32" cy="110" r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx="46" cy="130" r="0.7" fill="#7a4060" opacity="0.06" />
+            <circle cx="54" cy="116" r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx="42" cy="98" r="0.4" fill="#7a4060" opacity="0.08" />
+            <circle cx="36" cy="124" r="0.6" fill="#7a4060" opacity="0.06" />
+            {/* Right lung */}
+            <circle cx="162" cy="86" r="0.6" fill="#7a4060" opacity="0.08" />
+            <circle cx="170" cy="108" r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx="154" cy="126" r="0.7" fill="#7a4060" opacity="0.06" />
+            <circle cx="146" cy="112" r="0.5" fill="#7a4060" opacity="0.07" />
+            <circle cx="164" cy="96" r="0.4" fill="#7a4060" opacity="0.08" />
+            <circle cx="168" cy="122" r="0.6" fill="#7a4060" opacity="0.06" />
 
             {/* ═══ HEART (mediastinal, between lungs) ═══ */}
             <g transform={`translate(${100 - 18 * heartCompression}, 72) scale(${heartCompression * heartBeat}, ${heartBeat})`} style={{ transformOrigin: '20px 35px', transition: 'transform 0.08s ease-out' }}>
