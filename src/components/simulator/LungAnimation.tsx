@@ -9,10 +9,18 @@ interface LungAnimationProps {
   buffers: WaveformBuffers;
   vitals: Vitals;
   compact?: boolean;
+  collapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-export function LungAnimation({ patient, settings, buffers, vitals, compact = false }: LungAnimationProps) {
-  const [collapsed, setCollapsed] = useState(false);
+export function LungAnimation({ patient, settings, buffers, vitals, compact = false, collapsed: controlledCollapsed, onCollapsedChange }: LungAnimationProps) {
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const collapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    if (onCollapsedChange) onCollapsedChange(next);
+    else setInternalCollapsed(next);
+  };
 
   const recentVolume = buffers.volume;
   const currentVol = recentVolume[recentVolume.length - 1] || 0;
@@ -143,7 +151,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
   return (
     <div className="flex flex-col h-full bg-secondary rounded border border-border overflow-hidden">
       <button
-        onClick={() => setCollapsed(c => !c)}
+        onClick={toggleCollapsed}
         className="flex items-center justify-between px-2 py-1 bg-secondary hover:bg-muted transition-colors shrink-0"
       >
         <span className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase">
