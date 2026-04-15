@@ -282,7 +282,76 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
+              {/* Rib bone gradient */}
+              <linearGradient id="rib-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#c0b8b0" />
+                <stop offset="50%" stopColor="#a89888" />
+                <stop offset="100%" stopColor="#908070" />
+              </linearGradient>
             </defs>
+
+            {/* ═══ RIB CAGE — behind all soft tissue ═══ */}
+            <g opacity="0.18">
+              {/* Sternum — central vertical bone */}
+              <rect x="96" y="48" width="8" height="80" rx="3" fill="#a89888" opacity="0.3" />
+              <line x1="100" y1="48" x2="100" y2="128" stroke="#b0a090" strokeWidth="0.4" opacity="0.25" />
+
+              {/* Ribs 1-10 — curved arcs from sternum laterally */}
+              {[
+                { y: 52, lx: 22, rx: 178, curve: 6 },
+                { y: 62, lx: 18, rx: 182, curve: 8 },
+                { y: 74, lx: 16, rx: 184, curve: 10 },
+                { y: 86, lx: 18, rx: 182, curve: 12 },
+                { y: 98, lx: 20, rx: 180, curve: 13 },
+                { y: 110, lx: 24, rx: 176, curve: 14 },
+                { y: 122, lx: 28, rx: 172, curve: 14 },
+                { y: 134, lx: 34, rx: 166, curve: 13 },
+                { y: 144, lx: 40, rx: 160, curve: 11 },
+                { y: 153, lx: 48, rx: 152, curve: 8 },
+              ].map((rib, i) => (
+                <g key={i}>
+                  {/* Left rib arc */}
+                  <path
+                    d={`M97,${rib.y} Q${60},${rib.y + rib.curve} ${rib.lx},${rib.y + rib.curve * 0.6}`}
+                    fill="none" stroke="url(#rib-grad)" strokeWidth="1.8" strokeLinecap="round"
+                  />
+                  {/* Right rib arc */}
+                  <path
+                    d={`M103,${rib.y} Q${140},${rib.y + rib.curve} ${rib.rx},${rib.y + rib.curve * 0.6}`}
+                    fill="none" stroke="url(#rib-grad)" strokeWidth="1.8" strokeLinecap="round"
+                  />
+                </g>
+              ))}
+
+              {/* Costal cartilage — connects anterior ribs to sternum (slightly different tone) */}
+              {[52, 62, 74, 86, 98, 110, 122].map((y, i) => (
+                <g key={`cart-${i}`}>
+                  <path d={`M97,${y} Q92,${y + 1} 88,${y + 2}`} fill="none" stroke="#b0a898" strokeWidth="1" opacity="0.4" />
+                  <path d={`M103,${y} Q108,${y + 1} 112,${y + 2}`} fill="none" stroke="#b0a898" strokeWidth="1" opacity="0.4" />
+                </g>
+              ))}
+
+              {/* Intercostal muscle markings — subtle lines between ribs */}
+              {[57, 68, 80, 92, 104, 116, 128, 139, 149].map((y, i) => (
+                <g key={`ic-${i}`} opacity="0.35">
+                  {/* Left intercostal */}
+                  <path
+                    d={`M92,${y} Q${58},${y + 3} ${20 + i * 3},${y + 2}`}
+                    fill="none" stroke="#786860" strokeWidth="0.3" strokeDasharray="3,2"
+                  />
+                  {/* Right intercostal */}
+                  <path
+                    d={`M108,${y} Q${142},${y + 3} ${180 - i * 3},${y + 2}`}
+                    fill="none" stroke="#786860" strokeWidth="0.3" strokeDasharray="3,2"
+                  />
+                </g>
+              ))}
+
+              {/* Spine — posterior vertebral bodies (faintly visible) */}
+              {[50, 60, 72, 84, 96, 108, 120, 132, 144].map((y, i) => (
+                <rect key={`vert-${i}`} x="97" y={y} width="6" height="8" rx="1.5" fill="#908070" opacity="0.15" />
+              ))}
+            </g>
 
             {/* ═══ TRACHEA ═══ */}
             <rect x="93" y="6" width="14" height="44" rx="6" fill="url(#aw-grad)" stroke="#a07070" strokeWidth="0.8" />
