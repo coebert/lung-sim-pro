@@ -33,6 +33,7 @@ const Index = () => {
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [frozen, setFrozen] = useState(false);
+  const [tutorialActive, setTutorialActive] = useState(false);
   const frozenRef = useRef(false);
 
   const timeRef = useRef(0);
