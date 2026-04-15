@@ -143,7 +143,7 @@ const Index = () => {
               </div>
             </div>
             <div className="w-[220px] shrink-0 border-l border-border p-1 flex flex-col gap-1">
-              <LungAnimation patient={patient} settings={settings} buffers={buffers} />
+              <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} />
               <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
             </div>
           </div>
@@ -228,7 +228,7 @@ const Index = () => {
               <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
             </div>
             <div className="w-[120px] shrink-0 border-l border-border p-0.5">
-              <LungAnimation patient={patient} settings={settings} buffers={buffers} compact />
+              <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} compact />
             </div>
           </div>
 
