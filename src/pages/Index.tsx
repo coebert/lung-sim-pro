@@ -10,6 +10,7 @@ import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib
 import { Settings, Users } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
+import { LungAnimation } from '@/components/simulator/LungAnimation';
 
 type MobileOverlay = 'none' | 'controls' | 'patients';
 
