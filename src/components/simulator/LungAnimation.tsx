@@ -118,6 +118,13 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
   // Tachycardia visual intensity (0 = normal, 1 = severe tachy ≥150)
   const tachyIntensity = Math.max(0, Math.min(1, (vitals.hr - 100) / 60));
 
+  // Bradycardia visual intensity (0 = normal, 1 = severe brady ≤30)
+  const bradyIntensity = Math.max(0, Math.min(1, (50 - vitals.hr) / 20));
+
+  // Bradycardia slows transitions and adds dusky colour shift
+  const heartTransition = bradyIntensity > 0 ? `transform ${0.08 + bradyIntensity * 0.3}s ease-out` : 'transform 0.08s ease-out';
+  const chamberTransitionSlow = bradyIntensity > 0 ? `transform ${0.06 + bradyIntensity * 0.2}s ease-out` : undefined;
+
   const lungFill = getLungGradientId(pathology);
   const lungOpacity = pathology === 'ards' ? 0.5 + ardsRecruitment * 0.45 : 0.92;
   const airwayWidth = pathology === 'bronchospasm' ? 2.2 : 3.5;
