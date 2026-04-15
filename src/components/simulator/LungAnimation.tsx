@@ -62,14 +62,17 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
   const heartBeat = useMemo(() => {
     const ecg = buffers.ecg;
     if (!ecg || ecg.length < 2) return 1;
-    // Use last few samples to detect if we're near an R-wave peak
     const recent = ecg.slice(-8);
     const peak = Math.max(...recent);
-    const baseline = 0.3; // approximate ECG baseline
+    const baseline = 0.3;
     const amplitude = Math.max(peak - baseline, 0);
-    // Map to a scale: 1.0 at rest, up to 1.12 at systole
-    return 1 + Math.min(amplitude, 1) * 0.12;
-  }, [buffers.ecg]);
+    // Tachycardia: bigger, more vigorous contractions
+    const tachyScale = vitals.hr > 100 ? 1 + (Math.min(vitals.hr, 180) - 100) / 200 : 1;
+    return 1 + Math.min(amplitude, 1) * 0.12 * tachyScale;
+  }, [buffers.ecg, vitals.hr]);
+
+  // Tachycardia visual intensity (0 = normal, 1 = severe tachy ≥150)
+  const tachyIntensity = Math.max(0, Math.min(1, (vitals.hr - 100) / 60));
 
   const lungFill = getLungGradientId(pathology);
   const lungOpacity = pathology === 'ards' ? 0.5 + ardsRecruitment * 0.45 : 0.92;
