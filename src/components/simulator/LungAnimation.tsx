@@ -709,6 +709,45 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               </>
             )}
 
+            {/* ═══ APRV RECRUITMENT AERATION GLOW ═══ */}
+            {settings.mode === 'APRV' && aprvRecruitment !== null && aprvRecruitment > 0.3 && (
+              <g clipPath="url(#clip-lungs)" opacity={aprvRecruitment * 0.5}>
+                {/* Aeration glow spots — appear in dependent zones first as recruitment improves */}
+                {/* Left lower (dependent — recruits first) */}
+                <circle cx={lx(50)} cy={ly(140)} r={6 * e} fill="#e8b0b0" opacity={Math.min(1, aprvRecruitment * 1.2) * 0.3}>
+                  <animate attributeName="opacity" values={`${aprvRecruitment * 0.15};${aprvRecruitment * 0.35};${aprvRecruitment * 0.15}`} dur="3s" repeatCount="indefinite" />
+                </circle>
+                <circle cx={lx(42)} cy={ly(130)} r={4 * e} fill="#e8b0b0" opacity={Math.min(1, aprvRecruitment * 1.1) * 0.25}>
+                  <animate attributeName="opacity" values={`${aprvRecruitment * 0.12};${aprvRecruitment * 0.3};${aprvRecruitment * 0.12}`} dur="3.5s" repeatCount="indefinite" />
+                </circle>
+                {/* Right lower (dependent) */}
+                <circle cx={rx(148)} cy={ry(142)} r={7 * e} fill="#e8b0b0" opacity={Math.min(1, aprvRecruitment * 1.2) * 0.3}>
+                  <animate attributeName="opacity" values={`${aprvRecruitment * 0.15};${aprvRecruitment * 0.35};${aprvRecruitment * 0.15}`} dur="2.8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx={rx(155)} cy={ry(130)} r={5 * e} fill="#e8b0b0" opacity={Math.min(1, aprvRecruitment * 1.1) * 0.25}>
+                  <animate attributeName="opacity" values={`${aprvRecruitment * 0.12};${aprvRecruitment * 0.28};${aprvRecruitment * 0.12}`} dur="3.2s" repeatCount="indefinite" />
+                </circle>
+                {/* Mid zones (recruit at higher scores) */}
+                {aprvRecruitment > 0.5 && (<>
+                  <circle cx={lx(48)} cy={ly(110)} r={4 * e} fill="#d4a0a0" opacity={(aprvRecruitment - 0.5) * 0.4}>
+                    <animate attributeName="opacity" values={`${(aprvRecruitment - 0.5) * 0.2};${(aprvRecruitment - 0.5) * 0.45};${(aprvRecruitment - 0.5) * 0.2}`} dur="3.3s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx={rx(150)} cy={ry(108)} r={4 * e} fill="#d4a0a0" opacity={(aprvRecruitment - 0.5) * 0.4}>
+                    <animate attributeName="opacity" values={`${(aprvRecruitment - 0.5) * 0.2};${(aprvRecruitment - 0.5) * 0.45};${(aprvRecruitment - 0.5) * 0.2}`} dur="3.1s" repeatCount="indefinite" />
+                  </circle>
+                </>)}
+                {/* Upper zones (only at high recruitment) */}
+                {aprvRecruitment > 0.7 && (<>
+                  <circle cx={lx(50)} cy={ly(85)} r={3 * e} fill="#c89898" opacity={(aprvRecruitment - 0.7) * 0.35}>
+                    <animate attributeName="opacity" values={`${(aprvRecruitment - 0.7) * 0.15};${(aprvRecruitment - 0.7) * 0.4};${(aprvRecruitment - 0.7) * 0.15}`} dur="3.6s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx={rx(152)} cy={ry(80)} r={3 * e} fill="#c89898" opacity={(aprvRecruitment - 0.7) * 0.35}>
+                    <animate attributeName="opacity" values={`${(aprvRecruitment - 0.7) * 0.15};${(aprvRecruitment - 0.7) * 0.4};${(aprvRecruitment - 0.7) * 0.15}`} dur="3.4s" repeatCount="indefinite" />
+                  </circle>
+                </>)}
+              </g>
+            )}
+
             {/* ═══ PLEURAL REFLECTION LINES (costophrenic angles) ═══ */}
             <path d={`M${lx(28)},${my(diaphragmY)} Q${lx(24)},${my(diaphragmY - 8)} ${lx(22)},${my(diaphragmY - 20)}`}
               fill="none" stroke="#8a5560" strokeWidth="0.4" opacity="0.15" />
