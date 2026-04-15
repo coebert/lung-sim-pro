@@ -132,6 +132,81 @@ export function ClinicalFeedback({ settings, patient, vitals, measured }: Clinic
       list.push({ text: `Adequate PEEP for obesity — helps counteract diaphragmatic splinting and basal atelectasis.`, severity: 'good' });
     }
 
+    // ── APRV-specific feedback ──
+    if (settings.mode === 'APRV') {
+      const { pHigh, pLow, tHigh, tLow } = settings;
+      const drivingPressure = pHigh - pLow;
+      const openingPressure = patient.optimalPEEP * 1.5;
+
+      // P High assessment
+      if (drivingPressure < openingPressure * 0.5) {
+        list.push({ text: `P High too low (${pHigh} cmH₂O). Driving pressure (${drivingPressure} cmH₂O) is insufficient to open collapsed alveoli. Need ≥${Math.round(openingPressure + pLow)} cmH₂O for this patient.`, severity: 'danger' });
+      } else if (drivingPressure < openingPressure) {
+        list.push({ text: `P High is marginal (${pHigh} cmH₂O). Driving pressure (${drivingPressure} cmH₂O) may only partially recruit. Consider increasing to ≥${Math.round(openingPressure + pLow)} cmH₂O.`, severity: 'warn' });
+      } else if (pHigh > 35) {
+        list.push({ text: `P High is very high (${pHigh} cmH₂O). Risk of overdistension and barotrauma. Consider reducing if SpO₂ adequate.`, severity: 'danger' });
+      } else if (pHigh > 30) {
+        list.push({ text: `P High is elevated (${pHigh} cmH₂O). Monitor for signs of overdistension.`, severity: 'warn' });
+      } else {
+        list.push({ text: `P High (${pHigh} cmH₂O) provides adequate driving pressure (${drivingPressure} cmH₂O) for alveolar recruitment.`, severity: 'good' });
+      }
+
+      // T High assessment
+      if (tHigh < 2) {
+        list.push({ text: `T High too short (${tHigh.toFixed(1)}s). Insufficient time for alveolar recruitment — lung units need ≥3s at high pressure to open. Aim for 4–6s.`, severity: 'danger' });
+      } else if (tHigh < 3) {
+        list.push({ text: `T High is short (${tHigh.toFixed(1)}s). Only partial recruitment will occur. Optimal is 4–6s for full alveolar opening.`, severity: 'warn' });
+      } else if (tHigh > 6) {
+        list.push({ text: `T High is prolonged (${tHigh.toFixed(1)}s). Recruitment is optimised but CO₂ clearance may be impaired due to infrequent releases.`, severity: 'warn' });
+      } else {
+        list.push({ text: `T High (${tHigh.toFixed(1)}s) allows adequate time for sustained alveolar recruitment.`, severity: 'good' });
+      }
+
+      // T Low assessment
+      if (tLow < 0.1) {
+        list.push({ text: `T Low too short (${tLow.toFixed(1)}s). No meaningful release occurring — CO₂ cannot be cleared.`, severity: 'danger' });
+      } else if (tLow > 1.2) {
+        list.push({ text: `T Low too long (${tLow.toFixed(1)}s). Full exhalation is occurring — this causes de-recruitment, losing the benefit of P High. Keep T Low 0.3–0.8s to maintain auto-PEEP.`, severity: 'danger' });
+      } else if (tLow > 0.8) {
+        list.push({ text: `T Low is slightly long (${tLow.toFixed(1)}s). Exhalation may be too complete, risking partial de-recruitment. Ideal: 0.3–0.8s.`, severity: 'warn' });
+      } else if (tLow < 0.3) {
+        list.push({ text: `T Low is very short (${tLow.toFixed(1)}s). Auto-PEEP is maintained but CO₂ clearance is limited. May cause hypercapnia.`, severity: 'warn' });
+      } else {
+        list.push({ text: `T Low (${tLow.toFixed(1)}s) is optimal — brief release maintains auto-PEEP while permitting CO₂ clearance.`, severity: 'good' });
+      }
+
+      // P Low assessment
+      if (pLow > 5) {
+        list.push({ text: `P Low is high (${pLow} cmH₂O). This reduces the pressure differential during release, diminishing CO₂ clearance and the recruitment-release cycle. Ideal P Low is 0 cmH₂O.`, severity: 'warn' });
+      } else if (pLow > 0 && pLow <= 5) {
+        list.push({ text: `P Low is ${pLow} cmH₂O. Slightly reduces driving pressure. Setting P Low to 0 maximises the release differential (auto-PEEP from short T Low prevents derecruitment, not P Low).`, severity: 'warn' });
+      } else {
+        list.push({ text: `P Low is 0 cmH₂O — correct for APRV. Auto-PEEP from short T Low maintains end-expiratory pressure.`, severity: 'good' });
+      }
+
+      // Overall recruitment assessment
+      const pHighScore = Math.max(0, Math.min(1, (drivingPressure - openingPressure * 0.5) / (openingPressure * 1.0)));
+      const tHighScore = Math.max(0, Math.min(1, (tHigh - 1.5) / 3.0));
+      let tLowScore: number;
+      if (tLow < 0.1) tLowScore = 0.1;
+      else if (tLow <= 0.8) tLowScore = Math.max(0, Math.min(1, tLow / 0.3));
+      else tLowScore = Math.max(0, Math.min(1, 1.0 - (tLow - 0.8) / 0.7));
+      const pLowPenalty = Math.max(0, Math.min(0.5, pLow / 10));
+      const recruitmentScore = Math.max(0, Math.min(1, pHighScore * tHighScore * tLowScore * (1 - pLowPenalty)));
+
+      if (recruitmentScore > 0.8) {
+        list.push({ text: `APRV settings are well-optimised (recruitment score ${Math.round(recruitmentScore * 100)}%). Expect progressive alveolar recruitment.`, severity: 'good' });
+      } else if (recruitmentScore > 0.4) {
+        list.push({ text: `APRV recruitment is partial (score ${Math.round(recruitmentScore * 100)}%). Adjust settings above to improve.`, severity: 'warn' });
+      } else {
+        list.push({ text: `APRV recruitment is poor (score ${Math.round(recruitmentScore * 100)}%). Current settings are unlikely to recruit collapsed lung. Review all parameters.`, severity: 'danger' });
+      }
+
+      // Mean airway pressure
+      const meanAP = (pHigh * tHigh + pLow * tLow) / (tHigh + tLow);
+      list.push({ text: `Mean airway pressure: ${meanAP.toFixed(1)} cmH₂O. ${meanAP > 25 ? 'High — monitor haemodynamics.' : meanAP > 15 ? 'Moderate — adequate for recruitment.' : 'Low — may be insufficient for oxygenation.'}`, severity: meanAP > 30 ? 'warn' : meanAP > 12 ? 'good' : 'warn' });
+    }
+
     // If nothing concerning
     if (list.length === 0) {
       list.push({ text: 'Ventilation parameters appear appropriate. Vitals stable.', severity: 'good' });
