@@ -391,49 +391,49 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             {/* ═══ MAIN BRONCHI ═══ */}
             {/* Left main — longer, more horizontal (anatomical) */}
             <path
-              d={`M100,50 C90,56 ${82 - (expansion - 1) * 3},61 ${75 - (expansion - 1) * 4},68`}
+              d={`M100,50 C90,56 ${82 - (e - 1) * 3},61 75,68`}
               fill="none" stroke="url(#aw-grad)" strokeWidth={airwayWidth} strokeLinecap="round"
             />
             {/* Right main — shorter, steeper (anatomical) */}
             <path
-              d={`M100,50 C108,54 ${118 + (expansion - 1) * 3},57 ${125 + (expansion - 1) * 4},62`}
+              d={`M100,50 C108,54 ${118 + (e - 1) * 3},57 125,62`}
               fill="none" stroke="url(#aw-grad)" strokeWidth={airwayWidth} strokeLinecap="round"
             />
 
-            {/* ═══ LEFT LOBAR BRONCHI ═══ */}
+            {/* ═══ LEFT LOBAR BRONCHI (scale with expansion) ═══ */}
             {/* Upper lobe */}
-            <path d={`M${75 - (expansion - 1) * 4},68 C67,72 59,70 ${53 - expansion * 1.5},74`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M75,68 C${lx(67)},${ly(72)} ${lx(59)},${ly(70)} ${lx(51.5)},${ly(74)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Lingula */}
-            <path d={`M${75 - (expansion - 1) * 4},68 C69,78 63,86 ${59 - expansion},94`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M75,68 C${lx(69)},${ly(78)} ${lx(63)},${ly(86)} ${lx(58)},${ly(94)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Lower lobe */}
-            <path d={`M${75 - (expansion - 1) * 4},68 C77,80 75,90 ${71},100`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M75,68 C${lx(77)},${ly(80)} ${lx(75)},${ly(90)} ${lx(71)},${ly(100)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
 
-            {/* ═══ RIGHT LOBAR BRONCHI ═══ */}
-            {/* Upper lobe (eparterial) */}
-            <path d={`M${120 + (expansion - 1) * 3},58 C128,56 138,54 ${144 + expansion},58`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            {/* ═══ RIGHT LOBAR BRONCHI (scale with expansion) ═══ */}
+            {/* Upper lobe (eparterial — branches before hilum) */}
+            <path d={`M${rx(120)},${ry(58)} C${rx(128)},${ry(56)} ${rx(138)},${ry(54)} ${rx(144)},${ry(58)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Middle lobe */}
-            <path d={`M${125 + (expansion - 1) * 4},62 C133,70 141,76 ${147 + expansion * 1.5},83`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M125,62 C${rx(133)},${ry(70)} ${rx(141)},${ry(76)} ${rx(147)},${ry(83)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
             {/* Lower lobe */}
-            <path d={`M${125 + (expansion - 1) * 4},62 C127,74 125,84 ${123},94`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
+            <path d={`M125,62 C${rx(127)},${ry(74)} ${rx(125)},${ry(84)} ${rx(123)},${ry(94)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
 
-            {/* ═══ SEGMENTAL AIRWAYS ═══ */}
+            {/* ═══ SEGMENTAL AIRWAYS (scale with expansion) ═══ */}
             {/* Left upper segments */}
-            <path d={`M${53 - expansion * 1.5},74 C47,78 41,84 ${37},90`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${53 - expansion * 1.5},74 C51,82 45,88 ${43},96`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${lx(51.5)},${ly(74)} C${lx(47)},${ly(78)} ${lx(41)},${ly(84)} ${lx(37)},${ly(90)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${lx(51.5)},${ly(74)} C${lx(51)},${ly(82)} ${lx(45)},${ly(88)} ${lx(43)},${ly(96)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Left lingular segments */}
-            <path d={`M${59 - expansion},94 C53,100 47,106 ${43},113`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${lx(58)},${ly(94)} C${lx(53)},${ly(100)} ${lx(47)},${ly(106)} ${lx(43)},${ly(113)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Left lower segments */}
-            <path d={`M${71},100 C67,108 61,116 ${57},124`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${71},100 C75,110 73,120 ${69},128`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${lx(71)},${ly(100)} C${lx(67)},${ly(108)} ${lx(61)},${ly(116)} ${lx(57)},${ly(124)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${lx(71)},${ly(100)} C${lx(75)},${ly(110)} ${lx(73)},${ly(120)} ${lx(69)},${ly(128)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
 
             {/* Right upper segments */}
-            <path d={`M${144 + expansion},58 C150,62 156,66 ${160},72`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${144 + expansion},58 C148,64 152,70 ${154},78`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${rx(144)},${ry(58)} C${rx(150)},${ry(62)} ${rx(156)},${ry(66)} ${rx(160)},${ry(72)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${rx(144)},${ry(58)} C${rx(148)},${ry(64)} ${rx(152)},${ry(70)} ${rx(154)},${ry(78)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Right middle segments */}
-            <path d={`M${147 + expansion * 1.5},83 C153,88 159,94 ${163},100`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${rx(147)},${ry(83)} C${rx(153)},${ry(88)} ${rx(159)},${ry(94)} ${rx(163)},${ry(100)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
             {/* Right lower segments */}
-            <path d={`M${123},94 C127,104 131,114 ${133},124`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
-            <path d={`M${123},94 C119,104 115,114 ${113},124`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${rx(123)},${ry(94)} C${rx(127)},${ry(104)} ${rx(131)},${ry(114)} ${rx(133)},${ry(124)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" opacity="0.5" />
+            <path d={`M${rx(123)},${ry(94)} C${rx(119)},${ry(104)} ${rx(115)},${ry(114)} ${rx(113)},${ry(124)}`} fill="none" stroke="#b08080" strokeWidth={tertiaryWidth} strokeLinecap="round" />
 
             {/* ═══ LEFT LUNG PARENCHYMA ═══ */}
             <path
