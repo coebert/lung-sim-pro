@@ -7,7 +7,7 @@ import { PatientSelector } from '@/components/simulator/PatientSelector';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffers } from '@/lib/simulation/types';
 import { patients, getDefaultSettings } from '@/lib/simulation/patients';
 import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
-import { Settings, Users, Pause, Play, ChevronDown, ChevronUp } from 'lucide-react';
+import { Settings, Users, Pause, Play } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
@@ -32,7 +32,6 @@ const Index = () => {
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [frozen, setFrozen] = useState(false);
   const frozenRef = useRef(false);
-  const [lungExpanded, setLungExpanded] = useState(true);
 
   const timeRef = useRef(0);
   const settingsRef = useRef(settings);
@@ -95,21 +94,7 @@ const Index = () => {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden relative">
-      {/* Lung animation - top right corner, collapsible */}
-      <div className="absolute top-1 right-1 z-40 flex flex-col items-end">
-        <button
-          onClick={() => setLungExpanded(e => !e)}
-          className="bg-secondary/80 backdrop-blur-sm border border-border rounded px-1.5 py-0.5 text-[9px] text-muted-foreground flex items-center gap-0.5 hover:bg-secondary transition-colors mb-0.5"
-        >
-          Lungs {lungExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-        </button>
-        {lungExpanded && (
-          <div className="w-[100px] h-[120px] sm:w-[130px] sm:h-[150px] pointer-events-none opacity-80">
-            <LungAnimation patient={patient} settings={settings} buffers={buffers} />
-          </div>
-        )}
-      </div>
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Alarm banner */}
       <AlarmBanner alarms={alarms} />
       {/* Header — hidden in mobile landscape to save vertical space */}
@@ -143,7 +128,7 @@ const Index = () => {
       {isDesktop && (
         <>
           <div className="flex flex-1 min-h-0">
-            <div className="flex-1 flex flex-col border-r border-border min-w-0">
+            <div className="flex-[2] flex flex-col border-r border-border min-w-0">
               <div className="flex-1 min-h-0 p-1">
                 <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
               </div>
@@ -151,10 +136,13 @@ const Index = () => {
                 <VentilatorControls settings={settings} onSettingsChange={setSettings} />
               </div>
             </div>
-            <div className="flex-1 flex flex-col min-w-0 border-l border-border">
+            <div className="flex-[2] flex flex-col min-w-0 border-l border-border">
               <div className="flex-1 min-h-0 p-1">
                 <MonitorPanel buffers={buffers} vitals={vitals} />
               </div>
+            </div>
+            <div className="w-[200px] shrink-0 border-l border-border p-1">
+              <LungAnimation patient={patient} settings={settings} buffers={buffers} />
             </div>
           </div>
           <div className="border-t border-border p-2 shrink-0">
@@ -219,11 +207,16 @@ const Index = () => {
       {/* ===== MOBILE PORTRAIT ===== */}
       {isPortrait && (
         <div className="flex-1 flex flex-col min-h-0 relative">
-          <div className="flex-1 min-h-0 p-1 border-b border-border">
+          <div className="flex-[3] min-h-0 p-1 border-b border-border">
             <MonitorPanel buffers={buffers} vitals={vitals} />
           </div>
-          <div className="flex-1 min-h-0 p-1">
-            <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
+          <div className="flex-[2] min-h-0 flex flex-row border-b border-border">
+            <div className="flex-1 min-h-0 p-1">
+              <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
+            </div>
+            <div className="w-[120px] shrink-0 border-l border-border p-0.5">
+              <LungAnimation patient={patient} settings={settings} buffers={buffers} compact />
+            </div>
           </div>
 
           <div className="text-center py-0.5 bg-secondary border-t border-border shrink-0">
