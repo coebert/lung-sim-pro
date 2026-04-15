@@ -308,6 +308,11 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 <stop offset="50%" stopColor="#a89888" />
                 <stop offset="100%" stopColor="#908070" />
               </linearGradient>
+              {/* Clip paths for lung outlines */}
+              <clipPath id="clip-lungs">
+                <path d={leftLungPath(expansion)} />
+                <path d={rightLungPath(expansion)} />
+              </clipPath>
             </defs>
 
             {/* ═══ RIB CAGE — behind all soft tissue ═══ */}
