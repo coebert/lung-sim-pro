@@ -215,11 +215,7 @@ export function LungAnimation({ patient, settings, buffers, compact = false }: L
                 <stop offset="0%" stopColor="rgba(255,200,200,0.2)" />
                 <stop offset="100%" stopColor="rgba(255,255,255,0)" />
               </radialGradient>
-              <filter id="tissue-tex">
-                <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="3" result="noise" />
-                <feColorMatrix type="saturate" values="0" in="noise" result="grey" />
-                <feBlend in="SourceGraphic" in2="grey" mode="soft-light" />
-              </filter>
+              {/* tissue texture removed — was causing fog */}
             </defs>
 
             {/* ═══ TRACHEA ═══ */}
@@ -291,7 +287,7 @@ export function LungAnimation({ patient, settings, buffers, compact = false }: L
               opacity={lungOpacity}
               stroke="#8a5560"
               strokeWidth="1.2"
-              filter="url(#tissue-tex)"
+              
             />
             <path d={leftLungPath(expansion)} fill="url(#pl-l)" opacity="0.45" />
 
@@ -305,7 +301,7 @@ export function LungAnimation({ patient, settings, buffers, compact = false }: L
               opacity={lungOpacity}
               stroke="#8a5560"
               strokeWidth="1.2"
-              filter="url(#tissue-tex)"
+              
             />
             <path d={rightLungPath(expansion)} fill="url(#pl-r)" opacity="0.45" />
 
