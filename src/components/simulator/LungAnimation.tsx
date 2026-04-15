@@ -686,37 +686,37 @@ function getArdsPatches(recruitment: number, expansion: number): AtelPatch[] {
   const allPatches: AtelPatch[] = [
     // ── DEPENDENT / BASAL (always affected first in ARDS) ──
     // Left lower lobe base
-    { x: 34, y: 152, rx: 16 * expansion, ry: 8, opacity: severity * 0.85, fill: consol, rotate: -10 },
-    { x: 26, y: 142, rx: 12 * expansion, ry: 7, opacity: severity * 0.75, fill: consol, rotate: -15 },
-    { x: 44, y: 148, rx: 10 * expansion, ry: 5, opacity: severity * 0.7, fill: consol, rotate: 5 },
+    { x: 46, y: 152, rx: 16 * expansion, ry: 8, opacity: severity * 0.85, fill: consol, rotate: -10 },
+    { x: 38, y: 142, rx: 12 * expansion, ry: 7, opacity: severity * 0.75, fill: consol, rotate: -15 },
+    { x: 56, y: 148, rx: 10 * expansion, ry: 5, opacity: severity * 0.7, fill: consol, rotate: 5 },
     // Right lower lobe base (slightly worse — gravity dependent in supine)
-    { x: 162, y: 155, rx: 18 * expansion, ry: 9, opacity: severity * 0.88, fill: consol, rotate: 10 },
-    { x: 172, y: 145, rx: 13 * expansion, ry: 7, opacity: severity * 0.78, fill: consol, rotate: 15 },
-    { x: 150, y: 150, rx: 10 * expansion, ry: 5, opacity: severity * 0.65, fill: consol, rotate: -5 },
+    { x: 150, y: 155, rx: 18 * expansion, ry: 9, opacity: severity * 0.88, fill: consol, rotate: 10 },
+    { x: 160, y: 145, rx: 13 * expansion, ry: 7, opacity: severity * 0.78, fill: consol, rotate: 15 },
+    { x: 138, y: 150, rx: 10 * expansion, ry: 5, opacity: severity * 0.65, fill: consol, rotate: -5 },
 
     // ── MID-ZONES (patchy, scattered — characteristic of ARDS) ──
     // Left mid
-    { x: 30, y: 125, rx: 9 * expansion, ry: 5, opacity: severity > 0.3 ? (severity - 0.3) * 0.9 : 0, fill: consol, rotate: -8 },
-    { x: 48, y: 118, rx: 7 * expansion, ry: 4, opacity: severity > 0.35 ? (severity - 0.35) * 0.8 : 0, fill: consol, rotate: 12 },
-    { x: 38, y: 110, rx: 6 * expansion, ry: 3.5, opacity: severity > 0.4 ? (severity - 0.4) * 0.7 : 0, fill: consol, rotate: -20 },
+    { x: 42, y: 125, rx: 9 * expansion, ry: 5, opacity: severity > 0.3 ? (severity - 0.3) * 0.9 : 0, fill: consol, rotate: -8 },
+    { x: 60, y: 118, rx: 7 * expansion, ry: 4, opacity: severity > 0.35 ? (severity - 0.35) * 0.8 : 0, fill: consol, rotate: 12 },
+    { x: 50, y: 110, rx: 6 * expansion, ry: 3.5, opacity: severity > 0.4 ? (severity - 0.4) * 0.7 : 0, fill: consol, rotate: -20 },
     // Right mid (heterogeneous scatter)
-    { x: 168, y: 120, rx: 10 * expansion, ry: 5, opacity: severity > 0.3 ? (severity - 0.3) * 0.85 : 0, fill: consol, rotate: 8 },
-    { x: 148, y: 112, rx: 7 * expansion, ry: 4, opacity: severity > 0.35 ? (severity - 0.35) * 0.75 : 0, fill: consol, rotate: -12 },
-    { x: 158, y: 105, rx: 5 * expansion, ry: 3, opacity: severity > 0.45 ? (severity - 0.45) * 0.7 : 0, fill: consol, rotate: 25 },
+    { x: 156, y: 120, rx: 10 * expansion, ry: 5, opacity: severity > 0.3 ? (severity - 0.3) * 0.85 : 0, fill: consol, rotate: 8 },
+    { x: 136, y: 112, rx: 7 * expansion, ry: 4, opacity: severity > 0.35 ? (severity - 0.35) * 0.75 : 0, fill: consol, rotate: -12 },
+    { x: 146, y: 105, rx: 5 * expansion, ry: 3, opacity: severity > 0.45 ? (severity - 0.45) * 0.7 : 0, fill: consol, rotate: 25 },
 
     // ── NON-DEPENDENT / UPPER (only in severe ARDS) ──
     // Left upper
-    { x: 34, y: 90, rx: 6 * expansion, ry: 3, opacity: severity > 0.6 ? (severity - 0.6) * 0.8 : 0, fill: consol, rotate: -15 },
-    { x: 42, y: 82, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.7 ? (severity - 0.7) * 0.7 : 0, fill: consol, rotate: 10 },
+    { x: 46, y: 90, rx: 6 * expansion, ry: 3, opacity: severity > 0.6 ? (severity - 0.6) * 0.8 : 0, fill: consol, rotate: -15 },
+    { x: 54, y: 82, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.7 ? (severity - 0.7) * 0.7 : 0, fill: consol, rotate: 10 },
     // Right upper
-    { x: 165, y: 85, rx: 6 * expansion, ry: 3, opacity: severity > 0.6 ? (severity - 0.6) * 0.75 : 0, fill: consol, rotate: 18 },
-    { x: 156, y: 78, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.7 ? (severity - 0.7) * 0.65 : 0, fill: consol, rotate: -10 },
+    { x: 153, y: 85, rx: 6 * expansion, ry: 3, opacity: severity > 0.6 ? (severity - 0.6) * 0.75 : 0, fill: consol, rotate: 18 },
+    { x: 144, y: 78, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.7 ? (severity - 0.7) * 0.65 : 0, fill: consol, rotate: -10 },
 
     // ── SCATTERED MICRO-PATCHES (ARDS heterogeneity) ──
-    { x: 22, y: 132, rx: 4 * expansion, ry: 2, opacity: severity > 0.25 ? severity * 0.4 : 0, fill: consol, rotate: 30 },
-    { x: 52, y: 135, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.3 ? severity * 0.35 : 0, fill: consol, rotate: -25 },
-    { x: 175, y: 130, rx: 4 * expansion, ry: 2, opacity: severity > 0.25 ? severity * 0.4 : 0, fill: consol, rotate: -30 },
-    { x: 142, y: 128, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.3 ? severity * 0.35 : 0, fill: consol, rotate: 22 },
+    { x: 34, y: 132, rx: 4 * expansion, ry: 2, opacity: severity > 0.25 ? severity * 0.4 : 0, fill: consol, rotate: 30 },
+    { x: 64, y: 135, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.3 ? severity * 0.35 : 0, fill: consol, rotate: -25 },
+    { x: 163, y: 130, rx: 4 * expansion, ry: 2, opacity: severity > 0.25 ? severity * 0.4 : 0, fill: consol, rotate: -30 },
+    { x: 130, y: 128, rx: 5 * expansion, ry: 2.5, opacity: severity > 0.3 ? severity * 0.35 : 0, fill: consol, rotate: 22 },
   ];
 
   return allPatches.filter(p => p.opacity > 0.04);
