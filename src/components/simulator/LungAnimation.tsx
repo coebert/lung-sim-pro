@@ -11,9 +11,10 @@ interface LungAnimationProps {
   compact?: boolean;
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
+  prone?: boolean;
 }
 
-export function LungAnimation({ patient, settings, buffers, vitals, compact = false, collapsed: controlledCollapsed, onCollapsedChange }: LungAnimationProps) {
+export function LungAnimation({ patient, settings, buffers, vitals, compact = false, collapsed: controlledCollapsed, onCollapsedChange, prone = false }: LungAnimationProps) {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const collapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const toggleCollapsed = () => {

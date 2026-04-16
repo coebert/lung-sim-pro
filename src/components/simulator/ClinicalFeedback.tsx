@@ -8,6 +8,7 @@ interface ClinicalFeedbackProps {
   patient: PatientPhysiology;
   vitals: Vitals;
   measured: MeasuredValues;
+  prone?: boolean;
 }
 
 interface Insight {
@@ -15,7 +16,7 @@ interface Insight {
   severity: 'good' | 'warn' | 'danger';
 }
 
-export function ClinicalFeedback({ settings, patient, vitals, measured }: ClinicalFeedbackProps) {
+export function ClinicalFeedback({ settings, patient, vitals, measured, prone = false }: ClinicalFeedbackProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   const insights = useMemo(() => {
