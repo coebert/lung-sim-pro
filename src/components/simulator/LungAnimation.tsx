@@ -785,6 +785,16 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 </text>
               </g>
             )}
+
+            {/* ═══ PRONE POSITIONING INDICATOR ═══ */}
+            {prone && (
+              <g>
+                <rect x="60" y="2" width="80" height="14" rx="3" fill="#1e40af" opacity="0.9" />
+                <text x="100" y="12" textAnchor="middle" fill="#93c5fd" fontSize="7" fontFamily="monospace" fontWeight="bold">
+                  🔄 PRONE
+                </text>
+              </g>
+            )}
           </svg>
         </div>
       )}
