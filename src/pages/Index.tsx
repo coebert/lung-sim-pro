@@ -272,7 +272,7 @@ const Index = () => {
                 <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
               )}
               {mobileOverlay === 'feedback' && (
-                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
               )}
               {mobileOverlay === 'tutorial' && (
                 <TutorialPanel patient={patient} settings={settings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
@@ -347,7 +347,7 @@ const Index = () => {
                 <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
               )}
               {mobileOverlay === 'feedback' && (
-                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
               )}
               {mobileOverlay === 'tutorial' && (
                 <TutorialPanel patient={patient} settings={settings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
