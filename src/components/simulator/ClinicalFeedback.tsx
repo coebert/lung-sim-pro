@@ -208,13 +208,27 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       list.push({ text: `Mean airway pressure: ${meanAP.toFixed(1)} cmH₂O. ${meanAP > 25 ? 'High — monitor haemodynamics.' : meanAP > 15 ? 'Moderate — adequate for recruitment.' : 'Low — may be insufficient for oxygenation.'}`, severity: meanAP > 30 ? 'warn' : meanAP > 12 ? 'good' : 'warn' });
     }
 
+    // ── Prone positioning feedback ──
+    if (prone) {
+      if (patient.id === 'ards') {
+        list.push({ text: `Prone positioning active. V/Q matching improved — dorsal lung zones are now non-dependent, reducing atelectasis and improving oxygenation.`, severity: 'good' });
+        if (vitals.spo2 < 88) {
+          list.push({ text: `Despite prone positioning, SpO₂ remains low. Ensure FiO₂ and recruitment settings are optimised.`, severity: 'warn' });
+        }
+      } else {
+        list.push({ text: `Prone positioning active. Modest V/Q benefit in this patient — prone is most effective in moderate-to-severe ARDS.`, severity: 'good' });
+      }
+    } else if (patient.id === 'ards' && vitals.spo2 < 88 && settings.fio2 >= 0.6) {
+      list.push({ text: `Refractory hypoxaemia on high FiO₂. Consider prone positioning to improve V/Q matching and oxygenation.`, severity: 'warn' });
+    }
+
     // If nothing concerning
     if (list.length === 0) {
       list.push({ text: 'Ventilation parameters appear appropriate. Vitals stable.', severity: 'good' });
     }
 
     return list;
-  }, [settings, patient, vitals, measured]);
+  }, [settings, patient, vitals, measured, prone]);
 
   const dangerCount = insights.filter(i => i.severity === 'danger').length;
   const warnCount = insights.filter(i => i.severity === 'warn').length;
