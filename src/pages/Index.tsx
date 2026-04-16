@@ -7,7 +7,7 @@ import { PatientSelector } from '@/components/simulator/PatientSelector';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffers } from '@/lib/simulation/types';
 import { patients, getDefaultSettings } from '@/lib/simulation/patients';
 import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
-import { Settings, Users, Pause, Play, Stethoscope, GraduationCap, ChevronLeft } from 'lucide-react';
+import { Settings, Users, Pause, Play, Stethoscope, GraduationCap, ChevronLeft, RotateCcw } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
@@ -35,7 +35,9 @@ const Index = () => {
   const [frozen, setFrozen] = useState(false);
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
+  const [prone, setProne] = useState(false);
   const frozenRef = useRef(false);
+  const proneRef = useRef(false);
 
   const timeRef = useRef(0);
   const settingsRef = useRef(settings);
@@ -64,6 +66,13 @@ const Index = () => {
     });
   }, []);
 
+  const toggleProne = useCallback(() => {
+    setProne(p => {
+      proneRef.current = !p;
+      return !p;
+    });
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       if (frozenRef.current) return;
@@ -73,7 +82,8 @@ const Index = () => {
         settingsRef.current,
         patientRef.current,
         vitalsRef.current,
-        buffersRef.current
+        buffersRef.current,
+        proneRef.current
       );
       vitalsRef.current = result.vitals;
       buffersRef.current = result.buffers;
