@@ -137,7 +137,6 @@ const Index = () => {
               <RotateCcw className="w-3.5 h-3.5" />
               {prone && <span className="text-[9px] font-bold">PRONE</span>}
             </button>
-            </button>
             <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" />
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
               ICU Vent Sim
