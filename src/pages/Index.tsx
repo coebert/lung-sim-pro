@@ -129,6 +129,15 @@ const Index = () => {
             >
               <GraduationCap className="w-3.5 h-3.5" />
             </button>
+            <button
+              onClick={toggleProne}
+              className={`p-1 rounded transition-colors flex items-center gap-1 ${prone ? 'bg-blue-600 text-white' : 'hover:bg-muted text-muted-foreground'}`}
+              title={prone ? 'Return to supine position' : 'Prone positioning'}
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              {prone && <span className="text-[9px] font-bold">PRONE</span>}
+            </button>
+            </button>
             <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" />
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
               ICU Vent Sim
