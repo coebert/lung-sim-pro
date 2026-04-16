@@ -11,9 +11,10 @@ interface LungAnimationProps {
   compact?: boolean;
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
+  prone?: boolean;
 }
 
-export function LungAnimation({ patient, settings, buffers, vitals, compact = false, collapsed: controlledCollapsed, onCollapsedChange }: LungAnimationProps) {
+export function LungAnimation({ patient, settings, buffers, vitals, compact = false, collapsed: controlledCollapsed, onCollapsedChange, prone = false }: LungAnimationProps) {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const collapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const toggleCollapsed = () => {
@@ -781,6 +782,16 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 {/* Qualitative label */}
                 <text x="100" y="210" textAnchor="middle" fill="#888" fontSize="5" fontFamily="monospace">
                   {aprvRecruitment > 0.8 ? 'Optimal — alveoli recruiting' : aprvRecruitment > 0.5 ? 'Partial — adjust settings' : 'Poor — review P High, T High, T Low'}
+                </text>
+              </g>
+            )}
+
+            {/* ═══ PRONE POSITIONING INDICATOR ═══ */}
+            {prone && (
+              <g>
+                <rect x="60" y="2" width="80" height="14" rx="3" fill="#1e40af" opacity="0.9" />
+                <text x="100" y="12" textAnchor="middle" fill="#93c5fd" fontSize="7" fontFamily="monospace" fontWeight="bold">
+                  🔄 PRONE
                 </text>
               </g>
             )}

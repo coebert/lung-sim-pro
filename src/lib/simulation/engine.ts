@@ -33,7 +33,8 @@ export function simulationTick(
   settings: VentSettings,
   patient: PatientPhysiology,
   vitals: Vitals,
-  buffers: WaveformBuffers
+  buffers: WaveformBuffers,
+  prone: boolean = false
 ): { vitals: Vitals; measured: MeasuredValues; buffers: WaveformBuffers } {
   // Generate ventilator waveform point
   const vent = generateVentWaveformPoint(time, settings, patient);
@@ -75,7 +76,7 @@ export function simulationTick(
   };
 
   // Update vitals based on ventilation adequacy
-  const newVitals = updateVitals(settings, patient, vitals, measured);
+  const newVitals = updateVitals(settings, patient, vitals, measured, prone);
 
   return { vitals: newVitals, measured, buffers: newBuffers };
 }
@@ -84,13 +85,19 @@ function updateVitals(
   settings: VentSettings,
   patient: PatientPhysiology,
   vitals: Vitals,
-  measured: MeasuredValues
+  measured: MeasuredValues,
+  prone: boolean = false
 ): Vitals {
   const rate = VITALS_RESPONSE_RATE;
 
+  // ── Prone positioning V/Q benefit ──
+  // Prone improves V/Q matching primarily in ARDS (and to a lesser extent in other patients)
+  // by redistributing perfusion and reducing dorsal atelectasis
+  const proneVQBonus = prone ? (patient.id === 'ards' ? 0.20 : 0.05) : 0;
+
   // ── APRV-specific physiology ──
   if (settings.mode === 'APRV') {
-    return updateVitalsAPRV(settings, patient, vitals, measured, rate);
+    return updateVitalsAPRV(settings, patient, vitals, measured, rate, prone, proneVQBonus);
   }
   
   // Calculate oxygenation adequacy
@@ -114,10 +121,11 @@ function updateVitals(
 
   // Target SpO2 based on oxygenation
   let targetSpO2 = patient.baseSpO2;
-  if (oxygenScore > 0.8) {
-    targetSpO2 = Math.min(100, patient.baseSpO2 + (oxygenScore - 0.8) * 30);
+  const effectiveOxyScore = oxygenScore + proneVQBonus;
+  if (effectiveOxyScore > 0.8) {
+    targetSpO2 = Math.min(100, patient.baseSpO2 + (effectiveOxyScore - 0.8) * 30);
   } else {
-    targetSpO2 = Math.max(60, patient.baseSpO2 - (0.8 - oxygenScore) * 40);
+    targetSpO2 = Math.max(60, patient.baseSpO2 - (0.8 - effectiveOxyScore) * 40);
   }
 
   // Apply shunt penalty
@@ -186,7 +194,9 @@ function updateVitalsAPRV(
   patient: PatientPhysiology,
   vitals: Vitals,
   measured: MeasuredValues,
-  rate: number
+  rate: number,
+  prone: boolean = false,
+  proneVQBonus: number = 0
 ): Vitals {
   const { pHigh, pLow, tHigh, tLow, fio2 } = settings;
 
@@ -238,7 +248,10 @@ function updateVitalsAPRV(
   const mapScore = clamp(meanAirwayPressure / (patient.optimalPEEP * 2), 0.3, 1.2);
 
   let targetSpO2 = patient.baseSpO2;
-  const oxygenation = baseOxyScore * mapScore * (1 - effectiveShunt * 0.7);
+  // Prone reduces effective shunt by improving V/Q matching in dependent zones
+  const proneShuntReduction = prone ? (patient.id === 'ards' ? 0.15 : 0.03) : 0;
+  const adjustedShunt = Math.max(0, effectiveShunt - proneShuntReduction);
+  const oxygenation = (baseOxyScore + proneVQBonus) * mapScore * (1 - adjustedShunt * 0.7);
   if (oxygenation > 0.8) {
     targetSpO2 = Math.min(100, patient.baseSpO2 + (oxygenation - 0.8) * 35);
   } else {

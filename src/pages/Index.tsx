@@ -7,7 +7,7 @@ import { PatientSelector } from '@/components/simulator/PatientSelector';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffers } from '@/lib/simulation/types';
 import { patients, getDefaultSettings } from '@/lib/simulation/patients';
 import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
-import { Settings, Users, Pause, Play, Stethoscope, GraduationCap, ChevronLeft } from 'lucide-react';
+import { Settings, Users, Pause, Play, Stethoscope, GraduationCap, ChevronLeft, RotateCcw } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
@@ -35,7 +35,9 @@ const Index = () => {
   const [frozen, setFrozen] = useState(false);
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
+  const [prone, setProne] = useState(false);
   const frozenRef = useRef(false);
+  const proneRef = useRef(false);
 
   const timeRef = useRef(0);
   const settingsRef = useRef(settings);
@@ -64,6 +66,13 @@ const Index = () => {
     });
   }, []);
 
+  const toggleProne = useCallback(() => {
+    setProne(p => {
+      proneRef.current = !p;
+      return !p;
+    });
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       if (frozenRef.current) return;
@@ -73,7 +82,8 @@ const Index = () => {
         settingsRef.current,
         patientRef.current,
         vitalsRef.current,
-        buffersRef.current
+        buffersRef.current,
+        proneRef.current
       );
       vitalsRef.current = result.vitals;
       buffersRef.current = result.buffers;
@@ -118,6 +128,14 @@ const Index = () => {
               title={tutorialActive ? 'Exit tutorial' : 'Start tutorial'}
             >
               <GraduationCap className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={toggleProne}
+              className={`p-1 rounded transition-colors flex items-center gap-1 ${prone ? 'bg-blue-600 text-white' : 'hover:bg-muted text-muted-foreground'}`}
+              title={prone ? 'Return to supine position' : 'Prone positioning'}
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              {prone && <span className="text-[9px] font-bold">PRONE</span>}
             </button>
             <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" />
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
@@ -165,8 +183,8 @@ const Index = () => {
                   />
                 ) : (
                   <>
-                    <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} collapsed={lungCollapsed} onCollapsedChange={setLungCollapsed} />
-                    <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+                    <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} collapsed={lungCollapsed} onCollapsedChange={setLungCollapsed} prone={prone} />
+                    <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
                   </>
                 )}
               </div>
@@ -254,7 +272,7 @@ const Index = () => {
                 <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
               )}
               {mobileOverlay === 'feedback' && (
-                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
               )}
               {mobileOverlay === 'tutorial' && (
                 <TutorialPanel patient={patient} settings={settings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
@@ -275,7 +293,7 @@ const Index = () => {
               <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
             </div>
             <div className="w-[120px] shrink-0 border-l border-border p-0.5">
-              <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} compact />
+              <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} compact prone={prone} />
             </div>
           </div>
 
@@ -329,7 +347,7 @@ const Index = () => {
                 <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
               )}
               {mobileOverlay === 'feedback' && (
-                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
               )}
               {mobileOverlay === 'tutorial' && (
                 <TutorialPanel patient={patient} settings={settings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
