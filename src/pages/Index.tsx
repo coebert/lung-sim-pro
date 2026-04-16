@@ -183,8 +183,8 @@ const Index = () => {
                   />
                 ) : (
                   <>
-                    <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} collapsed={lungCollapsed} onCollapsedChange={setLungCollapsed} />
-                    <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} />
+                    <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} collapsed={lungCollapsed} onCollapsedChange={setLungCollapsed} prone={prone} />
+                    <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
                   </>
                 )}
               </div>
@@ -293,7 +293,7 @@ const Index = () => {
               <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
             </div>
             <div className="w-[120px] shrink-0 border-l border-border p-0.5">
-              <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} compact />
+              <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} compact prone={prone} />
             </div>
           </div>
 
