@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { PatientPhysiology, VentSettings, Vitals, WaveformBuffers } from '@/lib/simulation/types';
+import { computeAPRV } from '@/lib/simulation/scoring';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
 
 interface LungAnimationProps {
   patient: PatientPhysiology;
