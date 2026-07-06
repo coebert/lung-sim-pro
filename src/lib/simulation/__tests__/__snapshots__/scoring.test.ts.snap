@@ -1,0 +1,361 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`computeAPRV — recruitment score for ARDS > P-High excessive — barotrauma risk 1`] = `
+{
+  "drivingPressure": 40,
+  "meanAirwayPressure": 36,
+  "openingPressure": 21,
+  "pHighScore": 1,
+  "pLowPenalty": 0,
+  "recruitmentScore": 1,
+  "tHighScore": 1,
+  "tLowScore": 1,
+}
+`;
+
+exports[`computeAPRV — recruitment score for ARDS > P-High too low — no driving pressure 1`] = `
+{
+  "drivingPressure": 15,
+  "meanAirwayPressure": 13.5,
+  "openingPressure": 21,
+  "pHighScore": 0.2143,
+  "pLowPenalty": 0,
+  "recruitmentScore": 0.2143,
+  "tHighScore": 1,
+  "tLowScore": 1,
+}
+`;
+
+exports[`computeAPRV — recruitment score for ARDS > P-Low elevated — narrow differential 1`] = `
+{
+  "drivingPressure": 20,
+  "meanAirwayPressure": 26,
+  "openingPressure": 21,
+  "pHighScore": 0.4524,
+  "pLowPenalty": 0.5,
+  "recruitmentScore": 0.2262,
+  "tHighScore": 1,
+  "tLowScore": 1,
+}
+`;
+
+exports[`computeAPRV — recruitment score for ARDS > T-High too short — partial recruitment 1`] = `
+{
+  "drivingPressure": 28,
+  "meanAirwayPressure": 18.6667,
+  "openingPressure": 21,
+  "pHighScore": 0.8333,
+  "pLowPenalty": 0,
+  "recruitmentScore": 0,
+  "tHighScore": 0,
+  "tLowScore": 1,
+}
+`;
+
+exports[`computeAPRV — recruitment score for ARDS > T-Low too long — de-recruitment 1`] = `
+{
+  "drivingPressure": 28,
+  "meanAirwayPressure": 21,
+  "openingPressure": 21,
+  "pHighScore": 0.8333,
+  "pLowPenalty": 0,
+  "recruitmentScore": 0,
+  "tHighScore": 1,
+  "tLowScore": 0,
+}
+`;
+
+exports[`computeAPRV — recruitment score for ARDS > T-Low too short — no CO2 clearance 1`] = `
+{
+  "drivingPressure": 28,
+  "meanAirwayPressure": 27.6923,
+  "openingPressure": 21,
+  "pHighScore": 0.8333,
+  "pLowPenalty": 0,
+  "recruitmentScore": 0.0833,
+  "tHighScore": 1,
+  "tLowScore": 0.1,
+}
+`;
+
+exports[`computeAPRV — recruitment score for ARDS > optimal 1`] = `
+{
+  "drivingPressure": 28,
+  "meanAirwayPressure": 25.2,
+  "openingPressure": 21,
+  "pHighScore": 0.8333,
+  "pLowPenalty": 0,
+  "recruitmentScore": 0.8333,
+  "tHighScore": 1,
+  "tLowScore": 1,
+}
+`;
+
+exports[`computeIE — I:E timing > bronchospasm 1:4 @ RR10 1`] = `
+{
+  "cycleTime": 6,
+  "eTime": 4.8,
+  "iTime": 1.2,
+  "ieActual": 0.25,
+}
+`;
+
+exports[`computeIE — I:E timing > fixed iTime 1.0s @ RR20 1`] = `
+{
+  "cycleTime": 3,
+  "eTime": 2,
+  "iTime": 1,
+  "ieActual": 0.5,
+}
+`;
+
+exports[`computeIE — I:E timing > inverse 2:1 via ieRatio 0.5 1`] = `
+{
+  "cycleTime": 4,
+  "eTime": 1.3333,
+  "iTime": 2.6667,
+  "ieActual": 2,
+}
+`;
+
+exports[`computeIE — I:E timing > normal 1:2 @ RR12 1`] = `
+{
+  "cycleTime": 5,
+  "eTime": 3.3333,
+  "iTime": 1.6667,
+  "ieActual": 0.5,
+}
+`;
+
+exports[`computeShunt — PEEP + I-time driven shunt > ards — PEEP overshoot 1`] = `
+{
+  "ie": {
+    "cycleTime": 4.2857,
+    "eTime": 2.8571,
+    "iTime": 1.4286,
+    "ieActual": 0.5,
+  },
+  "ieExcess": 0,
+  "peepExcess": 5.8,
+  "shuntFraction": 0.116,
+}
+`;
+
+exports[`computeShunt — PEEP + I-time driven shunt > ards — inverse ratio 1`] = `
+{
+  "ie": {
+    "cycleTime": 4.2857,
+    "eTime": 1.4286,
+    "iTime": 2.8571,
+    "ieActual": 2,
+  },
+  "ieExcess": 1.2,
+  "peepExcess": 0,
+  "shuntFraction": 0.096,
+}
+`;
+
+exports[`computeShunt — PEEP + I-time driven shunt > ards — normal PEEP for ARDS 1`] = `
+{
+  "ie": {
+    "cycleTime": 4.2857,
+    "eTime": 2.8571,
+    "iTime": 1.4286,
+    "ieActual": 0.5,
+  },
+  "ieExcess": 0,
+  "peepExcess": 0,
+  "shuntFraction": 0,
+}
+`;
+
+exports[`computeShunt — PEEP + I-time driven shunt > bronchospasm — long i-time 1`] = `
+{
+  "ie": {
+    "cycleTime": 6,
+    "eTime": 4,
+    "iTime": 2,
+    "ieActual": 0.5,
+  },
+  "ieExcess": 0,
+  "peepExcess": 0,
+  "shuntFraction": 0,
+}
+`;
+
+exports[`computeShunt — PEEP + I-time driven shunt > healthy — excessive PEEP 1`] = `
+{
+  "ie": {
+    "cycleTime": 4.2857,
+    "eTime": 2.8571,
+    "iTime": 1.4286,
+    "ieActual": 0.5,
+  },
+  "ieExcess": 0,
+  "peepExcess": 11.5,
+  "shuntFraction": 0.23,
+}
+`;
+
+exports[`computeShunt — PEEP + I-time driven shunt > healthy — sane settings 1`] = `
+{
+  "ie": {
+    "cycleTime": 4.2857,
+    "eTime": 2.8571,
+    "iTime": 1.4286,
+    "ieActual": 0.5,
+  },
+  "ieExcess": 0,
+  "peepExcess": 0,
+  "shuntFraction": 0,
+}
+`;
+
+exports[`patient physiology — canonical parameters > all patients 1`] = `
+[
+  {
+    "baseDBP": 75,
+    "baseEtCO2": 38,
+    "baseHR": 72,
+    "baseSBP": 120,
+    "baseSpO2": 99,
+    "compliance": 50,
+    "description": "Normal lung mechanics, no pathology",
+    "frc": 2400,
+    "id": "healthy",
+    "name": "Healthy Adult (70kg)",
+    "openingPressure": 7.5,
+    "optimalFiO2": 0.4,
+    "optimalPEEP": 5,
+    "optimalPS": 10,
+    "optimalRR": 14,
+    "optimalTV": 490,
+    "proneShuntReduction": 0.03,
+    "proneVQBonus": 0.05,
+    "resistance": 5,
+    "spontaneousRate": 0,
+    "spontaneousTidalVolume": 0,
+    "weight": 70,
+  },
+  {
+    "baseDBP": 90,
+    "baseEtCO2": 42,
+    "baseHR": 88,
+    "baseSBP": 145,
+    "baseSpO2": 94,
+    "compliance": 25,
+    "description": "Reduced compliance, increased resistance, high BMI",
+    "frc": 1600,
+    "id": "obese",
+    "name": "Morbidly Obese (140kg)",
+    "openingPressure": 15,
+    "optimalFiO2": 0.5,
+    "optimalPEEP": 10,
+    "optimalPS": 14,
+    "optimalRR": 16,
+    "optimalTV": 420,
+    "proneShuntReduction": 0.03,
+    "proneVQBonus": 0.05,
+    "resistance": 12,
+    "spontaneousRate": 0,
+    "spontaneousTidalVolume": 0,
+    "weight": 140,
+  },
+  {
+    "baseDBP": 60,
+    "baseEtCO2": 45,
+    "baseHR": 110,
+    "baseSBP": 100,
+    "baseSpO2": 88,
+    "compliance": 15,
+    "description": "Very low compliance, requires protective ventilation (6mL/kg)",
+    "frc": 1200,
+    "id": "ards",
+    "name": "ARDS Patient",
+    "openingPressure": 21,
+    "optimalFiO2": 0.8,
+    "optimalPEEP": 14,
+    "optimalPS": 12,
+    "optimalRR": 22,
+    "optimalTV": 350,
+    "proneShuntReduction": 0.15,
+    "proneVQBonus": 0.2,
+    "resistance": 8,
+    "spontaneousRate": 0,
+    "spontaneousTidalVolume": 0,
+    "weight": 70,
+  },
+  {
+    "baseDBP": 85,
+    "baseEtCO2": 50,
+    "baseHR": 115,
+    "baseSBP": 135,
+    "baseSpO2": 91,
+    "compliance": 50,
+    "description": "Very high resistance, normal compliance, risk of air trapping",
+    "frc": 3200,
+    "id": "bronchospasm",
+    "name": "Severe Bronchospasm",
+    "openingPressure": 7.5,
+    "optimalFiO2": 0.5,
+    "optimalPEEP": 5,
+    "optimalPS": 10,
+    "optimalRR": 10,
+    "optimalTV": 450,
+    "proneShuntReduction": 0.03,
+    "proneVQBonus": 0.05,
+    "resistance": 28,
+    "spontaneousRate": 0,
+    "spontaneousTidalVolume": 0,
+    "weight": 70,
+  },
+  {
+    "baseDBP": 78,
+    "baseEtCO2": 40,
+    "baseHR": 92,
+    "baseSBP": 125,
+    "baseSpO2": 93,
+    "compliance": 20,
+    "description": "Low compliance, normal resistance, small tidal volumes needed",
+    "frc": 1500,
+    "id": "restrictive",
+    "name": "Restrictive Lung Disease",
+    "openingPressure": 9,
+    "optimalFiO2": 0.5,
+    "optimalPEEP": 6,
+    "optimalPS": 10,
+    "optimalRR": 20,
+    "optimalTV": 350,
+    "proneShuntReduction": 0.03,
+    "proneVQBonus": 0.05,
+    "resistance": 5,
+    "spontaneousRate": 0,
+    "spontaneousTidalVolume": 0,
+    "weight": 65,
+  },
+  {
+    "baseDBP": 65,
+    "baseEtCO2": 55,
+    "baseHR": 105,
+    "baseSBP": 110,
+    "baseSpO2": 89,
+    "compliance": 40,
+    "description": "Breathing spontaneously but with poor rate and volumes, needs support",
+    "frc": 2200,
+    "id": "spontaneous",
+    "name": "Spontaneously Breathing (Inadequate)",
+    "openingPressure": 7.5,
+    "optimalFiO2": 0.4,
+    "optimalPEEP": 5,
+    "optimalPS": 12,
+    "optimalRR": 14,
+    "optimalTV": 450,
+    "proneShuntReduction": 0.03,
+    "proneVQBonus": 0.05,
+    "resistance": 6,
+    "spontaneousRate": 8,
+    "spontaneousTidalVolume": 200,
+    "weight": 70,
+  },
+]
+`;
