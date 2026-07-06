@@ -21,6 +21,9 @@ export const patients: PatientPhysiology[] = [
     optimalPEEP: 5,
     optimalFiO2: 0.4,
     optimalPS: 10,
+    openingPressure: 7.5,
+    proneVQBonus: 0.05,
+    proneShuntReduction: 0.03,
   },
   {
     id: 'obese',
@@ -42,6 +45,9 @@ export const patients: PatientPhysiology[] = [
     optimalPEEP: 10,
     optimalFiO2: 0.5,
     optimalPS: 14,
+    openingPressure: 15,
+    proneVQBonus: 0.05,
+    proneShuntReduction: 0.03,
   },
   {
     id: 'ards',
@@ -63,6 +69,11 @@ export const patients: PatientPhysiology[] = [
     optimalPEEP: 14,
     optimalFiO2: 0.8,
     optimalPS: 12,
+    openingPressure: 21,
+    // ARDS is the canonical prone-position responder — evidence-based benefit
+    // from the PROSEVA trial.
+    proneVQBonus: 0.20,
+    proneShuntReduction: 0.15,
   },
   {
     id: 'bronchospasm',
@@ -84,6 +95,9 @@ export const patients: PatientPhysiology[] = [
     optimalPEEP: 5,
     optimalFiO2: 0.5,
     optimalPS: 10,
+    openingPressure: 7.5,
+    proneVQBonus: 0.05,
+    proneShuntReduction: 0.03,
   },
   {
     id: 'restrictive',
@@ -105,6 +119,9 @@ export const patients: PatientPhysiology[] = [
     optimalPEEP: 6,
     optimalFiO2: 0.5,
     optimalPS: 10,
+    openingPressure: 9,
+    proneVQBonus: 0.05,
+    proneShuntReduction: 0.03,
   },
   {
     id: 'spontaneous',
@@ -126,6 +143,9 @@ export const patients: PatientPhysiology[] = [
     optimalPEEP: 5,
     optimalFiO2: 0.4,
     optimalPS: 12,
+    openingPressure: 7.5,
+    proneVQBonus: 0.05,
+    proneShuntReduction: 0.03,
   },
 ];
 
