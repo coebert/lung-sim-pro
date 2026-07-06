@@ -30,21 +30,11 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
 
   const pathology = patient.id;
 
-  // APRV recruitment score (mirrors engine logic)
+  // APRV recruitment score — shared with engine + clinical feedback via scoring.ts
   const aprvRecruitment = useMemo(() => {
     if (settings.mode !== 'APRV') return null;
-    const { pHigh, pLow, tHigh, tLow } = settings;
-    const openingPressure = patient.optimalPEEP * 1.5;
-    const drivingPressure = pHigh - pLow;
-    const pHighScore = Math.max(0, Math.min(1, (drivingPressure - openingPressure * 0.5) / (openingPressure * 1.0)));
-    const tHighScore = Math.max(0, Math.min(1, (tHigh - 1.5) / 3.0));
-    let tLowScore: number;
-    if (tLow < 0.1) tLowScore = 0.1;
-    else if (tLow <= 0.8) tLowScore = Math.max(0, Math.min(1, tLow / 0.3));
-    else tLowScore = Math.max(0, Math.min(1, 1.0 - (tLow - 0.8) / 0.7));
-    const pLowPenalty = Math.max(0, Math.min(0.5, pLow / 10));
-    return Math.max(0, Math.min(1, pHighScore * tHighScore * tLowScore * (1 - pLowPenalty)));
-  }, [settings, patient.optimalPEEP]);
+    return computeAPRV(settings, patient).recruitmentScore;
+  }, [settings, patient]);
 
   // ARDS recruitment score — uses APRV recruitment when in APRV mode
   const ardsRecruitment = useMemo(() => {
