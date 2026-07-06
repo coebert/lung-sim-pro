@@ -91,6 +91,76 @@ exports[`computeAPRV — recruitment score for ARDS > optimal 1`] = `
 }
 `;
 
+exports[`computeAPRV — recruitmentScore monotonicity in pHigh > is monotonically non-decreasing across pHigh sweep 1`] = `
+[
+  {
+    "pHigh": 10,
+    "pHighScore": 0,
+    "recruitmentScore": 0,
+  },
+  {
+    "pHigh": 12,
+    "pHighScore": 0.0714,
+    "recruitmentScore": 0.0714,
+  },
+  {
+    "pHigh": 14,
+    "pHighScore": 0.1667,
+    "recruitmentScore": 0.1667,
+  },
+  {
+    "pHigh": 16,
+    "pHighScore": 0.2619,
+    "recruitmentScore": 0.2619,
+  },
+  {
+    "pHigh": 18,
+    "pHighScore": 0.3571,
+    "recruitmentScore": 0.3571,
+  },
+  {
+    "pHigh": 20,
+    "pHighScore": 0.4524,
+    "recruitmentScore": 0.4524,
+  },
+  {
+    "pHigh": 22,
+    "pHighScore": 0.5476,
+    "recruitmentScore": 0.5476,
+  },
+  {
+    "pHigh": 24,
+    "pHighScore": 0.6429,
+    "recruitmentScore": 0.6429,
+  },
+  {
+    "pHigh": 26,
+    "pHighScore": 0.7381,
+    "recruitmentScore": 0.7381,
+  },
+  {
+    "pHigh": 28,
+    "pHighScore": 0.8333,
+    "recruitmentScore": 0.8333,
+  },
+  {
+    "pHigh": 30,
+    "pHighScore": 0.9286,
+    "recruitmentScore": 0.9286,
+  },
+  {
+    "pHigh": 32,
+    "pHighScore": 1,
+    "recruitmentScore": 1,
+  },
+  {
+    "pHigh": 34,
+    "pHighScore": 1,
+    "recruitmentScore": 1,
+  },
+]
+`;
+
 exports[`computeIE — I:E timing > bronchospasm 1:4 @ RR10 1`] = `
 {
   "cycleTime": 6,

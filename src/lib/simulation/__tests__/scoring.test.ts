@@ -103,3 +103,43 @@ describe('patient physiology — canonical parameters', () => {
     expect(canon).toMatchSnapshot();
   });
 });
+
+// ─── APRV monotonicity: pHigh drives recruitment until it saturates ─
+
+describe('computeAPRV — recruitmentScore monotonicity in pHigh', () => {
+  const ards = patient('ards');
+  const base: APRVSettings = {
+    mode: 'APRV',
+    peep: 0, fio2: 0.8, respiratoryRate: 12, ieRatio: 2, inspiratoryTime: 0,
+    pHigh: 0, pLow: 0, tHigh: 4.5, tLow: 0.5,
+  };
+
+  // Sweep pHigh across the clinically-plausible range. `pHighScore` is a
+  // clamp((drivingPressure - openingPressure*0.5) / openingPressure, 0, 1),
+  // so recruitmentScore must rise monotonically with pHigh and then saturate
+  // at the clamp — locking in "more driving pressure never hurts recruitment
+  // in the model, but the barotrauma-region clamp caps it".
+  const sweep = Array.from({ length: 13 }, (_, i) => 10 + i * 2); // 10..34
+
+  it('is monotonically non-decreasing across pHigh sweep', () => {
+    const rows = sweep.map(pHigh => {
+      const m = computeAPRV({ ...base, pHigh }, ards);
+      return {
+        pHigh,
+        pHighScore: Math.round(m.pHighScore * 10000) / 10000,
+        recruitmentScore: Math.round(m.recruitmentScore * 10000) / 10000,
+      };
+    });
+    for (let i = 1; i < rows.length; i++) {
+      expect(rows[i].recruitmentScore).toBeGreaterThanOrEqual(rows[i - 1].recruitmentScore);
+    }
+    // The sweep must actually reach the barotrauma clamp (pHighScore === 1)
+    // by the top of the range — otherwise the test isn't proving saturation.
+    expect(rows[rows.length - 1].pHighScore).toBe(1);
+    // And once pHighScore saturates, recruitmentScore must stay flat (since
+    // tHigh / tLow / pLow are all fixed across the sweep).
+    const saturated = rows.filter(r => r.pHighScore === 1).map(r => r.recruitmentScore);
+    expect(new Set(saturated).size).toBe(1);
+    expect(rows).toMatchSnapshot();
+  });
+});
