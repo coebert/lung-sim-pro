@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: Vitest (typecheck + snapshots)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bunx tsc -p tsconfig.app.json --noEmit
+
+      # `vitest run` fails when a snapshot differs from the committed golden
+      # file, so any drift in physiology / scoring output blocks the merge.
+      # `--passWithNoTests` is intentionally omitted.
+      - name: Run tests
+        run: bunx vitest run --reporter=verbose
