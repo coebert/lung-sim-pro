@@ -187,7 +187,7 @@ const Index = () => {
       {isPortrait && (
         <div className="flex-1 flex flex-col min-h-0 relative">
           <div className="flex-[3] min-h-0 p-1 border-b border-border">
-            <MonitorPanel buffers={buffers} vitals={vitals} />
+            <MonitorPanel buffers={buffers} vitals={vitals} layout="grid" />
           </div>
           <div className="flex-[2] min-h-0 flex flex-row border-b border-border">
             <div className="flex-1 min-h-0 p-1">
