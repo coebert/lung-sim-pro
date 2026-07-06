@@ -1,4 +1,4 @@
-import { VentSettings, PatientPhysiology } from './types';
+import { VentSettings, PatientPhysiology, CommonSettings, APRVSettings } from './types';
 
 /**
  * Shared physiology math used by both the engine and the UI feedback panels.
