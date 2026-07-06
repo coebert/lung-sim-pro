@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
+import { MONITOR_COLOR } from '@/lib/theme';
 
 interface WaveformCanvasProps {
   data: number[];
