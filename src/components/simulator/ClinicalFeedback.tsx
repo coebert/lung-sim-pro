@@ -85,12 +85,9 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     }
 
     // ── Shunting ──
-    const peepExcess = Math.max(0, settings.peep - patient.optimalPEEP * 1.3);
-    const cycleTime = 60 / settings.respiratoryRate;
-    const iTime = settings.inspiratoryTime > 0 ? settings.inspiratoryTime : cycleTime / (1 + settings.ieRatio);
-    const ieActual = iTime / Math.max(cycleTime - iTime, 0.1);
-    const ieExcess = Math.max(0, ieActual - 0.8);
-    const shuntFraction = Math.min(0.5, (peepExcess * 0.02) + (ieExcess * 0.08) + (peepExcess * ieExcess * 0.03));
+    const shunt = computeShunt(settings, patient);
+    const { shuntFraction, ie } = shunt;
+    const { ieActual, iTime, eTime } = ie;
 
     if (shuntFraction > 0.15) {
       list.push({ text: `Significant intrapulmonary shunting (${(shuntFraction * 100).toFixed(0)}%). Excessive PEEP and/or prolonged I-time causing refractory hypoxaemia.`, severity: 'danger' });
@@ -102,7 +99,6 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     if (ieActual > 1) {
       list.push({ text: `Inverse I:E ratio (1:${(1 / ieActual).toFixed(1)}). Risk of air trapping, auto-PEEP and haemodynamic compromise.`, severity: 'warn' });
     }
-    const eTime = cycleTime - iTime;
     if (eTime < 1 && patient.resistance > 15) {
       list.push({ text: `Expiratory time very short (${eTime.toFixed(1)}s) with high airway resistance. Air trapping likely.`, severity: 'danger' });
     }
