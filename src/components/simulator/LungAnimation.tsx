@@ -147,10 +147,10 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
   let statusText = '';
   let statusColor = '';
   if (pathology === 'bronchospasm' && hyperinflation > 1.3) {
-    statusText = '⚠ Air Trapping';
+    statusText = 'Air Trapping';
     statusColor = '#e8c840';
   } else if (pathology === 'ards' && ardsRecruitment < 0.5) {
-    statusText = '⚠ Diffuse Atelectasis';
+    statusText = 'Diffuse Atelectasis';
     statusColor = '#e06060';
   } else if (pathology === 'ards' && ardsRecruitment < 0.8) {
     statusText = 'Patchy Atelectasis';
@@ -159,7 +159,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
     statusText = 'Partial Recruitment';
     statusColor = '#90c070';
   } else if (pathology === 'obese' && obeseAtelScore > 0.3) {
-    statusText = '⚠ Basal Atelectasis';
+    statusText = 'Basal Atelectasis';
     statusColor = '#d0a040';
   }
 
@@ -176,7 +176,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
       </button>
 
       {!collapsed && (
-        <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-[#0e1225] p-1">
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-monitor-bg p-1">
           <svg
             viewBox="0 0 200 220"
             className="w-full h-full max-h-full"
@@ -665,12 +665,12 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             )}
             {tachyIntensity > 0.3 && heartCompression >= 0.75 && (
               <text x="100" y="145" textAnchor="middle" fill="#e05050" fontSize="7" fontFamily="monospace" fontWeight="bold" opacity={0.5 + tachyIntensity * 0.4}>
-                {vitals.hr >= 150 ? '⚠ Severe Tachycardia' : '⚠ Tachycardia'} ({Math.round(vitals.hr)} bpm)
+                {vitals.hr >= 150 ? 'Severe Tachycardia' : 'Tachycardia'} ({Math.round(vitals.hr)} bpm)
               </text>
             )}
             {bradyIntensity > 0 && heartCompression >= 0.75 && (
               <text x="100" y="145" textAnchor="middle" fill="#7080d0" fontSize="7" fontFamily="monospace" fontWeight="bold" opacity={0.5 + bradyIntensity * 0.4}>
-                {vitals.hr <= 30 ? '⚠ Severe Bradycardia' : '⚠ Bradycardia'} ({Math.round(vitals.hr)} bpm)
+                {vitals.hr <= 30 ? 'Severe Bradycardia' : 'Bradycardia'} ({Math.round(vitals.hr)} bpm)
               </text>
             )}
 
