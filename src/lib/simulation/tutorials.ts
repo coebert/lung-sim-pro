@@ -1,11 +1,13 @@
-import { VentSettings, Vitals, MeasuredValues } from './types';
+import { AllModeParams, Vitals, MeasuredValues } from './types';
 
 export interface TutorialStep {
   title: string;
   instruction: string;
   hint: string;
-  /** Returns true when the user has met the objective for this step */
-  check: (settings: VentSettings, vitals: Vitals, measured: MeasuredValues) => boolean;
+  /** Returns true when the user has met the objective for this step.
+   * Receives the superset of all parameters plus the active mode so checks can
+   * read across modes without narrowing gymnastics. */
+  check: (settings: AllModeParams, vitals: Vitals, measured: MeasuredValues) => boolean;
   /** Brief explanation shown on completion */
   successMessage: string;
 }
