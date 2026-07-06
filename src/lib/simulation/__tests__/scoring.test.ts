@@ -14,14 +14,13 @@ import type { APRVSettings, CommonSettings, PatientPhysiology } from '../types';
 
 // A small, deterministic snapshot helper: round every numeric field so
 // floating-point noise from JS math doesn't churn the golden files.
-function round(obj: Record<string, unknown>, dp = 4): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
+function round<T>(obj: T, dp = 4): unknown {
   const factor = 10 ** dp;
-  for (const [k, v] of Object.entries(obj)) {
-    if (typeof v === 'number') out[k] = Math.round(v * factor) / factor;
-    else if (v && typeof v === 'object') out[k] = round(v as Record<string, unknown>, dp);
-    else out[k] = v;
-  }
+  if (typeof obj === 'number') return Math.round(obj * factor) / factor;
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(v => round(v, dp));
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) out[k] = round(v, dp);
   return out;
 }
 
