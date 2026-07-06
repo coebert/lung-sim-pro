@@ -53,51 +53,57 @@ const Index = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-dvh flex flex-col bg-background overflow-hidden">
       {/* Alarm banner */}
       <AlarmBanner alarms={alarms} />
-      {/* Header — hidden in mobile landscape to save vertical space */}
-      {!isLandscape && (
-        <div className="flex items-center justify-between px-3 py-1.5 bg-secondary border-b border-border gap-2 shrink-0">
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={simulationStore.toggleFrozen}
-              className={`p-1 rounded transition-colors ${frozen ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
-              title={frozen ? 'Resume waveforms' : 'Freeze waveforms'}
-            >
-              {frozen ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-            </button>
-            <button
-              onClick={() => setTutorialActive(t => !t)}
-              className={`p-1 rounded transition-colors ${tutorialActive ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
-              title={tutorialActive ? 'Exit tutorial' : 'Start tutorial'}
-            >
-              <GraduationCap className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={simulationStore.toggleProne}
-              className={`p-1 rounded transition-colors flex items-center gap-1 ${prone ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
-              title={prone ? 'Return to supine position' : 'Prone positioning'}
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              {prone && <span className="text-[9px] font-bold">PRONE</span>}
-            </button>
-            <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" />
+      {/* Header — always visible; compacts in mobile landscape */}
+      <div className={`flex items-center justify-between bg-secondary border-b border-border gap-2 shrink-0 ${isLandscape ? 'px-2 py-0.5' : 'px-3 py-1.5'}`}>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={simulationStore.toggleFrozen}
+            aria-label={frozen ? 'Resume waveforms' : 'Freeze waveforms'}
+            aria-pressed={frozen}
+            className={`p-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${frozen ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+            title={frozen ? 'Resume waveforms' : 'Freeze waveforms'}
+          >
+            {frozen ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            onClick={() => setTutorialActive((t) => !t)}
+            aria-label={tutorialActive ? 'Exit tutorial' : 'Start tutorial'}
+            aria-pressed={tutorialActive}
+            className={`p-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${tutorialActive ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+            title={tutorialActive ? 'Exit tutorial' : 'Start tutorial'}
+          >
+            <GraduationCap className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={simulationStore.toggleProne}
+            aria-label={prone ? 'Return to supine position' : 'Prone positioning'}
+            aria-pressed={prone}
+            className={`p-1 rounded transition-colors flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${prone ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+            title={prone ? 'Return to supine position' : 'Prone positioning'}
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            {prone && <span className="text-[9px] font-bold">PRONE</span>}
+          </button>
+          <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" aria-hidden />
+          {!isLandscape && (
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
               ICU Vent Sim
               {frozen && <span className="ml-1.5 text-[10px] text-primary font-normal">FROZEN</span>}
               {tutorialActive && <span className="ml-1.5 text-[10px] text-primary font-normal">TUTORIAL</span>}
             </h1>
-          </div>
-          {isDesktop ? (
-            <div className="text-[10px] text-muted-foreground monitor-text truncate">
-              Patient: {patient.name} | C: {patient.compliance} mL/cmH₂O | R: {patient.resistance} cmH₂O/L/s
-            </div>
-          ) : (
-            <VitalsBar />
           )}
         </div>
-      )}
+        {isDesktop ? (
+          <div className="text-[10px] text-muted-foreground monitor-text truncate">
+            Patient: {patient.name} | C: {patient.compliance} mL/cmH₂O | R: {patient.resistance} cmH₂O/L/s
+          </div>
+        ) : (
+          <VitalsBar />
+        )}
+      </div>
 
       {/* ===== DESKTOP LAYOUT ===== */}
       {isDesktop && (
