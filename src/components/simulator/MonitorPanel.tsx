@@ -56,8 +56,8 @@ export function MonitorPanel({ buffers, vitals, compact = false, layout = 'row' 
       <div className="flex flex-col gap-1 h-full bg-monitor-bg rounded p-1 overflow-hidden">
         {/* 2×2 numerics grid — auto-fit, min 130px per tile */}
         <div className="grid gap-1 shrink-0" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}>
-          {numBoxes.map((b) => (
-            <NumBox key={b.key} {...b} labelSize="text-[10px]" subSize="text-[9px]" />
+          {numBoxes.map(({ key, ...b }) => (
+            <NumBox key={key} {...b} labelSize="text-[10px]" subSize="text-[9px]" />
           ))}
         </div>
         {/* 2×2 waveforms grid */}
@@ -84,8 +84,8 @@ export function MonitorPanel({ buffers, vitals, compact = false, layout = 'row' 
 
         {/* Dedicated numerics column — never overlaps traces */}
         <div className={`flex flex-col gap-0.5 ${numColWidth} shrink-0`}>
-          {numBoxes.map((b) => (
-            <NumBox key={b.key} {...b} labelSize={labelSize} subSize={subSize} />
+          {numBoxes.map(({ key, ...b }) => (
+            <NumBox key={key} {...b} labelSize={labelSize} subSize={subSize} />
           ))}
         </div>
       </div>
