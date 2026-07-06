@@ -100,7 +100,7 @@ const Index = () => {
                 <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
               </div>
               <div className="border-t border-border p-2">
-                <VentilatorControls settings={settings} onSettingsChange={simulationStore.setSettings} />
+                <VentilatorControls settings={settings} onUpdate={simulationStore.updateSettings} />
               </div>
             </div>
             <div className="flex-[2] flex flex-col min-w-0 border-l border-border">
@@ -199,7 +199,7 @@ const Index = () => {
           {mobileOverlay !== 'none' && (
             <div className="absolute bottom-[24px] left-0 right-0 bg-background border-t border-border max-h-[55vh] overflow-y-auto z-50 p-2 shadow-lg">
               {mobileOverlay === 'controls' && (
-                <VentilatorControls settings={settings} onSettingsChange={simulationStore.setSettings} />
+                <VentilatorControls settings={settings} onUpdate={simulationStore.updateSettings} />
               )}
               {mobileOverlay === 'patients' && (
                 <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { simulationStore.setPatient(p); setMobileOverlay('none'); }} />
@@ -273,7 +273,7 @@ const Index = () => {
           {mobileOverlay !== 'none' && (
             <div className="absolute bottom-[44px] left-0 right-0 bg-background border-t border-border max-h-[60vh] overflow-y-auto z-50 p-2 shadow-lg">
               {mobileOverlay === 'controls' && (
-                <VentilatorControls settings={settings} onSettingsChange={simulationStore.setSettings} />
+                <VentilatorControls settings={settings} onUpdate={simulationStore.updateSettings} />
               )}
               {mobileOverlay === 'patients' && (
                 <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { simulationStore.setPatient(p); setMobileOverlay('none'); }} />
