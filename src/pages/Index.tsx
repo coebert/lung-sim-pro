@@ -101,14 +101,18 @@ const Index = () => {
             </h1>
           )}
         </div>
-        {isDesktop ? (
-          <div className="text-[10px] text-muted-foreground monitor-text truncate">
-            Patient: {patient.name} | C: {patient.compliance} mL/cmH₂O | R: {patient.resistance} cmH₂O/L/s
-          </div>
-        ) : (
-          <VitalsBar />
-        )}
+        <div className="flex items-center gap-2 min-w-0">
+          {!isPortrait && <VitalsBar />}
+          <PatientDropdown
+            selectedPatient={patient}
+            onSelectPatient={simulationStore.setPatient}
+            compact={!isDesktop}
+          />
+        </div>
       </div>
+      {isDesktop && (
+        <TrendStrip spo2={trends.spo2} map={trends.map} etco2={trends.etco2} cadenceSec={trends.cadenceSec} />
+      )}
 
       {/* ===== DESKTOP LAYOUT ===== */}
       {isDesktop && (
@@ -157,11 +161,8 @@ const Index = () => {
               </div>
             )}
           </div>
-          <div className="border-t border-border p-2 shrink-0">
-            <PatientSelector selectedPatient={patient} onSelectPatient={simulationStore.setPatient} />
-            <div className="text-center mt-1">
-              <span className="text-[8px] text-muted-foreground/50 tracking-wide">{AUTHOR_CREDIT}</span>
-            </div>
+          <div className="border-t border-border py-1 shrink-0 text-center">
+            <span className="text-[8px] text-muted-foreground/50 tracking-wide">{AUTHOR_CREDIT}</span>
           </div>
         </>
       )}
