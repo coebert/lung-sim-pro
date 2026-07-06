@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues } from '@/lib/simulation/types';
+import { computeAPRV, computeShunt } from '@/lib/simulation/scoring';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
 
 interface ClinicalFeedbackProps {
   settings: VentSettings;
@@ -85,12 +85,9 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     }
 
     // ── Shunting ──
-    const peepExcess = Math.max(0, settings.peep - patient.optimalPEEP * 1.3);
-    const cycleTime = 60 / settings.respiratoryRate;
-    const iTime = settings.inspiratoryTime > 0 ? settings.inspiratoryTime : cycleTime / (1 + settings.ieRatio);
-    const ieActual = iTime / Math.max(cycleTime - iTime, 0.1);
-    const ieExcess = Math.max(0, ieActual - 0.8);
-    const shuntFraction = Math.min(0.5, (peepExcess * 0.02) + (ieExcess * 0.08) + (peepExcess * ieExcess * 0.03));
+    const shunt = computeShunt(settings, patient);
+    const { shuntFraction, ie } = shunt;
+    const { ieActual, iTime, eTime } = ie;
 
     if (shuntFraction > 0.15) {
       list.push({ text: `Significant intrapulmonary shunting (${(shuntFraction * 100).toFixed(0)}%). Excessive PEEP and/or prolonged I-time causing refractory hypoxaemia.`, severity: 'danger' });
@@ -102,7 +99,6 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     if (ieActual > 1) {
       list.push({ text: `Inverse I:E ratio (1:${(1 / ieActual).toFixed(1)}). Risk of air trapping, auto-PEEP and haemodynamic compromise.`, severity: 'warn' });
     }
-    const eTime = cycleTime - iTime;
     if (eTime < 1 && patient.resistance > 15) {
       list.push({ text: `Expiratory time very short (${eTime.toFixed(1)}s) with high airway resistance. Air trapping likely.`, severity: 'danger' });
     }
@@ -136,8 +132,8 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     // ── APRV-specific feedback ──
     if (settings.mode === 'APRV') {
       const { pHigh, pLow, tHigh, tLow } = settings;
-      const drivingPressure = pHigh - pLow;
-      const openingPressure = patient.optimalPEEP * 1.5;
+      const aprv = computeAPRV(settings, patient);
+      const { drivingPressure, openingPressure, recruitmentScore, meanAirwayPressure: meanAP } = aprv;
 
       // P High assessment
       if (drivingPressure < openingPressure * 0.5) {
@@ -186,15 +182,6 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       }
 
       // Overall recruitment assessment
-      const pHighScore = Math.max(0, Math.min(1, (drivingPressure - openingPressure * 0.5) / (openingPressure * 1.0)));
-      const tHighScore = Math.max(0, Math.min(1, (tHigh - 1.5) / 3.0));
-      let tLowScore: number;
-      if (tLow < 0.1) tLowScore = 0.1;
-      else if (tLow <= 0.8) tLowScore = Math.max(0, Math.min(1, tLow / 0.3));
-      else tLowScore = Math.max(0, Math.min(1, 1.0 - (tLow - 0.8) / 0.7));
-      const pLowPenalty = Math.max(0, Math.min(0.5, pLow / 10));
-      const recruitmentScore = Math.max(0, Math.min(1, pHighScore * tHighScore * tLowScore * (1 - pLowPenalty)));
-
       if (recruitmentScore > 0.8) {
         list.push({ text: `APRV settings are well-optimised (recruitment score ${Math.round(recruitmentScore * 100)}%). Expect progressive alveolar recruitment.`, severity: 'good' });
       } else if (recruitmentScore > 0.4) {
@@ -204,7 +191,6 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       }
 
       // Mean airway pressure
-      const meanAP = (pHigh * tHigh + pLow * tLow) / (tHigh + tLow);
       list.push({ text: `Mean airway pressure: ${meanAP.toFixed(1)} cmH₂O. ${meanAP > 25 ? 'High — monitor haemodynamics.' : meanAP > 15 ? 'Moderate — adequate for recruitment.' : 'Low — may be insufficient for oxygenation.'}`, severity: meanAP > 30 ? 'warn' : meanAP > 12 ? 'good' : 'warn' });
     }
 
