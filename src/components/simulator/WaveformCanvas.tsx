@@ -71,7 +71,7 @@ export function WaveformCanvas({
     ctx.fillStyle = MONITOR_COLOR.bg;
     ctx.fillRect(0, 0, w, h);
 
-    // Grid lines
+    // Grid lines (subtle horizontal + vertical 1s-ish spacing)
     if (showGrid) {
       ctx.strokeStyle = MONITOR_COLOR.grid;
       ctx.lineWidth = 0.5;
@@ -91,6 +91,10 @@ export function WaveformCanvas({
       }
     }
 
+    // Reserve a small left gutter for scale labels so they never overlap the trace
+    const leftGutter = 22;
+    const plotW = Math.max(1, w - leftGutter);
+
     // Draw waveform
     if (data.length < 2) return;
 
@@ -104,7 +108,7 @@ export function WaveformCanvas({
     const plotH = h - padding * 2;
 
     for (let i = 0; i < data.length; i++) {
-      const x = (i / (data.length - 1)) * w;
+      const x = leftGutter + (i / (data.length - 1)) * plotW;
       const normalized = (data[i] - minValue) / range;
       const y = padding + plotH * (1 - normalized);
 
@@ -113,18 +117,20 @@ export function WaveformCanvas({
     }
     ctx.stroke();
 
-    // Label
+    // Label (top-left, inside gutter area)
     const fontSize = Math.max(8, Math.min(11, h * 0.15));
     ctx.font = `${fontSize}px monospace`;
     ctx.fillStyle = color;
-    ctx.fillText(`${label} (${unit})`, 4, fontSize + 1);
+    ctx.fillText(`${label} (${unit})`, leftGutter + 2, fontSize + 1);
 
-    // Scale markers
+    // Scale markers on the LEFT gutter (not overlapping the trace)
     ctx.fillStyle = MONITOR_COLOR.scaleText;
     const scaleFontSize = Math.max(7, Math.min(9, h * 0.12));
     ctx.font = `${scaleFontSize}px monospace`;
-    ctx.fillText(String(Math.round(maxValue)), w - 30, scaleFontSize + 1);
-    ctx.fillText(String(Math.round(minValue)), w - 30, h - 2);
+    ctx.textAlign = 'right';
+    ctx.fillText(String(Math.round(maxValue)), leftGutter - 2, scaleFontSize + 1);
+    ctx.fillText(String(Math.round(minValue)), leftGutter - 2, h - 2);
+    ctx.textAlign = 'left';
   }, [data, color, label, unit, minValue, maxValue, effectiveHeight, showGrid, autoHeight]);
 
   if (autoHeight) {
