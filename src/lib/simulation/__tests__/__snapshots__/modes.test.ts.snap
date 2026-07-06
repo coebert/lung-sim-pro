@@ -1,0 +1,501 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PCV — increasing pInsp raises delivered volume > peak volume rises monotonically with pInsp 1`] = `
+[
+  {
+    "pInsp": 15,
+    "peak": 225,
+  },
+  {
+    "pInsp": 20,
+    "peak": 300,
+  },
+  {
+    "pInsp": 25,
+    "peak": 375,
+  },
+  {
+    "pInsp": 30,
+    "peak": 450,
+  },
+]
+`;
+
+exports[`SIMV — mandatory VT is independent of pressure support > mandatory tidal-volume peak is invariant to PS on a passive patient 1`] = `
+[
+  {
+    "peak": 400,
+    "ps": 0,
+  },
+  {
+    "peak": 400,
+    "ps": 8,
+  },
+  {
+    "peak": 400,
+    "ps": 16,
+  },
+]
+`;
+
+exports[`generateVentWaveformPoint — per-mode waveform shape > APRV — ARDS waveform samples are stable 1`] = `
+[
+  {
+    "flow": 210,
+    "pressure": 28,
+    "t": 0,
+    "volume": 0,
+  },
+  {
+    "flow": 0,
+    "pressure": 28,
+    "t": 0.45,
+    "volume": 399.09,
+  },
+  {
+    "flow": 0,
+    "pressure": 28,
+    "t": 0.91,
+    "volume": 399.09,
+  },
+  {
+    "flow": 0,
+    "pressure": 28,
+    "t": 1.36,
+    "volume": 399.09,
+  },
+  {
+    "flow": 0,
+    "pressure": 28,
+    "t": 1.82,
+    "volume": 399.09,
+  },
+  {
+    "flow": 0,
+    "pressure": 28,
+    "t": 2.27,
+    "volume": 399.09,
+  },
+  {
+    "flow": 0,
+    "pressure": 28,
+    "t": 2.73,
+    "volume": 399.09,
+  },
+  {
+    "flow": 0,
+    "pressure": 28,
+    "t": 3.18,
+    "volume": 399.09,
+  },
+  {
+    "flow": 0,
+    "pressure": 28,
+    "t": 3.64,
+    "volume": 399.09,
+  },
+  {
+    "flow": 0,
+    "pressure": 28,
+    "t": 4.09,
+    "volume": 399.09,
+  },
+  {
+    "flow": -198.04,
+    "pressure": 7.92,
+    "t": 4.55,
+    "volume": 118.82,
+  },
+  {
+    "flow": 210,
+    "pressure": 28,
+    "t": 5,
+    "volume": 0,
+  },
+]
+`;
+
+exports[`generateVentWaveformPoint — per-mode waveform shape > PCV — ARDS waveform samples are stable 1`] = `
+[
+  {
+    "flow": 187.5,
+    "pressure": 33,
+    "t": 0,
+    "volume": 0,
+  },
+  {
+    "flow": 4.25,
+    "pressure": 33,
+    "t": 0.45,
+    "volume": 366.51,
+  },
+  {
+    "flow": 0.1,
+    "pressure": 33,
+    "t": 0.91,
+    "volume": 374.81,
+  },
+  {
+    "flow": -9.05,
+    "pressure": 9.21,
+    "t": 1.36,
+    "volume": 18.11,
+  },
+  {
+    "flow": -0.21,
+    "pressure": 8.03,
+    "t": 1.82,
+    "volume": 0.41,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 2.27,
+    "volume": 0.01,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 2.73,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 3.18,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 3.64,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 4.09,
+    "volume": 0,
+  },
+  {
+    "flow": 21.53,
+    "pressure": 33,
+    "t": 4.55,
+    "volume": 331.95,
+  },
+  {
+    "flow": 0.49,
+    "pressure": 33,
+    "t": 5,
+    "volume": 374.03,
+  },
+]
+`;
+
+exports[`generateVentWaveformPoint — per-mode waveform shape > PRVC — ARDS waveform samples are stable 1`] = `
+[
+  {
+    "flow": 200.05,
+    "pressure": 34.67,
+    "t": 0,
+    "volume": 0,
+  },
+  {
+    "flow": 4.53,
+    "pressure": 34.67,
+    "t": 0.45,
+    "volume": 391.04,
+  },
+  {
+    "flow": 0.1,
+    "pressure": 34.67,
+    "t": 0.91,
+    "volume": 399.89,
+  },
+  {
+    "flow": -9.66,
+    "pressure": 9.29,
+    "t": 1.36,
+    "volume": 19.32,
+  },
+  {
+    "flow": -0.22,
+    "pressure": 8.03,
+    "t": 1.82,
+    "volume": 0.44,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 2.27,
+    "volume": 0.01,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 2.73,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 3.18,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 3.64,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 4.09,
+    "volume": 0,
+  },
+  {
+    "flow": 22.97,
+    "pressure": 34.67,
+    "t": 4.55,
+    "volume": 354.16,
+  },
+  {
+    "flow": 0.52,
+    "pressure": 34.67,
+    "t": 5,
+    "volume": 399.06,
+  },
+]
+`;
+
+exports[`generateVentWaveformPoint — per-mode waveform shape > PSV — spontaneous waveform samples are stable 1`] = `
+[
+  {
+    "flow": 100,
+    "pressure": 18,
+    "t": 0,
+    "volume": 0,
+  },
+  {
+    "flow": 15.05,
+    "pressure": 18,
+    "t": 0.45,
+    "volume": 339.81,
+  },
+  {
+    "flow": 2.26,
+    "pressure": 18,
+    "t": 0.91,
+    "volume": 390.94,
+  },
+  {
+    "flow": -21.64,
+    "pressure": 10.16,
+    "t": 1.36,
+    "volume": 86.55,
+  },
+  {
+    "flow": -3.26,
+    "pressure": 8.33,
+    "t": 1.82,
+    "volume": 13.02,
+  },
+  {
+    "flow": -0.49,
+    "pressure": 8.05,
+    "t": 2.27,
+    "volume": 1.96,
+  },
+  {
+    "flow": -0.07,
+    "pressure": 8.01,
+    "t": 2.73,
+    "volume": 0.29,
+  },
+  {
+    "flow": -0.01,
+    "pressure": 8,
+    "t": 3.18,
+    "volume": 0.04,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 3.64,
+    "volume": 0.01,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 4.09,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 4.55,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 5,
+    "volume": 0,
+  },
+]
+`;
+
+exports[`generateVentWaveformPoint — per-mode waveform shape > SIMV — ARDS waveform samples are stable 1`] = `
+[
+  {
+    "flow": 24,
+    "pressure": 11.2,
+    "t": 0,
+    "volume": 0,
+  },
+  {
+    "flow": 24,
+    "pressure": 23.32,
+    "t": 0.45,
+    "volume": 181.82,
+  },
+  {
+    "flow": 24,
+    "pressure": 35.44,
+    "t": 0.91,
+    "volume": 363.64,
+  },
+  {
+    "flow": -9.66,
+    "pressure": 9.29,
+    "t": 1.36,
+    "volume": 19.32,
+  },
+  {
+    "flow": -0.22,
+    "pressure": 8.03,
+    "t": 1.82,
+    "volume": 0.44,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 2.27,
+    "volume": 0.01,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 2.73,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 3.18,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 3.64,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 4.09,
+    "volume": 0,
+  },
+  {
+    "flow": 24,
+    "pressure": 18.13,
+    "t": 4.55,
+    "volume": 103.9,
+  },
+  {
+    "flow": 24,
+    "pressure": 30.25,
+    "t": 5,
+    "volume": 285.71,
+  },
+]
+`;
+
+exports[`generateVentWaveformPoint — per-mode waveform shape > VCV — ARDS waveform samples are stable 1`] = `
+[
+  {
+    "flow": 24,
+    "pressure": 11.2,
+    "t": 0,
+    "volume": 0,
+  },
+  {
+    "flow": 24,
+    "pressure": 23.32,
+    "t": 0.45,
+    "volume": 181.82,
+  },
+  {
+    "flow": 24,
+    "pressure": 35.44,
+    "t": 0.91,
+    "volume": 363.64,
+  },
+  {
+    "flow": -9.66,
+    "pressure": 9.29,
+    "t": 1.36,
+    "volume": 19.32,
+  },
+  {
+    "flow": -0.22,
+    "pressure": 8.03,
+    "t": 1.82,
+    "volume": 0.44,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 2.27,
+    "volume": 0.01,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 2.73,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 3.18,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 3.64,
+    "volume": 0,
+  },
+  {
+    "flow": -0,
+    "pressure": 8,
+    "t": 4.09,
+    "volume": 0,
+  },
+  {
+    "flow": 24,
+    "pressure": 18.13,
+    "t": 4.55,
+    "volume": 103.9,
+  },
+  {
+    "flow": 24,
+    "pressure": 30.25,
+    "t": 5,
+    "volume": 285.71,
+  },
+]
+`;
