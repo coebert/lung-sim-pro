@@ -63,10 +63,19 @@ class Ring {
 
 // ─── Snapshots exposed to React (immutable per notification) ─────────
 
+export interface Trends {
+  /** Cadence between samples, seconds. */
+  cadenceSec: number;
+  spo2: number[];
+  map: number[];
+  etco2: number[];
+}
+
 export interface VitalsSnapshot {
   vitals: Vitals;
   measured: MeasuredValues;
   alarms: Alarm[];
+  trends: Trends;
 }
 
 export interface ControlSnapshot {
@@ -101,6 +110,16 @@ class SimulationStore {
   };
   private alarms: Alarm[] = [];
 
+  // Trend rings: 1Hz cadence, 5-minute window (300 samples).
+  private static readonly TREND_CADENCE_SEC = 1;
+  private static readonly TREND_SIZE = 300;
+  private trendCounter = 0;
+  private trendRings = {
+    spo2: new Ring(SimulationStore.TREND_SIZE),
+    map: new Ring(SimulationStore.TREND_SIZE),
+    etco2: new Ring(SimulationStore.TREND_SIZE),
+  };
+
   private rings = {
     pressure: new Ring(BUFFER_SIZE),
     flow: new Ring(BUFFER_SIZE),
@@ -130,7 +149,7 @@ class SimulationStore {
     this.settings = buildVentSettings(this.allSettings);
     this.vitals = createInitialVitals(patient);
     this.waveformSnapshot = this.buildWaveformSnapshot();
-    this.vitalsSnapshot = { vitals: this.vitals, measured: this.measured, alarms: this.alarms };
+    this.vitalsSnapshot = this.buildVitalsSnapshot();
     this.controlSnapshot = {
       settings: this.settings,
       allSettings: this.allSettings,
@@ -172,6 +191,8 @@ class SimulationStore {
     };
     this.alarms = [];
     Object.values(this.rings).forEach(r => r.reset());
+    Object.values(this.trendRings).forEach(r => r.reset());
+    this.trendCounter = 0;
     this.time = 0;
     this.emitControls();
     this.emitWaveforms();
@@ -257,6 +278,16 @@ class SimulationStore {
       );
       this.vitals = updateVitals(this.settings, this.patient, this.vitals, this.measured, this.prone);
       this.alarms = evaluateAlarms(this.measured, this.vitals, DEFAULT_ALARM_LIMITS);
+
+      // Trends at 1Hz (every 4th vitals tick @ 250ms).
+      this.trendCounter++;
+      if (this.trendCounter >= 4) {
+        this.trendCounter = 0;
+        this.trendRings.spo2.push(this.vitals.spo2);
+        this.trendRings.map.push((this.vitals.sbp + 2 * this.vitals.dbp) / 3);
+        this.trendRings.etco2.push(this.vitals.etco2 / 7.501); // → kPa
+      }
+
       this.emitVitals();
     }
   }
@@ -280,8 +311,22 @@ class SimulationStore {
     this.waveformListeners.forEach(l => l());
   }
 
+  private buildVitalsSnapshot(): VitalsSnapshot {
+    return {
+      vitals: this.vitals,
+      measured: this.measured,
+      alarms: this.alarms,
+      trends: {
+        cadenceSec: SimulationStore.TREND_CADENCE_SEC,
+        spo2: this.trendRings.spo2.snapshot(),
+        map: this.trendRings.map.snapshot(),
+        etco2: this.trendRings.etco2.snapshot(),
+      },
+    };
+  }
+
   private emitVitals() {
-    this.vitalsSnapshot = { vitals: this.vitals, measured: this.measured, alarms: this.alarms };
+    this.vitalsSnapshot = this.buildVitalsSnapshot();
     this.vitalsListeners.forEach(l => l());
   }
 

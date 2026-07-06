@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useLayoutMode } from '@/hooks/use-layout-mode';
+import { useGlobalShortcuts } from '@/hooks/use-global-shortcuts';
 import { VentilatorPanel } from '@/components/simulator/VentilatorPanel';
 import { MonitorPanel } from '@/components/simulator/MonitorPanel';
 import { VentilatorControls } from '@/components/simulator/VentilatorControls';
-import { PatientSelector } from '@/components/simulator/PatientSelector';
+import { PatientDropdown } from '@/components/simulator/PatientDropdown';
+import { TrendStrip } from '@/components/simulator/TrendStrip';
 import {
   simulationStore,
   useWaveforms,
@@ -27,12 +29,15 @@ const Index = () => {
   const isPortrait = layoutMode === 'mobile-portrait';
 
   const { settings, allSettings, patient, prone, frozen } = useControls();
-  const { vitals, measured, alarms } = useVitalsSnapshot();
+  const { vitals, measured, alarms, trends } = useVitalsSnapshot();
   const buffers = useWaveforms();
 
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
+
+  const toggleTutorial = useCallback(() => setTutorialActive((t) => !t), []);
+  useGlobalShortcuts({ onToggleTutorial: toggleTutorial });
 
   // Compact vitals bar for mobile header
   const VitalsBar = () => (
@@ -96,14 +101,18 @@ const Index = () => {
             </h1>
           )}
         </div>
-        {isDesktop ? (
-          <div className="text-[10px] text-muted-foreground monitor-text truncate">
-            Patient: {patient.name} | C: {patient.compliance} mL/cmH₂O | R: {patient.resistance} cmH₂O/L/s
-          </div>
-        ) : (
-          <VitalsBar />
-        )}
+        <div className="flex items-center gap-2 min-w-0">
+          {!isPortrait && <VitalsBar />}
+          <PatientDropdown
+            selectedPatient={patient}
+            onSelectPatient={simulationStore.setPatient}
+            compact={!isDesktop}
+          />
+        </div>
       </div>
+      {isDesktop && (
+        <TrendStrip spo2={trends.spo2} map={trends.map} etco2={trends.etco2} cadenceSec={trends.cadenceSec} />
+      )}
 
       {/* ===== DESKTOP LAYOUT ===== */}
       {isDesktop && (
@@ -152,11 +161,8 @@ const Index = () => {
               </div>
             )}
           </div>
-          <div className="border-t border-border p-2 shrink-0">
-            <PatientSelector selectedPatient={patient} onSelectPatient={simulationStore.setPatient} />
-            <div className="text-center mt-1">
-              <span className="text-[8px] text-muted-foreground/50 tracking-wide">{AUTHOR_CREDIT}</span>
-            </div>
+          <div className="border-t border-border py-1 shrink-0 text-center">
+            <span className="text-[8px] text-muted-foreground/50 tracking-wide">{AUTHOR_CREDIT}</span>
           </div>
         </>
       )}

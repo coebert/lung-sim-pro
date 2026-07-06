@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { VentSettings, VentMode, AllModeParams } from '@/lib/simulation/types';
+import { StepperControl as SettingControl } from '@/components/simulator/StepperControl';
 
 type TimingMode = 'ie' | 'ti';
 
@@ -296,49 +297,4 @@ function TimingToggleAndControl({
   );
 }
 
-/* ── Setting control ── */
-
-function SettingControl({
-  label,
-  value,
-  unit,
-  min,
-  max,
-  step,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  unit: string;
-  min: number;
-  max: number;
-  step: number;
-  onChange: (value: number) => void;
-}) {
-  const decrement = () => onChange(Math.max(min, value - step));
-  const increment = () => onChange(Math.min(max, value + step));
-
-  return (
-    <div className="bg-secondary rounded p-2 flex flex-col items-center gap-1">
-      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</span>
-      <div className="flex items-center gap-1">
-        <button
-          onClick={decrement}
-          className="w-6 h-6 rounded bg-muted hover:bg-accent text-foreground text-xs font-bold flex items-center justify-center"
-        >
-          −
-        </button>
-        <span className="monitor-text text-sm font-bold text-foreground min-w-[3rem] text-center">
-          {value % 1 === 0 ? value : value.toFixed(1)}
-        </span>
-        <button
-          onClick={increment}
-          className="w-6 h-6 rounded bg-muted hover:bg-accent text-foreground text-xs font-bold flex items-center justify-center"
-        >
-          +
-        </button>
-      </div>
-      <span className="text-[9px] text-muted-foreground">{unit}</span>
-    </div>
-  );
-}
+/* SettingControl imported from StepperControl (long-press + keyboard + undo). */
