@@ -138,13 +138,30 @@ function makeSettings(patient: PatientPhysiology, patch: Partial<AllModeParams>)
 const CAPTURE_AT = [5, 15, 30, 60];
 
 const scenarios: Scenario[] = [
-  { id: 'healthy',      label: 'VCV — protective baseline',      settingsPatch: {} },
-  { id: 'obese',        label: 'VCV — high-PEEP obesity',        settingsPatch: {} },
-  { id: 'ards',         label: 'VCV — ARDSNet low VT',           settingsPatch: {} },
-  { id: 'ards',         label: 'APRV — optimal recruitment',     settingsPatch: { mode: 'APRV' } },
-  { id: 'bronchospasm', label: 'VCV — low rate long e-time',     settingsPatch: { ieRatio: 4 } },
-  { id: 'restrictive',  label: 'VCV — small VT higher rate',     settingsPatch: {} },
-  { id: 'spontaneous',  label: 'PSV — pressure support',         settingsPatch: { mode: 'PSV' } },
+  { id: 'healthy',      label: 'VCV — protective baseline',        settingsPatch: {} },
+  { id: 'obese',        label: 'VCV — high-PEEP obesity',          settingsPatch: {} },
+  { id: 'ards',         label: 'VCV — ARDSNet low VT',             settingsPatch: {} },
+  { id: 'ards',         label: 'APRV — optimal recruitment',       settingsPatch: { mode: 'APRV' } },
+  { id: 'bronchospasm', label: 'VCV — low rate long e-time',       settingsPatch: { ieRatio: 4 } },
+  { id: 'restrictive',  label: 'VCV — small VT higher rate',       settingsPatch: {} },
+  { id: 'spontaneous',  label: 'PSV — pressure support',           settingsPatch: { mode: 'PSV' } },
+
+  // ── Mode-specific: PCV (pressure-controlled) ──
+  // ARDS drives PCV clinically — low compliance means volume varies with the
+  // set pInsp. The snapshot locks the resulting VT / peak / plateau / MV.
+  { id: 'ards',         label: 'PCV — pInsp 25 for stiff lungs',   settingsPatch: { mode: 'PCV', pInsp: 25 } },
+  // Obesity: PCV commonly used to cap airway pressure over a splinted diaphragm.
+  { id: 'obese',        label: 'PCV — pInsp 22 obesity',           settingsPatch: { mode: 'PCV', pInsp: 22 } },
+  // Sanity check the PCV pressure-limit behaviour: raising pInsp raises VT.
+  { id: 'ards',         label: 'PCV — pInsp 15 under-pressurised', settingsPatch: { mode: 'PCV', pInsp: 15 } },
+
+  // ── Mode-specific: SIMV (volume mandatory + PS-augmented spont breaths) ──
+  // Weaning target: SIMV with pressure support on a partially spontaneous
+  // patient. Locks that RR-below-mandatory relies on mandatory VT delivery.
+  { id: 'spontaneous',  label: 'SIMV — mandatory VT + PS 12',      settingsPatch: { mode: 'SIMV', pressureSupport: 12 } },
+  // Fully controlled SIMV on a stiff-lung patient (no spontaneous drive):
+  // behaves like VCV — snapshot pins that equivalence explicitly.
+  { id: 'ards',         label: 'SIMV — ARDS mandatory low VT',     settingsPatch: { mode: 'SIMV', pressureSupport: 0 } },
 ];
 
 describe('physiology trajectory — golden files', () => {
