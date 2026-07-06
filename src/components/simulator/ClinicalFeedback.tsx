@@ -121,7 +121,8 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     }
 
     // ── Patient-specific guidance ──
-    if (patient.id === 'ards' && settings.peep >= patient.optimalPEEP * 0.8 && tvPerKg <= 7) {
+    if (patient.id === 'ards' && settings.peep >= patient.optimalPEEP * 0.8
+        && 'tidalVolume' in settings && settings.tidalVolume / patient.weight <= 7) {
       list.push({ text: `Lung-protective strategy in place: low VT + adequate PEEP for ARDS.`, severity: 'good' });
     }
     if (patient.id === 'bronchospasm' && settings.respiratoryRate <= 12 && eTime > 3) {
