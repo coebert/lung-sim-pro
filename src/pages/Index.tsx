@@ -18,9 +18,9 @@ import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
 import { TutorialPanel } from '@/components/simulator/TutorialPanel';
 import { MobileBottomNav, MobileOverlayPanel, type MobileOverlay } from '@/components/simulator/MobileShell';
+import { OnboardingDialog } from '@/components/simulator/OnboardingDialog';
+import { AboutButton } from '@/components/simulator/AboutButton';
 import { VITAL_COLOR, spo2Color } from '@/lib/theme';
-
-const AUTHOR_CREDIT = 'App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM';
 
 const Index = () => {
   const layoutMode = useLayoutMode();
@@ -108,6 +108,7 @@ const Index = () => {
             onSelectPatient={simulationStore.setPatient}
             compact={!isDesktop}
           />
+          <AboutButton />
         </div>
       </div>
       {isDesktop && (
@@ -161,9 +162,6 @@ const Index = () => {
               </div>
             )}
           </div>
-          <div className="border-t border-border py-1 shrink-0 text-center">
-            <span className="text-[8px] text-muted-foreground/50 tracking-wide">{AUTHOR_CREDIT}</span>
-          </div>
         </>
       )}
 
@@ -198,13 +196,11 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="text-center py-0.5 bg-secondary border-t border-border shrink-0">
-            <span className="text-[8px] text-muted-foreground/50 tracking-wide">{AUTHOR_CREDIT}</span>
-          </div>
           <MobileBottomNav variant="portrait" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
           <MobileOverlayPanel {...overlayProps} bottomOffset={44} maxHeight="60vh" />
         </div>
       )}
+      <OnboardingDialog />
     </div>
   );
 };
