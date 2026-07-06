@@ -110,6 +110,16 @@ class SimulationStore {
   };
   private alarms: Alarm[] = [];
 
+  // Trend rings: 1Hz cadence, 5-minute window (300 samples).
+  private static readonly TREND_CADENCE_SEC = 1;
+  private static readonly TREND_SIZE = 300;
+  private trendCounter = 0;
+  private trendRings = {
+    spo2: new Ring(SimulationStore.TREND_SIZE),
+    map: new Ring(SimulationStore.TREND_SIZE),
+    etco2: new Ring(SimulationStore.TREND_SIZE),
+  };
+
   private rings = {
     pressure: new Ring(BUFFER_SIZE),
     flow: new Ring(BUFFER_SIZE),
