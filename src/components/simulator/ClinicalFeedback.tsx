@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues } from '@/lib/simulation/types';
 import { computeAPRV, computeShunt } from '@/lib/simulation/scoring';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, CircleAlert, CircleCheck, Zap } from 'lucide-react';
 
 interface ClinicalFeedbackProps {
   settings: VentSettings;
@@ -230,31 +230,45 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
         onClick={() => setCollapsed(c => !c)}
         className="flex items-center justify-between px-2 py-1 bg-secondary hover:bg-muted transition-colors shrink-0"
       >
-        <span className={`text-[10px] font-bold tracking-wider uppercase ${headerColor}`}>
+        <span className={`text-[10px] font-bold tracking-wider uppercase ${headerColor} flex items-center gap-1.5`}>
           Clinical Feedback
-          {dangerCount > 0 && <span className="ml-1">⚠ {dangerCount}</span>}
-          {warnCount > 0 && <span className="ml-1">⚡ {warnCount}</span>}
+          {dangerCount > 0 && (
+            <span className="flex items-center gap-0.5">
+              <AlertTriangle className="w-3 h-3" aria-label="Danger insights" />
+              {dangerCount}
+            </span>
+          )}
+          {warnCount > 0 && (
+            <span className="flex items-center gap-0.5">
+              <Zap className="w-3 h-3" aria-label="Warning insights" />
+              {warnCount}
+            </span>
+          )}
         </span>
         {collapsed ? <ChevronDown className="w-3 h-3 text-muted-foreground" /> : <ChevronUp className="w-3 h-3 text-muted-foreground" />}
       </button>
 
       {!collapsed && (
         <div className="max-h-[200px] overflow-y-auto p-1.5 space-y-1">
-          {insights.map((insight, i) => (
-            <div
-              key={i}
-              className={`text-[10px] leading-tight px-2 py-1 rounded ${
-                insight.severity === 'danger'
-                  ? 'bg-destructive/15 text-destructive border border-destructive/30'
-                  : insight.severity === 'warn'
-                  ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
-                  : 'bg-green-500/10 text-green-400 border border-green-500/20'
-              }`}
-            >
-              {insight.severity === 'danger' ? '🔴 ' : insight.severity === 'warn' ? '🟡 ' : '🟢 '}
-              {insight.text}
-            </div>
-          ))}
+          {insights.map((insight, i) => {
+            const Icon = insight.severity === 'danger' ? CircleAlert : insight.severity === 'warn' ? Zap : CircleCheck;
+            const label = insight.severity === 'danger' ? 'Danger' : insight.severity === 'warn' ? 'Warning' : 'OK';
+            return (
+              <div
+                key={i}
+                className={`text-[10px] leading-tight px-2 py-1 rounded flex items-start gap-1.5 ${
+                  insight.severity === 'danger'
+                    ? 'bg-destructive/15 text-destructive border border-destructive/30'
+                    : insight.severity === 'warn'
+                    ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                    : 'bg-green-500/10 text-green-400 border border-green-500/20'
+                }`}
+              >
+                <Icon className="w-3 h-3 shrink-0 mt-0.5" aria-label={label} />
+                <span>{insight.text}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

@@ -322,7 +322,10 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
           {isStepComplete && currentScore && (
             <div className="mt-1.5 ml-5 p-1.5 bg-green-500/10 rounded">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-green-400">✓ {step.successMessage}</span>
+                <span className="text-[10px] text-green-400 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" aria-hidden />
+                  {step.successMessage}
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">

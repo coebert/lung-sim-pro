@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alarm, AlarmSeverity, startAlarmSound, stopAlarmSound } from '@/lib/simulation/alarms';
-import { Volume2, VolumeX } from 'lucide-react';
+import { AlertTriangle, Volume2, VolumeX } from 'lucide-react';
 
 interface AlarmBannerProps {
   alarms: Alarm[];
@@ -48,8 +48,9 @@ export function AlarmBanner({ alarms }: AlarmBannerProps) {
 
   return (
     <div className={`${bgColor} text-white px-3 py-1 flex items-center gap-2 shrink-0 transition-colors duration-200`}>
-      <span className="text-xs font-bold tracking-wider uppercase animate-pulse">
-        ⚠ ALARM
+      <span className="text-xs font-bold tracking-wider uppercase animate-pulse flex items-center gap-1">
+        <AlertTriangle className="w-3.5 h-3.5" aria-hidden />
+        Alarm
       </span>
       <span className="flex-1 text-xs truncate">
         {activeAlarms.map(a => a.label).join(' | ')}

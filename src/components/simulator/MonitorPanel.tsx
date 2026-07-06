@@ -1,5 +1,6 @@
 import { WaveformCanvas } from './WaveformCanvas';
 import { WaveformBuffers, Vitals } from '@/lib/simulation/types';
+import { VITAL_COLOR, WAVE_COLOR, spo2Color, hrColor } from '@/lib/theme';
 
 interface MonitorPanelProps {
   buffers: WaveformBuffers;
@@ -8,8 +9,8 @@ interface MonitorPanelProps {
 }
 
 export function MonitorPanel({ buffers, vitals, compact = false }: MonitorPanelProps) {
-  const spo2Color = vitals.spo2 < 90 ? 'hsl(0, 100%, 55%)' : 'hsl(180, 100%, 55%)';
-  const hrColor = vitals.hr > 120 || vitals.hr < 50 ? 'hsl(0, 100%, 55%)' : 'hsl(120, 100%, 50%)';
+  const spo2C = spo2Color(vitals.spo2);
+  const hrC = hrColor(vitals.hr);
 
   const numSize = compact ? 'text-lg' : 'text-2xl';
   const labelSize = compact ? 'text-[8px]' : 'text-[10px]';
@@ -30,7 +31,7 @@ export function MonitorPanel({ buffers, vitals, compact = false }: MonitorPanelP
         <div className="relative flex-1 min-h-0 flex flex-col">
           <WaveformCanvas
             data={buffers.ecg}
-            color="hsl(120, 100%, 50%)"
+            color={WAVE_COLOR.ecg}
             label="II"
             unit="ECG"
             minValue={-0.5}
@@ -38,8 +39,8 @@ export function MonitorPanel({ buffers, vitals, compact = false }: MonitorPanelP
             autoHeight
           />
           <div className="absolute top-0 right-1 text-right">
-            <div className={`${labelSize}`} style={{ color: 'hsl(120, 100%, 50%)' }}>HR</div>
-            <div className={`monitor-text ${numSize} font-bold`} style={{ color: hrColor }}>
+            <div className={labelSize} style={{ color: VITAL_COLOR.hr }}>HR</div>
+            <div className={`monitor-text ${numSize} font-bold`} style={{ color: hrC }}>
               {Math.round(vitals.hr)}
             </div>
           </div>
@@ -49,20 +50,20 @@ export function MonitorPanel({ buffers, vitals, compact = false }: MonitorPanelP
         <div className="relative flex-1 min-h-0 flex flex-col">
           <WaveformCanvas
             data={buffers.abp}
-            color="hsl(0, 100%, 55%)"
+            color={WAVE_COLOR.abp}
             label="ABP"
             unit="mmHg"
             minValue={20}
             maxValue={180}
             autoHeight
           />
-          <div className="absolute top-0 right-1 text-right">
-            <div className={`${labelSize}`} style={{ color: 'hsl(0, 100%, 55%)' }}>ABP</div>
-            <div className={`monitor-text ${compact ? 'text-sm' : 'text-lg'} font-bold`} style={{ color: 'hsl(0, 100%, 55%)' }}>
+          <div className="absolute top-0 right-1 text-right" style={{ color: VITAL_COLOR.abp }}>
+            <div className={labelSize}>ABP</div>
+            <div className={`monitor-text ${compact ? 'text-sm' : 'text-lg'} font-bold`}>
               {Math.round(vitals.sbp)}/{Math.round(vitals.dbp)}
             </div>
             {!compact && (
-              <div className={`monitor-text ${subSize}`} style={{ color: 'hsl(0, 100%, 55%)' }}>
+              <div className={`monitor-text ${subSize}`}>
                 ({Math.round(vitals.dbp + (vitals.sbp - vitals.dbp) / 3)})
               </div>
             )}
@@ -73,16 +74,16 @@ export function MonitorPanel({ buffers, vitals, compact = false }: MonitorPanelP
         <div className="relative flex-1 min-h-0 flex flex-col">
           <WaveformCanvas
             data={buffers.spo2Pleth}
-            color={spo2Color}
+            color={spo2C}
             label="Pleth"
             unit="SpO₂"
             minValue={-0.2}
             maxValue={1.3}
             autoHeight
           />
-          <div className="absolute top-0 right-1 text-right">
-            <div className={`${labelSize}`} style={{ color: spo2Color }}>SpO₂</div>
-            <div className={`monitor-text ${numSize} font-bold`} style={{ color: spo2Color }}>
+          <div className="absolute top-0 right-1 text-right" style={{ color: spo2C }}>
+            <div className={labelSize}>SpO₂</div>
+            <div className={`monitor-text ${numSize} font-bold`}>
               {Math.round(vitals.spo2)}
             </div>
           </div>
@@ -92,16 +93,16 @@ export function MonitorPanel({ buffers, vitals, compact = false }: MonitorPanelP
         <div className="relative flex-1 min-h-0 flex flex-col">
           <WaveformCanvas
             data={buffers.capno.map(v => v / 7.501)}
-            color="hsl(45, 100%, 70%)"
+            color={WAVE_COLOR.capno}
             label="CO₂"
             unit="kPa"
             minValue={-0.5}
             maxValue={8}
             autoHeight
           />
-          <div className="absolute top-0 right-1 text-right">
-            <div className={`${labelSize}`} style={{ color: 'hsl(45, 100%, 70%)' }}>EtCO₂</div>
-            <div className={`monitor-text ${numSize} font-bold`} style={{ color: 'hsl(45, 100%, 70%)' }}>
+          <div className="absolute top-0 right-1 text-right" style={{ color: VITAL_COLOR.etco2 }}>
+            <div className={labelSize}>EtCO₂</div>
+            <div className={`monitor-text ${numSize} font-bold`}>
               {(vitals.etco2 / 7.501).toFixed(1)}
             </div>
           </div>

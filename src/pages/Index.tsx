@@ -10,13 +10,15 @@ import {
   useVitalsSnapshot,
   useControls,
 } from '@/lib/simulation/simulationStore';
-import { Settings, Users, Pause, Play, Stethoscope, GraduationCap, ChevronLeft, RotateCcw } from 'lucide-react';
+import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
 import { TutorialPanel } from '@/components/simulator/TutorialPanel';
+import { MobileBottomNav, MobileOverlayPanel, type MobileOverlay } from '@/components/simulator/MobileShell';
+import { VITAL_COLOR, spo2Color } from '@/lib/theme';
 
-type MobileOverlay = 'none' | 'controls' | 'patients' | 'feedback' | 'tutorial';
+const AUTHOR_CREDIT = 'App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM';
 
 const Index = () => {
   const layoutMode = useLayoutMode();
@@ -35,14 +37,20 @@ const Index = () => {
   // Compact vitals bar for mobile header
   const VitalsBar = () => (
     <div className="flex items-center gap-3 text-[10px] monitor-text overflow-x-auto">
-      <span style={{ color: 'hsl(120,100%,50%)' }}>HR {Math.round(vitals.hr)}</span>
-      <span style={{ color: 'hsl(0,100%,55%)' }}>BP {Math.round(vitals.sbp)}/{Math.round(vitals.dbp)}</span>
-      <span style={{ color: vitals.spo2 < 90 ? 'hsl(0,100%,55%)' : 'hsl(180,100%,55%)' }}>
+      <span style={{ color: VITAL_COLOR.hr }}>HR {Math.round(vitals.hr)}</span>
+      <span style={{ color: VITAL_COLOR.abp }}>BP {Math.round(vitals.sbp)}/{Math.round(vitals.dbp)}</span>
+      <span style={{ color: spo2Color(vitals.spo2) }}>
         SpO₂ {Math.round(vitals.spo2)}%
       </span>
-      <span style={{ color: 'hsl(45,100%,70%)' }}>EtCO₂ {(vitals.etco2 / 7.501).toFixed(1)} kPa</span>
+      <span style={{ color: VITAL_COLOR.etco2 }}>EtCO₂ {(vitals.etco2 / 7.501).toFixed(1)} kPa</span>
     </div>
   );
+
+  const overlayProps = {
+    overlay: mobileOverlay,
+    onClose: () => setMobileOverlay('none'),
+    settings, allSettings, patient, vitals, measured, prone,
+  };
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -68,7 +76,7 @@ const Index = () => {
             </button>
             <button
               onClick={simulationStore.toggleProne}
-              className={`p-1 rounded transition-colors flex items-center gap-1 ${prone ? 'bg-blue-600 text-white' : 'hover:bg-muted text-muted-foreground'}`}
+              className={`p-1 rounded transition-colors flex items-center gap-1 ${prone ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
               title={prone ? 'Return to supine position' : 'Prone positioning'}
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -141,9 +149,7 @@ const Index = () => {
           <div className="border-t border-border p-2 shrink-0">
             <PatientSelector selectedPatient={patient} onSelectPatient={simulationStore.setPatient} />
             <div className="text-center mt-1">
-              <span className="text-[8px] text-muted-foreground/50 tracking-wide">
-                App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM
-              </span>
+              <span className="text-[8px] text-muted-foreground/50 tracking-wide">{AUTHOR_CREDIT}</span>
             </div>
           </div>
         </>
@@ -160,58 +166,8 @@ const Index = () => {
               <MonitorPanel buffers={buffers} vitals={vitals} compact />
             </div>
           </div>
-
-          <div className="flex border-t border-border bg-secondary shrink-0">
-            <button
-              onClick={() => setMobileOverlay(mobileOverlay === 'controls' ? 'none' : 'controls')}
-              className={`flex-1 flex items-center justify-center gap-1 py-0.5 text-[10px] transition-colors
-                ${mobileOverlay === 'controls' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
-            >
-              <Settings className="w-3 h-3" />
-              Settings
-            </button>
-            <button
-              onClick={() => setMobileOverlay(mobileOverlay === 'patients' ? 'none' : 'patients')}
-              className={`flex-1 flex items-center justify-center gap-1 py-0.5 text-[10px] transition-colors
-                ${mobileOverlay === 'patients' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
-            >
-              <Users className="w-3 h-3" />
-              Patient
-            </button>
-            <button
-              onClick={() => setMobileOverlay(mobileOverlay === 'feedback' ? 'none' : 'feedback')}
-              className={`flex-1 flex items-center justify-center gap-1 py-0.5 text-[10px] transition-colors
-                ${mobileOverlay === 'feedback' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
-            >
-              <Stethoscope className="w-3 h-3" />
-              Clinical
-            </button>
-            <button
-              onClick={() => setMobileOverlay(mobileOverlay === 'tutorial' ? 'none' : 'tutorial')}
-              className={`flex-1 flex items-center justify-center gap-1 py-0.5 text-[10px] transition-colors
-                ${mobileOverlay === 'tutorial' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
-            >
-              <GraduationCap className="w-3 h-3" />
-              Tutorial
-            </button>
-          </div>
-
-          {mobileOverlay !== 'none' && (
-            <div className="absolute bottom-[24px] left-0 right-0 bg-background border-t border-border max-h-[55vh] overflow-y-auto z-50 p-2 shadow-lg">
-              {mobileOverlay === 'controls' && (
-                <VentilatorControls settings={settings} onUpdate={simulationStore.updateSettings} />
-              )}
-              {mobileOverlay === 'patients' && (
-                <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { simulationStore.setPatient(p); setMobileOverlay('none'); }} />
-              )}
-              {mobileOverlay === 'feedback' && (
-                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
-              )}
-              {mobileOverlay === 'tutorial' && (
-                <TutorialPanel patient={patient} settings={settings} allSettings={allSettings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
-              )}
-            </div>
-          )}
+          <MobileBottomNav variant="landscape" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
+          <MobileOverlayPanel {...overlayProps} bottomOffset={24} maxHeight="55vh" />
         </div>
       )}
 
@@ -231,61 +187,10 @@ const Index = () => {
           </div>
 
           <div className="text-center py-0.5 bg-secondary border-t border-border shrink-0">
-            <span className="text-[8px] text-muted-foreground/50 tracking-wide">
-              App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM
-            </span>
+            <span className="text-[8px] text-muted-foreground/50 tracking-wide">{AUTHOR_CREDIT}</span>
           </div>
-          <div className="flex border-t border-border bg-secondary shrink-0">
-            <button
-              onClick={() => setMobileOverlay(mobileOverlay === 'controls' ? 'none' : 'controls')}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
-                ${mobileOverlay === 'controls' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
-            >
-              <Settings className="w-4 h-4" />
-              Settings
-            </button>
-            <button
-              onClick={() => setMobileOverlay(mobileOverlay === 'patients' ? 'none' : 'patients')}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
-                ${mobileOverlay === 'patients' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
-            >
-              <Users className="w-4 h-4" />
-              Patient
-            </button>
-            <button
-              onClick={() => setMobileOverlay(mobileOverlay === 'feedback' ? 'none' : 'feedback')}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
-                ${mobileOverlay === 'feedback' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
-            >
-              <Stethoscope className="w-4 h-4" />
-              Clinical
-            </button>
-            <button
-              onClick={() => setMobileOverlay(mobileOverlay === 'tutorial' ? 'none' : 'tutorial')}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors
-                ${mobileOverlay === 'tutorial' ? 'text-primary bg-muted' : 'text-muted-foreground'}`}
-            >
-              <GraduationCap className="w-4 h-4" />
-              Tutorial
-            </button>
-          </div>
-
-          {mobileOverlay !== 'none' && (
-            <div className="absolute bottom-[44px] left-0 right-0 bg-background border-t border-border max-h-[60vh] overflow-y-auto z-50 p-2 shadow-lg">
-              {mobileOverlay === 'controls' && (
-                <VentilatorControls settings={settings} onUpdate={simulationStore.updateSettings} />
-              )}
-              {mobileOverlay === 'patients' && (
-                <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { simulationStore.setPatient(p); setMobileOverlay('none'); }} />
-              )}
-              {mobileOverlay === 'feedback' && (
-                <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
-              )}
-              {mobileOverlay === 'tutorial' && (
-                <TutorialPanel patient={patient} settings={settings} allSettings={allSettings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
-              )}
-            </div>
-          )}
+          <MobileBottomNav variant="portrait" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
+          <MobileOverlayPanel {...overlayProps} bottomOffset={44} maxHeight="60vh" />
         </div>
       )}
     </div>

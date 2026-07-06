@@ -1,5 +1,6 @@
 import { WaveformCanvas } from './WaveformCanvas';
 import { WaveformBuffers, MeasuredValues, VentSettings } from '@/lib/simulation/types';
+import { WAVE_COLOR } from '@/lib/theme';
 
 interface VentilatorPanelProps {
   buffers: WaveformBuffers;
@@ -28,7 +29,7 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false }
         <div className="flex-1 flex flex-col gap-0.5 min-w-0 min-h-0">
           <WaveformCanvas
             data={buffers.pressure}
-            color="hsl(55, 100%, 50%)"
+            color={WAVE_COLOR.pressure}
             label="Paw"
             unit="cmH₂O"
             minValue={-5}
@@ -37,7 +38,7 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false }
           />
           <WaveformCanvas
             data={buffers.flow}
-            color="hsl(180, 100%, 50%)"
+            color={WAVE_COLOR.flow}
             label="Flow"
             unit="L/min"
             minValue={-maxFlow}
@@ -46,7 +47,7 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false }
           />
           <WaveformCanvas
             data={buffers.volume}
-            color="hsl(120, 100%, 45%)"
+            color={WAVE_COLOR.volume}
             label="Volume"
             unit="mL"
             minValue={0}
@@ -56,12 +57,12 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false }
         </div>
         {/* Numerical values - right side */}
         <div className={`flex flex-col gap-0.5 ${compact ? 'w-[60px]' : 'w-[90px]'} shrink-0 overflow-y-auto`}>
-          <MeasuredBox label="PIP" value={measured.peakPressure} unit="cmH₂O" color="hsl(55, 100%, 50%)" compact={compact} />
-          <MeasuredBox label="PEEP" value={settings.peep} unit="cmH₂O" color="hsl(55, 100%, 50%)" compact={compact} />
-          <MeasuredBox label="Pmean" value={measured.meanPressure} unit="cmH₂O" color="hsl(55, 100%, 50%)" compact={compact} />
-          <MeasuredBox label="VTe" value={measured.measuredTV} unit="mL" color="hsl(120, 100%, 45%)" compact={compact} />
-          <MeasuredBox label="MV" value={measured.minuteVentilation} unit="L/min" color="hsl(120, 100%, 45%)" compact={compact} />
-          <MeasuredBox label="Cdyn" value={measured.dynamicCompliance} unit="mL/cmH₂O" color="hsl(180, 100%, 50%)" compact={compact} />
+          <MeasuredBox label="PIP" value={measured.peakPressure} unit="cmH₂O" color={WAVE_COLOR.pressure} compact={compact} />
+          <MeasuredBox label="PEEP" value={settings.peep} unit="cmH₂O" color={WAVE_COLOR.pressure} compact={compact} />
+          <MeasuredBox label="Pmean" value={measured.meanPressure} unit="cmH₂O" color={WAVE_COLOR.pressure} compact={compact} />
+          <MeasuredBox label="VTe" value={measured.measuredTV} unit="mL" color={WAVE_COLOR.volume} compact={compact} />
+          <MeasuredBox label="MV" value={measured.minuteVentilation} unit="L/min" color={WAVE_COLOR.volume} compact={compact} />
+          <MeasuredBox label="Cdyn" value={measured.dynamicCompliance} unit="mL/cmH₂O" color={WAVE_COLOR.flow} compact={compact} />
         </div>
       </div>
     </div>
