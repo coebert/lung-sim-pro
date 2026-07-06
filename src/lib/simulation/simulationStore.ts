@@ -63,10 +63,19 @@ class Ring {
 
 // ─── Snapshots exposed to React (immutable per notification) ─────────
 
+export interface Trends {
+  /** Cadence between samples, seconds. */
+  cadenceSec: number;
+  spo2: number[];
+  map: number[];
+  etco2: number[];
+}
+
 export interface VitalsSnapshot {
   vitals: Vitals;
   measured: MeasuredValues;
   alarms: Alarm[];
+  trends: Trends;
 }
 
 export interface ControlSnapshot {
