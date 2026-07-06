@@ -67,7 +67,9 @@ export interface APRVMetrics {
 
 export function computeAPRV(s: APRVSettings, p: PatientPhysiology): APRVMetrics {
   const { pHigh, pLow, tHigh, tLow } = s;
-  const openingPressure = p.optimalPEEP * 1.5;
+  // Data-driven per-patient opening pressure, with a sensible fallback so
+  // patients that don't declare one still behave as before.
+  const openingPressure = p.openingPressure ?? p.optimalPEEP * 1.5;
   const drivingPressure = pHigh - pLow;
 
   // P High adequacy: need driving pressure ≥ opening pressure
