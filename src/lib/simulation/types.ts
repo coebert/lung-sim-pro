@@ -63,25 +63,6 @@ export function buildVentSettings(all: AllModeParams): VentSettings {
   }
 }
 
-/** Build the mode-narrowed `VentSettings` from the persistent superset. */
-export function buildVentSettings(all: AllModeParams, mode: VentMode): VentSettings {
-  const common: CommonSettings = {
-    peep: all.peep,
-    fio2: all.fio2,
-    respiratoryRate: all.respiratoryRate,
-    ieRatio: all.ieRatio,
-    inspiratoryTime: all.inspiratoryTime,
-  };
-  switch (mode) {
-    case 'VCV':  return { ...common, mode, tidalVolume: all.tidalVolume, flowRate: all.flowRate };
-    case 'PCV':  return { ...common, mode, pInsp: all.pInsp };
-    case 'PRVC': return { ...common, mode, tidalVolume: all.tidalVolume, pMax: all.pMax };
-    case 'SIMV': return { ...common, mode, tidalVolume: all.tidalVolume, pressureSupport: all.pressureSupport };
-    case 'PSV':  return { ...common, mode, pressureSupport: all.pressureSupport };
-    case 'APRV': return { ...common, mode, pHigh: all.pHigh, pLow: all.pLow, tHigh: all.tHigh, tLow: all.tLow };
-  }
-}
-
 export interface PatientPhysiology {
   id: string;
   name: string;

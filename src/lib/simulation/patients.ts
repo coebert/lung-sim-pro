@@ -132,6 +132,7 @@ export const patients: PatientPhysiology[] = [
 /** Full superset of parameters, seeded with sane defaults for every mode. */
 export function getDefaultAllParams(_patient: PatientPhysiology): AllModeParams {
   return {
+    mode: 'VCV',
     peep: 5,
     fio2: 0.4,
     respiratoryRate: 14,
@@ -151,5 +152,5 @@ export function getDefaultAllParams(_patient: PatientPhysiology): AllModeParams 
 
 /** Default VentSettings (VCV mode) — kept for the initial store construction. */
 export function getDefaultSettings(patient: PatientPhysiology): VentSettings {
-  return buildVentSettings(getDefaultAllParams(patient), 'VCV');
+  return buildVentSettings(getDefaultAllParams(patient));
 }
