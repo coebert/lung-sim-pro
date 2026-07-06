@@ -31,10 +31,11 @@ const NAV_ITEMS: { id: Exclude<MobileOverlay, 'none'>; label: string; icon: Luci
 
 export function MobileBottomNav({ overlay, onOverlayChange, variant }: MobileBottomNavProps) {
   const isPortrait = variant === 'portrait';
-  const iconSize = isPortrait ? 'w-4 h-4' : 'w-3 h-3';
+  const iconSize = isPortrait ? 'w-4 h-4' : 'w-4 h-4';
+  // Enforce a minimum 44px tap target in both orientations (WCAG 2.5.5).
   const layoutClass = isPortrait
-    ? 'flex-col items-center gap-0.5 py-2'
-    : 'items-center justify-center gap-1 py-0.5';
+    ? 'flex-col items-center gap-0.5 py-2 min-h-[44px]'
+    : 'items-center justify-center gap-1.5 py-1.5 min-h-[44px]';
 
   return (
     <div className="flex border-t border-border bg-secondary shrink-0">
@@ -44,7 +45,9 @@ export function MobileBottomNav({ overlay, onOverlayChange, variant }: MobileBot
           <button
             key={id}
             onClick={() => onOverlayChange(active ? 'none' : id)}
-            className={`flex-1 flex ${layoutClass} text-[10px] transition-colors ${
+            aria-label={label}
+            aria-pressed={active}
+            className={`flex-1 flex ${layoutClass} text-[10px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               active ? 'text-primary bg-muted' : 'text-muted-foreground'
             }`}
           >
