@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues } from '@/lib/simulation/types';
+import { computeAPRV, computeShunt } from '@/lib/simulation/scoring';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
 
 interface ClinicalFeedbackProps {
   settings: VentSettings;
