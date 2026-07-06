@@ -63,8 +63,19 @@ export function buildVentSettings(all: AllModeParams): VentSettings {
   }
 }
 
+/** Literal union of every patient in `patients.ts`. Using a union rather than
+ * `string` means `patient.id === 'ards'` checks are validated at compile time
+ * and mis-typed IDs surface as errors instead of silently failing at runtime. */
+export type PatientId =
+  | 'healthy'
+  | 'obese'
+  | 'ards'
+  | 'bronchospasm'
+  | 'restrictive'
+  | 'spontaneous';
+
 export interface PatientPhysiology {
-  id: string;
+  id: PatientId;
   name: string;
   description: string;
   weight: number;           // kg
@@ -83,6 +94,12 @@ export interface PatientPhysiology {
   optimalPEEP: number;
   optimalFiO2: number;
   optimalPS: number;        // for PSV mode
+  /** Alveolar opening pressure (cmH₂O). Falls back to `optimalPEEP * 1.5` if unset. */
+  openingPressure?: number;
+  /** V/Q oxygenation bonus gained from prone positioning (fraction; e.g. 0.20 = +20%). */
+  proneVQBonus: number;
+  /** Intrapulmonary shunt reduction gained from prone positioning (fraction). */
+  proneShuntReduction: number;
 }
 
 export interface Vitals {
@@ -91,7 +108,7 @@ export interface Vitals {
   dbp: number;
   spo2: number;
   etco2: number;
-  rr: number;  // actual measured RR
+  // NB: respiratory rate lives on `MeasuredValues.measuredRR` — a single source of truth.
 }
 
 export interface MeasuredValues {
@@ -104,12 +121,10 @@ export interface MeasuredValues {
   dynamicCompliance: number;
 }
 
-export interface WaveformBuffers {
-  pressure: number[];
-  flow: number[];
-  volume: number[];
-  ecg: number[];
-  abp: number[];
-  spo2Pleth: number[];
-  capno: number[];
-}
+/** Named channels for the seven live waveform buffers. */
+export type WaveformChannel =
+  | 'pressure' | 'flow' | 'volume'
+  | 'ecg' | 'abp' | 'spo2Pleth' | 'capno';
+
+/** Mapped type so adding a new channel updates every consumer via one edit. */
+export type WaveformBuffers = Record<WaveformChannel, number[]>;
