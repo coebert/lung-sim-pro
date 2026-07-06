@@ -18,9 +18,9 @@ import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
 import { TutorialPanel } from '@/components/simulator/TutorialPanel';
 import { MobileBottomNav, MobileOverlayPanel, type MobileOverlay } from '@/components/simulator/MobileShell';
+import { OnboardingDialog } from '@/components/simulator/OnboardingDialog';
+import { AboutButton } from '@/components/simulator/AboutButton';
 import { VITAL_COLOR, spo2Color } from '@/lib/theme';
-
-const AUTHOR_CREDIT = 'App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM';
 
 const Index = () => {
   const layoutMode = useLayoutMode();
