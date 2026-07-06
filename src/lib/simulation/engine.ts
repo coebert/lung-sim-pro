@@ -35,7 +35,6 @@ export function createInitialVitals(patient: PatientPhysiology): Vitals {
     dbp: patient.baseDBP,
     spo2: patient.baseSpO2,
     etco2: patient.baseEtCO2,
-    rr: patient.spontaneousRate || 14,
   };
 }
 
