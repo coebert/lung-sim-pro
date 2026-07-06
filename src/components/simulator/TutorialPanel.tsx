@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { VentSettings, Vitals, MeasuredValues, PatientPhysiology } from '@/lib/simulation/types';
-import { getTutorialForPatient, TutorialScenario, TutorialStep } from '@/lib/simulation/tutorials';
+import { AllModeParams, VentSettings, Vitals, MeasuredValues, PatientPhysiology } from '@/lib/simulation/types';
+import { getTutorialForPatient } from '@/lib/simulation/tutorials';
 import { GraduationCap, ChevronRight, ChevronLeft, X, CheckCircle2, Lightbulb, RotateCcw, Trophy, Timer, Zap, Star } from 'lucide-react';
 
 /* ── Scoring helpers ─────────────────────────────────────────────── */
@@ -58,14 +58,18 @@ function Stars({ count }: { count: number }) {
 
 interface TutorialPanelProps {
   patient: PatientPhysiology;
+  /** Narrow, mode-scoped settings (used elsewhere; unused here directly). */
   settings: VentSettings;
+  /** Full ventilator parameter superset — tutorial checks read across modes. */
+  allSettings: AllModeParams;
   vitals: Vitals;
   measured: MeasuredValues;
   onSelectPatient?: (patientId: string) => void;
   onClose: () => void;
 }
 
-export function TutorialPanel({ patient, settings, vitals, measured, onSelectPatient, onClose }: TutorialPanelProps) {
+export function TutorialPanel({ patient, settings, allSettings, vitals, measured, onSelectPatient, onClose }: TutorialPanelProps) {
+  void settings; void onSelectPatient;
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [showHint, setShowHint] = useState(false);
@@ -75,7 +79,7 @@ export function TutorialPanel({ patient, settings, vitals, measured, onSelectPat
   const [stepScores, setStepScores] = useState<Map<number, StepScore>>(new Map());
   const stepStartTime = useRef(Date.now());
   const adjustmentCount = useRef(0);
-  const prevSettings = useRef(settings);
+  const prevSerialized = useRef(JSON.stringify(allSettings));
 
   const tutorial = getTutorialForPatient(patient.id);
 
@@ -88,23 +92,17 @@ export function TutorialPanel({ patient, settings, vitals, measured, onSelectPat
     setStepScores(new Map());
     stepStartTime.current = Date.now();
     adjustmentCount.current = 0;
-    prevSettings.current = settings;
+    prevSerialized.current = JSON.stringify(allSettings);
   }, [patient.id]);
 
-  // Track setting changes as adjustments
+  // Track setting changes as adjustments — any change to any parameter counts once.
   useEffect(() => {
-    const prev = prevSettings.current;
-    let changes = 0;
-    if (prev.tidalVolume !== settings.tidalVolume) changes++;
-    if (prev.respiratoryRate !== settings.respiratoryRate) changes++;
-    if (prev.peep !== settings.peep) changes++;
-    if (prev.fio2 !== settings.fio2) changes++;
-    if (prev.ieRatio !== settings.ieRatio) changes++;
-    if (prev.mode !== settings.mode) changes++;
-    if (prev.pressureSupport !== settings.pressureSupport) changes++;
-    adjustmentCount.current += changes;
-    prevSettings.current = settings;
-  }, [settings]);
+    const next = JSON.stringify(allSettings);
+    if (next !== prevSerialized.current) {
+      adjustmentCount.current += 1;
+      prevSerialized.current = next;
+    }
+  }, [allSettings]);
 
   // Reset timer when moving to a new step
   useEffect(() => {
