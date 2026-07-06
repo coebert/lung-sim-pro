@@ -27,11 +27,12 @@ export type PSVSettings  = Extract<VentSettings, { mode: 'PSV'  }>;
 export type APRVSettings = Extract<VentSettings, { mode: 'APRV' }>;
 
 /**
- * Superset of every field across every mode — the shape the simulator store
- * persists internally so users don't lose per-mode values when they switch
- * modes and back. `VentSettings` is derived from this + the active mode.
+ * Superset of every parameter across every mode. The store persists this
+ * internally so users don't lose per-mode values when switching modes.
+ * `VentSettings` is derived from this + the active `mode`.
  */
 export interface AllModeParams extends CommonSettings {
+  mode: VentMode;
   tidalVolume: number;
   flowRate: number;
   pInsp: number;
@@ -41,6 +42,25 @@ export interface AllModeParams extends CommonSettings {
   pLow: number;
   tHigh: number;
   tLow: number;
+}
+
+/** Build the mode-narrowed `VentSettings` from the persistent superset. */
+export function buildVentSettings(all: AllModeParams): VentSettings {
+  const common: CommonSettings = {
+    peep: all.peep,
+    fio2: all.fio2,
+    respiratoryRate: all.respiratoryRate,
+    ieRatio: all.ieRatio,
+    inspiratoryTime: all.inspiratoryTime,
+  };
+  switch (all.mode) {
+    case 'VCV':  return { ...common, mode: 'VCV',  tidalVolume: all.tidalVolume, flowRate: all.flowRate };
+    case 'PCV':  return { ...common, mode: 'PCV',  pInsp: all.pInsp };
+    case 'PRVC': return { ...common, mode: 'PRVC', tidalVolume: all.tidalVolume, pMax: all.pMax };
+    case 'SIMV': return { ...common, mode: 'SIMV', tidalVolume: all.tidalVolume, pressureSupport: all.pressureSupport };
+    case 'PSV':  return { ...common, mode: 'PSV',  pressureSupport: all.pressureSupport };
+    case 'APRV': return { ...common, mode: 'APRV', pHigh: all.pHigh, pLow: all.pLow, tHigh: all.tHigh, tLow: all.tLow };
+  }
 }
 
 /** Build the mode-narrowed `VentSettings` from the persistent superset. */
