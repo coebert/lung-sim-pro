@@ -67,12 +67,12 @@ export function WaveformCanvas({
     const w = rect.width;
 
     // Clear
-    ctx.fillStyle = 'hsl(220, 30%, 3%)';
+    ctx.fillStyle = MONITOR_COLOR.bg;
     ctx.fillRect(0, 0, w, h);
 
     // Grid lines
     if (showGrid) {
-      ctx.strokeStyle = 'hsl(216, 20%, 10%)';
+      ctx.strokeStyle = MONITOR_COLOR.grid;
       ctx.lineWidth = 0.5;
       const gridLines = 4;
       for (let i = 1; i < gridLines; i++) {
@@ -119,7 +119,7 @@ export function WaveformCanvas({
     ctx.fillText(`${label} (${unit})`, 4, fontSize + 1);
 
     // Scale markers
-    ctx.fillStyle = 'hsl(215, 15%, 40%)';
+    ctx.fillStyle = MONITOR_COLOR.scaleText;
     const scaleFontSize = Math.max(7, Math.min(9, h * 0.12));
     ctx.font = `${scaleFontSize}px monospace`;
     ctx.fillText(String(Math.round(maxValue)), w - 30, scaleFontSize + 1);
