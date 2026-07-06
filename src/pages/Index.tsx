@@ -108,6 +108,7 @@ const Index = () => {
             onSelectPatient={simulationStore.setPatient}
             compact={!isDesktop}
           />
+          <AboutButton />
         </div>
       </div>
       {isDesktop && (
