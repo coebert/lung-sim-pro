@@ -1,15 +1,17 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { VentilatorPanel } from '@/components/simulator/VentilatorPanel';
 import { MonitorPanel } from '@/components/simulator/MonitorPanel';
 import { VentilatorControls } from '@/components/simulator/VentilatorControls';
 import { PatientSelector } from '@/components/simulator/PatientSelector';
-import { VentSettings, PatientPhysiology, Vitals, MeasuredValues, WaveformBuffers } from '@/lib/simulation/types';
-import { patients, getDefaultSettings } from '@/lib/simulation/patients';
-import { createInitialBuffers, createInitialVitals, simulationTick } from '@/lib/simulation/engine';
+import {
+  simulationStore,
+  useWaveforms,
+  useVitalsSnapshot,
+  useControls,
+} from '@/lib/simulation/simulationStore';
 import { Settings, Users, Pause, Play, Stethoscope, GraduationCap, ChevronLeft, RotateCcw } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
-import { evaluateAlarms, DEFAULT_ALARM_LIMITS, Alarm } from '@/lib/simulation/alarms';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
 import { TutorialPanel } from '@/components/simulator/TutorialPanel';
@@ -22,78 +24,13 @@ const Index = () => {
   const isLandscape = layoutMode === 'mobile-landscape';
   const isPortrait = layoutMode === 'mobile-portrait';
 
-  const [patient, setPatient] = useState<PatientPhysiology>(patients[0]);
-  const [settings, setSettings] = useState<VentSettings>(getDefaultSettings(patients[0]));
-  const [vitals, setVitals] = useState<Vitals>(createInitialVitals(patients[0]));
-  const [measured, setMeasured] = useState<MeasuredValues>({
-    peakPressure: 0, plateauPressure: 0, meanPressure: 0,
-    measuredTV: 0, minuteVentilation: 0, measuredRR: 14, dynamicCompliance: 0,
-  });
-  const [buffers, setBuffers] = useState<WaveformBuffers>(createInitialBuffers());
+  const { settings, patient, prone, frozen } = useControls();
+  const { vitals, measured, alarms } = useVitalsSnapshot();
+  const buffers = useWaveforms();
+
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
-  const [alarms, setAlarms] = useState<Alarm[]>([]);
-  const [frozen, setFrozen] = useState(false);
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
-  const [prone, setProne] = useState(false);
-  const frozenRef = useRef(false);
-  const proneRef = useRef(false);
-
-  const timeRef = useRef(0);
-  const settingsRef = useRef(settings);
-  const patientRef = useRef(patient);
-  const vitalsRef = useRef(vitals);
-  const buffersRef = useRef(buffers);
-
-  settingsRef.current = settings;
-  patientRef.current = patient;
-
-  const handlePatientChange = useCallback((newPatient: PatientPhysiology) => {
-    setPatient(newPatient);
-    const newVitals = createInitialVitals(newPatient);
-    setVitals(newVitals);
-    vitalsRef.current = newVitals;
-    const newBuffers = createInitialBuffers();
-    setBuffers(newBuffers);
-    buffersRef.current = newBuffers;
-    timeRef.current = 0;
-  }, []);
-
-  const toggleFreeze = useCallback(() => {
-    setFrozen(f => {
-      frozenRef.current = !f;
-      return !f;
-    });
-  }, []);
-
-  const toggleProne = useCallback(() => {
-    setProne(p => {
-      proneRef.current = !p;
-      return !p;
-    });
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (frozenRef.current) return;
-      timeRef.current += 0.02;
-      const result = simulationTick(
-        timeRef.current,
-        settingsRef.current,
-        patientRef.current,
-        vitalsRef.current,
-        buffersRef.current,
-        proneRef.current
-      );
-      vitalsRef.current = result.vitals;
-      buffersRef.current = result.buffers;
-      setVitals(result.vitals);
-      setMeasured(result.measured);
-      setBuffers(result.buffers);
-      setAlarms(evaluateAlarms(result.measured, result.vitals, DEFAULT_ALARM_LIMITS));
-    }, 20);
-    return () => clearInterval(interval);
-  }, []);
 
   // Compact vitals bar for mobile header
   const VitalsBar = () => (
@@ -116,7 +53,7 @@ const Index = () => {
         <div className="flex items-center justify-between px-3 py-1.5 bg-secondary border-b border-border gap-2 shrink-0">
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={toggleFreeze}
+              onClick={simulationStore.toggleFrozen}
               className={`p-1 rounded transition-colors ${frozen ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
               title={frozen ? 'Resume waveforms' : 'Freeze waveforms'}
             >
@@ -130,7 +67,7 @@ const Index = () => {
               <GraduationCap className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={toggleProne}
+              onClick={simulationStore.toggleProne}
               className={`p-1 rounded transition-colors flex items-center gap-1 ${prone ? 'bg-blue-600 text-white' : 'hover:bg-muted text-muted-foreground'}`}
               title={prone ? 'Return to supine position' : 'Prone positioning'}
             >
@@ -163,7 +100,7 @@ const Index = () => {
                 <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
               </div>
               <div className="border-t border-border p-2">
-                <VentilatorControls settings={settings} onSettingsChange={setSettings} />
+                <VentilatorControls settings={settings} onSettingsChange={simulationStore.setSettings} />
               </div>
             </div>
             <div className="flex-[2] flex flex-col min-w-0 border-l border-border">
@@ -202,7 +139,7 @@ const Index = () => {
             )}
           </div>
           <div className="border-t border-border p-2 shrink-0">
-            <PatientSelector selectedPatient={patient} onSelectPatient={handlePatientChange} />
+            <PatientSelector selectedPatient={patient} onSelectPatient={simulationStore.setPatient} />
             <div className="text-center mt-1">
               <span className="text-[8px] text-muted-foreground/50 tracking-wide">
                 App created by Dr Rob Coe BA MA OXON MBBS FRCA FFICM
@@ -216,17 +153,14 @@ const Index = () => {
       {isLandscape && (
         <div className="flex-1 flex flex-col min-h-0 relative">
           <div className="flex-1 min-h-0 flex flex-row overflow-hidden">
-            {/* Left: Ventilator */}
             <div className="flex-1 min-h-0 min-w-0 p-0.5 border-r border-border">
               <VentilatorPanel buffers={buffers} measured={measured} settings={settings} compact />
             </div>
-            {/* Right: Monitor */}
             <div className="flex-1 min-h-0 min-w-0 p-0.5">
               <MonitorPanel buffers={buffers} vitals={vitals} compact />
             </div>
           </div>
 
-          {/* Slim bottom bar */}
           <div className="flex border-t border-border bg-secondary shrink-0">
             <button
               onClick={() => setMobileOverlay(mobileOverlay === 'controls' ? 'none' : 'controls')}
@@ -262,14 +196,13 @@ const Index = () => {
             </button>
           </div>
 
-          {/* Slide-up overlay */}
           {mobileOverlay !== 'none' && (
             <div className="absolute bottom-[24px] left-0 right-0 bg-background border-t border-border max-h-[55vh] overflow-y-auto z-50 p-2 shadow-lg">
               {mobileOverlay === 'controls' && (
-                <VentilatorControls settings={settings} onSettingsChange={setSettings} />
+                <VentilatorControls settings={settings} onSettingsChange={simulationStore.setSettings} />
               )}
               {mobileOverlay === 'patients' && (
-                <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
+                <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { simulationStore.setPatient(p); setMobileOverlay('none'); }} />
               )}
               {mobileOverlay === 'feedback' && (
                 <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
@@ -337,14 +270,13 @@ const Index = () => {
             </button>
           </div>
 
-          {/* Slide-up overlay */}
           {mobileOverlay !== 'none' && (
             <div className="absolute bottom-[44px] left-0 right-0 bg-background border-t border-border max-h-[60vh] overflow-y-auto z-50 p-2 shadow-lg">
               {mobileOverlay === 'controls' && (
-                <VentilatorControls settings={settings} onSettingsChange={setSettings} />
+                <VentilatorControls settings={settings} onSettingsChange={simulationStore.setSettings} />
               )}
               {mobileOverlay === 'patients' && (
-                <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { handlePatientChange(p); setMobileOverlay('none'); }} />
+                <PatientSelector selectedPatient={patient} onSelectPatient={(p) => { simulationStore.setPatient(p); setMobileOverlay('none'); }} />
               )}
               {mobileOverlay === 'feedback' && (
                 <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
