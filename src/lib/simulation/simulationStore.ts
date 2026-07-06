@@ -288,6 +288,7 @@ class SimulationStore {
   private emitControls() {
     this.controlSnapshot = {
       settings: this.settings,
+      allSettings: this.allSettings,
       patient: this.patient,
       prone: this.prone,
       frozen: this.frozen,
@@ -299,7 +300,7 @@ class SimulationStore {
 // ─── Singleton + hooks ───────────────────────────────────────────────
 
 const defaultPatient = patients[0];
-export const simulationStore = new SimulationStore(defaultPatient, getDefaultSettings(defaultPatient));
+export const simulationStore = new SimulationStore(defaultPatient);
 
 export function useWaveforms(): WaveformBuffers {
   return useSyncExternalStore(
