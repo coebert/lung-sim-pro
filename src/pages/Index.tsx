@@ -24,7 +24,7 @@ const Index = () => {
   const isLandscape = layoutMode === 'mobile-landscape';
   const isPortrait = layoutMode === 'mobile-portrait';
 
-  const { settings, patient, prone, frozen } = useControls();
+  const { settings, allSettings, patient, prone, frozen } = useControls();
   const { vitals, measured, alarms } = useVitalsSnapshot();
   const buffers = useWaveforms();
 
@@ -111,7 +111,7 @@ const Index = () => {
             {(!lungCollapsed || tutorialActive) && (
               <div className={`${tutorialActive ? 'w-[320px]' : 'w-[220px]'} shrink-0 border-l border-border p-1 flex flex-col gap-1 transition-all`}>
                 {tutorialActive ? (
-                  <TutorialPanel
+                  <TutorialPanel allSettings={allSettings}
                     patient={patient}
                     settings={settings}
                     vitals={vitals}
@@ -208,7 +208,7 @@ const Index = () => {
                 <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
               )}
               {mobileOverlay === 'tutorial' && (
-                <TutorialPanel patient={patient} settings={settings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
+                <TutorialPanel patient={patient} settings={settings} allSettings={allSettings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
               )}
             </div>
           )}
@@ -282,7 +282,7 @@ const Index = () => {
                 <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
               )}
               {mobileOverlay === 'tutorial' && (
-                <TutorialPanel patient={patient} settings={settings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
+                <TutorialPanel patient={patient} settings={settings} allSettings={allSettings} vitals={vitals} measured={measured} onClose={() => setMobileOverlay('none')} />
               )}
             </div>
           )}
