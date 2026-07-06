@@ -1,4 +1,4 @@
-import { VentSettings, PatientPhysiology } from './types';
+import { VentSettings, PatientPhysiology, CommonSettings, APRVSettings } from './types';
 
 /**
  * Shared physiology math used by both the engine and the UI feedback panels.
@@ -21,7 +21,7 @@ export interface IEMetrics {
   ieActual: number;
 }
 
-export function computeIE(s: VentSettings): IEMetrics {
+export function computeIE(s: CommonSettings): IEMetrics {
   const cycleTime = 60 / s.respiratoryRate;
   const iTime = s.inspiratoryTime > 0
     ? s.inspiratoryTime
@@ -40,7 +40,7 @@ export interface ShuntMetrics {
   ie: IEMetrics;
 }
 
-export function computeShunt(s: VentSettings, p: PatientPhysiology): ShuntMetrics {
+export function computeShunt(s: CommonSettings, p: PatientPhysiology): ShuntMetrics {
   const ie = computeIE(s);
   const peepExcess = Math.max(0, s.peep - p.optimalPEEP * 1.3);
   const ieExcess = Math.max(0, ie.ieActual - 0.8);
@@ -65,7 +65,7 @@ export interface APRVMetrics {
   recruitmentScore: number;
 }
 
-export function computeAPRV(s: VentSettings, p: PatientPhysiology): APRVMetrics {
+export function computeAPRV(s: APRVSettings, p: PatientPhysiology): APRVMetrics {
   const { pHigh, pLow, tHigh, tLow } = s;
   const openingPressure = p.optimalPEEP * 1.5;
   const drivingPressure = pHigh - pLow;

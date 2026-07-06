@@ -1,4 +1,4 @@
-import { PatientPhysiology } from './types';
+import { AllModeParams, PatientPhysiology, VentSettings, buildVentSettings } from './types';
 
 export const patients: PatientPhysiology[] = [
   {
@@ -129,22 +129,28 @@ export const patients: PatientPhysiology[] = [
   },
 ];
 
-export function getDefaultSettings(patient: PatientPhysiology) {
+/** Full superset of parameters, seeded with sane defaults for every mode. */
+export function getDefaultAllParams(_patient: PatientPhysiology): AllModeParams {
   return {
-    mode: 'VCV' as const,
-    tidalVolume: 500,
-    respiratoryRate: 14,
+    mode: 'VCV',
     peep: 5,
     fio2: 0.4,
+    respiratoryRate: 14,
     ieRatio: 2,
-    pressureSupport: 10,
+    inspiratoryTime: 1.0,
+    tidalVolume: 500,
+    flowRate: 40,
     pInsp: 15,
+    pMax: 35,
+    pressureSupport: 10,
     pHigh: 25,
     pLow: 0,
     tHigh: 4,
     tLow: 0.5,
-    flowRate: 40,
-    pMax: 35,
-    inspiratoryTime: 1.0,
   };
+}
+
+/** Default VentSettings (VCV mode) — kept for the initial store construction. */
+export function getDefaultSettings(patient: PatientPhysiology): VentSettings {
+  return buildVentSettings(getDefaultAllParams(patient));
 }

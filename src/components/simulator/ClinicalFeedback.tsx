@@ -63,14 +63,16 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       list.push({ text: `Hypocapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Risk of cerebral vasoconstriction. Reduce minute ventilation.`, severity: 'warn' });
     }
 
-    // ── Tidal volume ──
-    const tvPerKg = settings.tidalVolume / patient.weight;
-    if (patient.id === 'ards' && tvPerKg > 7) {
-      list.push({ text: `Tidal volume is ${tvPerKg.toFixed(1)} mL/kg — exceeds lung-protective threshold (6 mL/kg) for ARDS. Risk of VILI.`, severity: 'danger' });
-    } else if (tvPerKg > 10) {
-      list.push({ text: `Tidal volume is high (${tvPerKg.toFixed(1)} mL/kg). Risk of volutrauma.`, severity: 'warn' });
-    } else if (tvPerKg >= 5 && tvPerKg <= 8) {
-      list.push({ text: `Tidal volume (${tvPerKg.toFixed(1)} mL/kg) is within protective range.`, severity: 'good' });
+    // ── Tidal volume ── (only meaningful for volume-configured modes)
+    if ('tidalVolume' in settings) {
+      const tvPerKg = settings.tidalVolume / patient.weight;
+      if (patient.id === 'ards' && tvPerKg > 7) {
+        list.push({ text: `Tidal volume is ${tvPerKg.toFixed(1)} mL/kg — exceeds lung-protective threshold (6 mL/kg) for ARDS. Risk of VILI.`, severity: 'danger' });
+      } else if (tvPerKg > 10) {
+        list.push({ text: `Tidal volume is high (${tvPerKg.toFixed(1)} mL/kg). Risk of volutrauma.`, severity: 'warn' });
+      } else if (tvPerKg >= 5 && tvPerKg <= 8) {
+        list.push({ text: `Tidal volume (${tvPerKg.toFixed(1)} mL/kg) is within protective range.`, severity: 'good' });
+      }
     }
 
     // ── Pressures ──
@@ -119,7 +121,8 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     }
 
     // ── Patient-specific guidance ──
-    if (patient.id === 'ards' && settings.peep >= patient.optimalPEEP * 0.8 && tvPerKg <= 7) {
+    if (patient.id === 'ards' && settings.peep >= patient.optimalPEEP * 0.8
+        && 'tidalVolume' in settings && settings.tidalVolume / patient.weight <= 7) {
       list.push({ text: `Lung-protective strategy in place: low VT + adequate PEEP for ARDS.`, severity: 'good' });
     }
     if (patient.id === 'bronchospasm' && settings.respiratoryRate <= 12 && eTime > 3) {

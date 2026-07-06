@@ -1,10 +1,12 @@
 import { useSyncExternalStore } from 'react';
-import type {
+import {
   VentSettings,
   PatientPhysiology,
   Vitals,
   MeasuredValues,
   WaveformBuffers,
+  AllModeParams,
+  buildVentSettings,
 } from './types';
 import {
   BUFFER_SIZE,
@@ -16,7 +18,7 @@ import {
   updateVitals,
 } from './engine';
 import { evaluateAlarms, DEFAULT_ALARM_LIMITS, type Alarm } from './alarms';
-import { patients, getDefaultSettings } from './patients';
+import { patients, getDefaultAllParams } from './patients';
 
 /**
  * Simulation is driven outside React so the 50Hz tick loop doesn't cause
@@ -69,6 +71,8 @@ export interface VitalsSnapshot {
 
 export interface ControlSnapshot {
   settings: VentSettings;
+  /** Full superset of ventilator parameters (persists per-mode values across mode switches). */
+  allSettings: AllModeParams;
   patient: PatientPhysiology;
   prone: boolean;
   frozen: boolean;
@@ -82,7 +86,8 @@ const TICK_INTERVAL_MS = 20;             // 50 Hz — matches TICK_DT
 class SimulationStore {
   private time = 0;
 
-  // Controls (mutated via setters from React)
+  // Controls
+  private allSettings: AllModeParams;
   private settings: VentSettings;
   private patient: PatientPhysiology;
   private prone = false;
@@ -119,15 +124,19 @@ class SimulationStore {
   private msSinceVitalsNotify = 0;
   private refCount = 0;
 
-  constructor(patient: PatientPhysiology, settings: VentSettings) {
+  constructor(patient: PatientPhysiology) {
     this.patient = patient;
-    this.settings = settings;
+    this.allSettings = getDefaultAllParams(patient);
+    this.settings = buildVentSettings(this.allSettings);
     this.vitals = createInitialVitals(patient);
     this.waveformSnapshot = this.buildWaveformSnapshot();
     this.vitalsSnapshot = { vitals: this.vitals, measured: this.measured, alarms: this.alarms };
     this.controlSnapshot = {
-      settings: this.settings, patient: this.patient,
-      prone: this.prone, frozen: this.frozen,
+      settings: this.settings,
+      allSettings: this.allSettings,
+      patient: this.patient,
+      prone: this.prone,
+      frozen: this.frozen,
     };
   }
 
@@ -146,8 +155,11 @@ class SimulationStore {
 
   // ── Control setters ────────────────────────────────────────────────
 
-  setSettings = (updater: VentSettings | ((prev: VentSettings) => VentSettings)) => {
-    this.settings = typeof updater === 'function' ? updater(this.settings) : updater;
+  /** Patch any subset of the ventilator parameters (including `mode`). The store
+   * retains all parameters across mode switches. */
+  updateSettings = (patch: Partial<AllModeParams>) => {
+    this.allSettings = { ...this.allSettings, ...patch };
+    this.settings = buildVentSettings(this.allSettings);
     this.emitControls();
   };
 
@@ -276,6 +288,7 @@ class SimulationStore {
   private emitControls() {
     this.controlSnapshot = {
       settings: this.settings,
+      allSettings: this.allSettings,
       patient: this.patient,
       prone: this.prone,
       frozen: this.frozen,
@@ -287,7 +300,7 @@ class SimulationStore {
 // ─── Singleton + hooks ───────────────────────────────────────────────
 
 const defaultPatient = patients[0];
-export const simulationStore = new SimulationStore(defaultPatient, getDefaultSettings(defaultPatient));
+export const simulationStore = new SimulationStore(defaultPatient);
 
 export function useWaveforms(): WaveformBuffers {
   return useSyncExternalStore(

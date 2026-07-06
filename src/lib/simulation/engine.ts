@@ -1,4 +1,4 @@
-import { PatientPhysiology, VentSettings, Vitals, MeasuredValues, WaveformBuffers } from './types';
+import { PatientPhysiology, VentSettings, Vitals, MeasuredValues, WaveformBuffers, APRVSettings } from './types';
 import {
   generateVentWaveformPoint,
   generateECG,
@@ -179,7 +179,7 @@ export function updateVitals(
 }
 
 function updateVitalsAPRV(
-  settings: VentSettings,
+  settings: APRVSettings,
   patient: PatientPhysiology,
   vitals: Vitals,
   measured: MeasuredValues,
