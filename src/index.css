@@ -46,6 +46,18 @@
     /* Monitor background */
     --monitor-bg: 220 30% 3%;
     --monitor-grid: 216 20% 10%;
+    --grid-strong: 216 20% 14%;
+    --grid-weak: 216 20% 9%;
+
+    /* Semantic status tokens (IEC 60601-1-8 aligned) */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 100% 55%;
+    --warning-foreground: 220 30% 8%;
+    --danger: 0 85% 55%;
+    --danger-foreground: 0 0% 100%;
+    --info: 200 90% 55%;
+    --info-foreground: 0 0% 100%;
 
     --sidebar-background: 216 25% 6%;
     --sidebar-foreground: 210 20% 90%;
@@ -65,13 +77,18 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 }
 
 @layer utilities {
-  .monitor-text {
-    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  .monitor-text,
+  .font-mono {
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
     font-variant-numeric: tabular-nums;
+  }
+  .font-sans {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
