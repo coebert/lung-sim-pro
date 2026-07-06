@@ -90,6 +90,7 @@
   }
   .font-sans {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
 }
 
 /* Honour user preference — cut animations, transitions, and pulses. */
@@ -102,5 +103,4 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-}
 }
