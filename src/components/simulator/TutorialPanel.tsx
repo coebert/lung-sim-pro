@@ -118,7 +118,7 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
     const step = tutorial.steps[currentStep];
     if (!step || completedSteps.has(currentStep)) return;
 
-    if (step.check(settings, vitals, measured)) {
+    if (step.check(allSettings, vitals, measured)) {
       const elapsed = Math.round((Date.now() - stepStartTime.current) / 1000);
       const score = gradeStep(elapsed, adjustmentCount.current);
 
@@ -134,7 +134,7 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
         return next;
       });
     }
-  }, [settings, vitals, measured, currentStep, tutorial, completedSteps]);
+  }, [allSettings, vitals, measured, currentStep, tutorial, completedSteps]);
 
   // Check if all steps complete
   useEffect(() => {
