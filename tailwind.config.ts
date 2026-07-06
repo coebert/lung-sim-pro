@@ -69,7 +69,29 @@ export default {
         monitor: {
           bg: "hsl(var(--monitor-bg))",
           grid: "hsl(var(--monitor-grid))",
+          "grid-strong": "hsl(var(--grid-strong))",
+          "grid-weak": "hsl(var(--grid-weak))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        danger: {
+          DEFAULT: "hsl(var(--danger))",
+          foreground: "hsl(var(--danger-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+        },
+      },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["JetBrains Mono", "SF Mono", "Fira Code", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",
