@@ -1,21 +1,18 @@
 import { useState } from 'react';
-import { VentSettings, VentMode } from '@/lib/simulation/types';
+import { VentSettings, VentMode, AllModeParams } from '@/lib/simulation/types';
 
 type TimingMode = 'ie' | 'ti';
 
 interface VentilatorControlsProps {
   settings: VentSettings;
-  onSettingsChange: (settings: VentSettings) => void;
+  /** Patch the persistent all-mode parameters (may include `mode` to switch mode). */
+  onUpdate: (patch: Partial<AllModeParams>) => void;
 }
 
 const MODES: VentMode[] = ['VCV', 'PCV', 'PRVC', 'SIMV', 'PSV', 'APRV'];
 
-export function VentilatorControls({ settings, onSettingsChange }: VentilatorControlsProps) {
+export function VentilatorControls({ settings, onUpdate }: VentilatorControlsProps) {
   const [timingMode, setTimingMode] = useState<TimingMode>('ie');
-
-  const update = (key: keyof VentSettings, value: number | string) => {
-    onSettingsChange({ ...settings, [key]: value });
-  };
 
   // Compute I:E and Te from Ti and RR
   const cycleTime = 60 / settings.respiratoryRate;
@@ -34,7 +31,7 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
         {MODES.map((mode) => (
           <button
             key={mode}
-            onClick={() => update('mode', mode)}
+            onClick={() => onUpdate({ mode })}
             className={`flex-1 py-1.5 px-2 text-xs font-bold rounded transition-colors monitor-text
               ${settings.mode === mode
                 ? 'bg-primary text-primary-foreground'
@@ -48,26 +45,24 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
 
       {/* Settings grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {/* Common settings */}
-        {(settings.mode !== 'APRV') && (
+        {settings.mode !== 'APRV' && (
           <SettingControl
             label="PEEP"
             value={settings.peep}
             unit="cmH₂O"
             min={0} max={25} step={1}
-            onChange={(v) => update('peep', v)}
+            onChange={(v) => onUpdate({ peep: v })}
           />
         )}
-        
+
         <SettingControl
           label="FiO₂"
           value={Math.round(settings.fio2 * 100)}
           unit="%"
           min={21} max={100} step={1}
-          onChange={(v) => update('fio2', v / 100)}
+          onChange={(v) => onUpdate({ fio2: v / 100 })}
         />
 
-        {/* VCV specific */}
         {(settings.mode === 'VCV' || settings.mode === 'SIMV') && (
           <>
             <SettingControl
@@ -75,20 +70,21 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               value={settings.tidalVolume}
               unit="mL"
               min={200} max={800} step={10}
-              onChange={(v) => update('tidalVolume', v)}
+              onChange={(v) => onUpdate({ tidalVolume: v })}
             />
             <SettingControl
               label="RR"
               value={settings.respiratoryRate}
               unit="/min"
               min={4} max={40} step={1}
-              onChange={(v) => update('respiratoryRate', v)}
+              onChange={(v) => onUpdate({ respiratoryRate: v })}
             />
             <TimingToggleAndControl
               timingMode={timingMode}
               onTimingModeChange={setTimingMode}
-              settings={settings}
-              onUpdate={update}
+              ieRatio={settings.ieRatio}
+              inspiratoryTime={settings.inspiratoryTime}
+              onUpdate={onUpdate}
               computedIE={computedIE}
               computedTi={computedTi}
               te={te}
@@ -96,7 +92,6 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
           </>
         )}
 
-        {/* PCV specific */}
         {settings.mode === 'PCV' && (
           <>
             <SettingControl
@@ -104,20 +99,21 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               value={settings.pInsp}
               unit="cmH₂O"
               min={5} max={40} step={1}
-              onChange={(v) => update('pInsp', v)}
+              onChange={(v) => onUpdate({ pInsp: v })}
             />
             <SettingControl
               label="RR"
               value={settings.respiratoryRate}
               unit="/min"
               min={4} max={40} step={1}
-              onChange={(v) => update('respiratoryRate', v)}
+              onChange={(v) => onUpdate({ respiratoryRate: v })}
             />
             <TimingToggleAndControl
               timingMode={timingMode}
               onTimingModeChange={setTimingMode}
-              settings={settings}
-              onUpdate={update}
+              ieRatio={settings.ieRatio}
+              inspiratoryTime={settings.inspiratoryTime}
+              onUpdate={onUpdate}
               computedIE={computedIE}
               computedTi={computedTi}
               te={te}
@@ -125,7 +121,6 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
           </>
         )}
 
-        {/* PRVC specific */}
         {settings.mode === 'PRVC' && (
           <>
             <SettingControl
@@ -133,27 +128,28 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               value={settings.tidalVolume}
               unit="mL"
               min={200} max={800} step={10}
-              onChange={(v) => update('tidalVolume', v)}
+              onChange={(v) => onUpdate({ tidalVolume: v })}
             />
             <SettingControl
               label="RR"
               value={settings.respiratoryRate}
               unit="/min"
               min={4} max={40} step={1}
-              onChange={(v) => update('respiratoryRate', v)}
+              onChange={(v) => onUpdate({ respiratoryRate: v })}
             />
             <SettingControl
               label="Pmax"
               value={settings.pMax}
               unit="cmH₂O"
               min={15} max={50} step={1}
-              onChange={(v) => update('pMax', v)}
+              onChange={(v) => onUpdate({ pMax: v })}
             />
             <TimingToggleAndControl
               timingMode={timingMode}
               onTimingModeChange={setTimingMode}
-              settings={settings}
-              onUpdate={update}
+              ieRatio={settings.ieRatio}
+              inspiratoryTime={settings.inspiratoryTime}
+              onUpdate={onUpdate}
               computedIE={computedIE}
               computedTi={computedTi}
               te={te}
@@ -161,29 +157,26 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
           </>
         )}
 
-        {/* SIMV additional */}
         {settings.mode === 'SIMV' && (
           <SettingControl
             label="PS"
             value={settings.pressureSupport}
             unit="cmH₂O"
             min={0} max={30} step={1}
-            onChange={(v) => update('pressureSupport', v)}
+            onChange={(v) => onUpdate({ pressureSupport: v })}
           />
         )}
 
-        {/* PSV specific */}
         {settings.mode === 'PSV' && (
           <SettingControl
             label="PS"
             value={settings.pressureSupport}
             unit="cmH₂O"
             min={0} max={30} step={1}
-            onChange={(v) => update('pressureSupport', v)}
+            onChange={(v) => onUpdate({ pressureSupport: v })}
           />
         )}
 
-        {/* APRV specific */}
         {settings.mode === 'APRV' && (
           <>
             <SettingControl
@@ -191,28 +184,28 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
               value={settings.pHigh}
               unit="cmH₂O"
               min={10} max={40} step={1}
-              onChange={(v) => update('pHigh', v)}
+              onChange={(v) => onUpdate({ pHigh: v })}
             />
             <SettingControl
               label="P Low"
               value={settings.pLow}
               unit="cmH₂O"
               min={0} max={10} step={1}
-              onChange={(v) => update('pLow', v)}
+              onChange={(v) => onUpdate({ pLow: v })}
             />
             <SettingControl
               label="T High"
               value={settings.tHigh}
               unit="sec"
               min={1} max={8} step={0.5}
-              onChange={(v) => update('tHigh', v)}
+              onChange={(v) => onUpdate({ tHigh: v })}
             />
             <SettingControl
               label="T Low"
               value={settings.tLow}
               unit="sec"
               min={0.1} max={2} step={0.1}
-              onChange={(v) => update('tLow', v)}
+              onChange={(v) => onUpdate({ tLow: v })}
             />
           </>
         )}
@@ -226,7 +219,8 @@ export function VentilatorControls({ settings, onSettingsChange }: VentilatorCon
 function TimingToggleAndControl({
   timingMode,
   onTimingModeChange,
-  settings,
+  ieRatio,
+  inspiratoryTime,
   onUpdate,
   computedIE,
   computedTi,
@@ -234,8 +228,9 @@ function TimingToggleAndControl({
 }: {
   timingMode: TimingMode;
   onTimingModeChange: (m: TimingMode) => void;
-  settings: VentSettings;
-  onUpdate: (key: keyof VentSettings, value: number) => void;
+  ieRatio: number;
+  inspiratoryTime: number;
+  onUpdate: (patch: Partial<AllModeParams>) => void;
   computedIE: string;
   computedTi: number;
   te: number;
@@ -244,7 +239,6 @@ function TimingToggleAndControl({
 
   return (
     <>
-      {/* Toggle button spanning one grid cell */}
       <div className="bg-secondary rounded p-2 flex flex-col items-center gap-1">
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Timing</span>
         <div className="flex rounded overflow-hidden border border-border">
@@ -271,26 +265,24 @@ function TimingToggleAndControl({
         </div>
       </div>
 
-      {/* Active control */}
       {timingMode === 'ie' ? (
         <SettingControl
           label="I:E"
-          value={settings.ieRatio}
-          unit={`1:${settings.ieRatio}`}
+          value={ieRatio}
+          unit={`1:${ieRatio}`}
           min={1} max={4} step={0.5}
-          onChange={(v) => onUpdate('ieRatio', v)}
+          onChange={(v) => onUpdate({ ieRatio: v })}
         />
       ) : (
         <SettingControl
           label="Ti"
-          value={settings.inspiratoryTime}
+          value={inspiratoryTime}
           unit="sec"
           min={0.3} max={3.0} step={0.1}
-          onChange={(v) => onUpdate('inspiratoryTime', v)}
+          onChange={(v) => onUpdate({ inspiratoryTime: v })}
         />
       )}
 
-      {/* Computed readout */}
       <div className="bg-secondary rounded p-2 flex flex-col items-center justify-center gap-0.5">
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
           {timingMode === 'ie' ? 'Computed Ti' : 'Computed I:E'}
