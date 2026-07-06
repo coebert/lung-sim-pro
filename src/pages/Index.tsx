@@ -195,16 +195,11 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="text-center py-0.5 bg-secondary border-t border-border shrink-0">
-            <span className="text-[8px] text-muted-foreground/50 tracking-wide">{AUTHOR_CREDIT}</span>
-          </div>
           <MobileBottomNav variant="portrait" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
           <MobileOverlayPanel {...overlayProps} bottomOffset={44} maxHeight="60vh" />
         </div>
       )}
       <OnboardingDialog />
-        </div>
-      )}
     </div>
   );
 };
