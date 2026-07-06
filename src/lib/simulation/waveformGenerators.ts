@@ -281,5 +281,3 @@ export function generateCapnography(time: number, rr: number, etco2: number, spo
   }
 }
 
-// Keep unused imports silent.
-void VCVSettings; void PCVSettings;
