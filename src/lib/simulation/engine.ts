@@ -193,7 +193,7 @@ function updateVitalsAPRV(
   const baseOxyScore = Math.min(fio2Ratio, 1.2);
   const mapScore = clamp(aprv.meanAirwayPressure / (patient.optimalPEEP * 2), 0.3, 1.2);
 
-  const proneShuntReduction = prone ? (patient.id === 'ards' ? 0.15 : 0.03) : 0;
+  const proneShuntReduction = prone ? patient.proneShuntReduction : 0;
   const adjustedShunt = Math.max(0, effectiveShunt - proneShuntReduction);
   const oxygenation = (baseOxyScore + proneVQBonus) * mapScore * (1 - adjustedShunt * 0.7);
 
@@ -226,7 +226,6 @@ function updateVitalsAPRV(
     dbp: clamp(vitals.dbp + (targetDBP - vitals.dbp) * rate, 20, 150),
     spo2: clamp(vitals.spo2 + (targetSpO2 - vitals.spo2) * rate * 0.5, 40, 100),
     etco2: clamp(vitals.etco2 + (targetEtCO2 - vitals.etco2) * rate * 0.3, 5, 100),
-    rr: Math.round(60 / (settings.tHigh + settings.tLow)),
   };
 }
 
