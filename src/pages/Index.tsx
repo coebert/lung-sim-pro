@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useLayoutMode } from '@/hooks/use-layout-mode';
+import { useGlobalShortcuts } from '@/hooks/use-global-shortcuts';
 import { VentilatorPanel } from '@/components/simulator/VentilatorPanel';
 import { MonitorPanel } from '@/components/simulator/MonitorPanel';
 import { VentilatorControls } from '@/components/simulator/VentilatorControls';
-import { PatientSelector } from '@/components/simulator/PatientSelector';
+import { PatientDropdown } from '@/components/simulator/PatientDropdown';
+import { TrendStrip } from '@/components/simulator/TrendStrip';
 import {
   simulationStore,
   useWaveforms,
@@ -27,12 +29,15 @@ const Index = () => {
   const isPortrait = layoutMode === 'mobile-portrait';
 
   const { settings, allSettings, patient, prone, frozen } = useControls();
-  const { vitals, measured, alarms } = useVitalsSnapshot();
+  const { vitals, measured, alarms, trends } = useVitalsSnapshot();
   const buffers = useWaveforms();
 
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
+
+  const toggleTutorial = useCallback(() => setTutorialActive((t) => !t), []);
+  useGlobalShortcuts({ onToggleTutorial: toggleTutorial });
 
   // Compact vitals bar for mobile header
   const VitalsBar = () => (
