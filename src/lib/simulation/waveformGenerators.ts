@@ -205,14 +205,18 @@ export function generateECG(time: number, hr: number): number {
   const cycleTime = 60 / hr;
   const phase = (time % cycleTime) / cycleTime;
 
-  if (phase >= 0.0 && phase < 0.08) return 0.15 * Math.sin((phase / 0.08) * Math.PI);
-  if (phase >= 0.08 && phase < 0.12) return 0;
-  if (phase >= 0.12 && phase < 0.14) return -0.1 * Math.sin(((phase - 0.12) / 0.02) * Math.PI);
-  if (phase >= 0.14 && phase < 0.18) return 1.0 * Math.sin(((phase - 0.14) / 0.04) * Math.PI);
-  if (phase >= 0.18 && phase < 0.21) return -0.2 * Math.sin(((phase - 0.18) / 0.03) * Math.PI);
-  if (phase >= 0.21 && phase < 0.3) return 0;
-  if (phase >= 0.3 && phase < 0.45) return 0.3 * Math.sin(((phase - 0.3) / 0.15) * Math.PI);
-  return 0;
+  // Smooth, broad P-QRS-T complex using Gaussian pulses.  The original
+  // piecewise sine QRS was only ~2 samples wide at 50 Hz, so small phase
+  // shifts between beats produced a visible beat-to-beat amplitude variation
+  // (apparent electrical alternans).  These wider pulses are far less
+  // sensitive to sampling phase and produce a consistent ECG at 50 Hz.
+  const p = 0.15 * Math.exp(-((phase - 0.10) ** 2) / (2 * 0.06 ** 2));
+  const q = -0.12 * Math.exp(-((phase - 0.22) ** 2) / (2 * 0.025 ** 2));
+  const r = 1.0 * Math.exp(-((phase - 0.27) ** 2) / (2 * 0.06 ** 2));
+  const s = -0.20 * Math.exp(-((phase - 0.32) ** 2) / (2 * 0.03 ** 2));
+  const t = 0.30 * Math.exp(-((phase - 0.58) ** 2) / (2 * 0.12 ** 2));
+
+  return p + q + r + s + t;
 }
 
 export function generateABP(time: number, hr: number, sbp: number, dbp: number): number {
