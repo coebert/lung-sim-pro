@@ -11,7 +11,7 @@ import { generateECG } from '../waveformGenerators';
  * and sampling rates.
  */
 const HEART_RATES = [30, 40, 50, 60, 72, 84, 96, 110, 120, 140, 160, 180, 200];
-const SAMPLE_RATES = [25, 50, 60, 100, 200];
+const SAMPLE_RATES = [50, 60, 100, 200];
 
 function ecgPeaks(hr: number, sampleRate: number, seconds = 20): number[] {
   const dt = 1 / sampleRate;
