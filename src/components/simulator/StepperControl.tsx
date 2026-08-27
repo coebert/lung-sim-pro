@@ -125,7 +125,7 @@ export function StepperControl({
         <button
           type="button"
           aria-label={`Decrease ${label}`}
-          onPointerDown={() => { commitFromRef(valueRef.current - step); startHold(-1); }}
+          onPointerDown={() => { priorRef.current = valueRef.current; commitFromRef(valueRef.current - step); startHold(-1); }}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
           onPointerCancel={stopHold}
@@ -139,7 +139,7 @@ export function StepperControl({
         <button
           type="button"
           aria-label={`Increase ${label}`}
-          onPointerDown={() => { commitFromRef(valueRef.current + step); startHold(1); }}
+          onPointerDown={() => { priorRef.current = valueRef.current; commitFromRef(valueRef.current + step); startHold(1); }}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
           onPointerCancel={stopHold}
