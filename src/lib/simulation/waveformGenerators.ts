@@ -203,21 +203,29 @@ export type { VCVSettings, PCVSettings };
 
 export function generateECG(time: number, hr: number): number {
   const cycleTime = 60 / hr;
-  const phase = (time % cycleTime) / cycleTime;
+  const t0 = time % cycleTime;
 
-  // Smooth, broad P-QRS-T complex using Gaussian pulses.  The original
-  // piecewise sine QRS was only ~2 samples wide at 50 Hz, so small phase
-  // shifts between beats produced a visible beat-to-beat amplitude variation
-  // (apparent electrical alternans).  These wider pulses are far less
-  // sensitive to sampling phase and produce a consistent ECG at 50 Hz.
-  const p = 0.15 * Math.exp(-((phase - 0.10) ** 2) / (2 * 0.06 ** 2));
-  const q = -0.12 * Math.exp(-((phase - 0.22) ** 2) / (2 * 0.025 ** 2));
-  const r = 1.0 * Math.exp(-((phase - 0.27) ** 2) / (2 * 0.06 ** 2));
-  const s = -0.20 * Math.exp(-((phase - 0.32) ** 2) / (2 * 0.03 ** 2));
-  const t = 0.30 * Math.exp(-((phase - 0.58) ** 2) / (2 * 0.12 ** 2));
+  // Smooth P-QRS-T built from Gaussian pulses defined in SECONDS, not in
+  // fractional cycle phase.  Phase-based widths shrink as heart rate rises, so
+  // at fast rates the R-wave became only ~1 sample wide at the 50 Hz render
+  // rate and successive beats were sampled at different points of the peak —
+  // the beat-to-beat amplitude variation that looked like electrical
+  // alternans.  Fixed-width pulses (with a sampling-safe minimum R width) keep
+  // every beat identical at any heart rate.
+  // Systole compresses only mildly at fast rates; diastole absorbs the rest.
+  const k = Math.min(1, cycleTime / 0.8);
+  const g = (centre: number, sigma: number) =>
+    Math.exp(-((t0 - centre) ** 2) / (2 * sigma ** 2));
 
-  return p + q + r + s + t;
+  const p = 0.15 * g(0.10 * k, Math.max(0.030, 0.035 * k));
+  const q = -0.12 * g(0.185 * k, Math.max(0.014, 0.016 * k));
+  const r = 1.0 * g(0.225 * k, Math.max(0.042, 0.044 * k));
+  const s = -0.20 * g(0.275 * k, Math.max(0.016, 0.018 * k));
+  const tw = 0.30 * g(0.42 * k, Math.max(0.055, 0.070 * k));
+
+  return p + q + r + s + tw;
 }
+
 
 export function generateABP(time: number, hr: number, sbp: number, dbp: number): number {
   const cycleTime = 60 / hr;
