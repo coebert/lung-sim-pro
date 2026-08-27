@@ -75,7 +75,6 @@ export function StepperControl({
   }, [scheduleUndoToast]);
 
   const startHold = useCallback((dir: 1 | -1) => {
-    priorRef.current = valueRef.current;
     let interval = 200;
     const tick = () => {
       commitFromRef(valueRef.current + dir * step);
