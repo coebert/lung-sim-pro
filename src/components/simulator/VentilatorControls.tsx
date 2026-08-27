@@ -59,6 +59,7 @@ export function VentilatorControls({ settings, onUpdate }: VentilatorControlsPro
             unit="cmH₂O"
             min={0} max={25} step={1}
             onChange={(v) => onUpdate({ peep: v })}
+            holdAccel={PEEP_ACCEL}
           />
         )}
 
@@ -68,6 +69,7 @@ export function VentilatorControls({ settings, onUpdate }: VentilatorControlsPro
           unit="%"
           min={21} max={100} step={1}
           onChange={(v) => onUpdate({ fio2: v / 100 })}
+          holdAccel={FIO2_ACCEL}
         />
 
         {(settings.mode === 'VCV' || settings.mode === 'SIMV') && (
