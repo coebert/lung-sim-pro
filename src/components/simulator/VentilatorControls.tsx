@@ -4,6 +4,12 @@ import { StepperControl as SettingControl } from '@/components/simulator/Stepper
 
 type TimingMode = 'ie' | 'ti';
 
+/** Long-press acceleration presets (StepperControl defaults: 350ms delay, 200→40ms @ −20ms/tick). */
+/** FiO₂ spans 21–100 (79 steps) — ramp harder so holding is practical. */
+const FIO2_ACCEL = { initialDelay: 300, startInterval: 180, minInterval: 25, decay: 20 };
+/** PEEP spans 0–25 — moderately fast ramp. */
+const PEEP_ACCEL = { initialDelay: 300, startInterval: 160, minInterval: 35, decay: 15 };
+
 interface VentilatorControlsProps {
   settings: VentSettings;
   /** Patch the persistent all-mode parameters (may include `mode` to switch mode). */
@@ -53,6 +59,7 @@ export function VentilatorControls({ settings, onUpdate }: VentilatorControlsPro
             unit="cmH₂O"
             min={0} max={25} step={1}
             onChange={(v) => onUpdate({ peep: v })}
+            holdAccel={PEEP_ACCEL}
           />
         )}
 
@@ -62,6 +69,7 @@ export function VentilatorControls({ settings, onUpdate }: VentilatorControlsPro
           unit="%"
           min={21} max={100} step={1}
           onChange={(v) => onUpdate({ fio2: v / 100 })}
+          holdAccel={FIO2_ACCEL}
         />
 
         {(settings.mode === 'VCV' || settings.mode === 'SIMV') && (
