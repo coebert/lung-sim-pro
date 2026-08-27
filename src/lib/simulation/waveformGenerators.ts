@@ -219,7 +219,7 @@ export function generateECG(time: number, hr: number): number {
 
   const p = 0.15 * g(0.10 * k, Math.max(0.030, 0.035 * k));
   const q = -0.12 * g(0.185 * k, Math.max(0.014, 0.016 * k));
-  const r = 1.0 * g(0.225 * k, Math.max(0.032, 0.034 * k));
+  const r = 1.0 * g(0.225 * k, Math.max(0.042, 0.044 * k));
   const s = -0.20 * g(0.275 * k, Math.max(0.016, 0.018 * k));
   const tw = 0.30 * g(0.42 * k, Math.max(0.055, 0.070 * k));
 
