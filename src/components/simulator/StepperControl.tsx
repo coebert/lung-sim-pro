@@ -20,6 +20,10 @@ const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(mi
  *  – Long-press acceleration (starts at 200ms, ramps to 40ms).
  *  – Keyboard: Arrow ↑/↓ = step, Arrow →/← = step, PgUp/PgDn = big step.
  *  – Undo toast (6 s) capturing the pre-change value.
+ *
+ * Latest `value`/`onChange` live in refs so the long-press timer chain and
+ * the debounced undo toast always read fresh state rather than the render
+ * closure captured at pointerdown.
  */
 export function StepperControl({
   label, value, unit, min, max, step, onChange, bigStepMult = 10,
@@ -28,32 +32,38 @@ export function StepperControl({
   const holdTimer = useRef<number | null>(null);
   const undoToken = useRef<string | number | null>(null);
 
-  // Track last "committed" value so undo restores to what it was BEFORE this burst.
-  const captureBaseline = useCallback(() => {
-    priorRef.current = value;
-  }, [value]);
+  // Always-current mirrors of the incoming props.
+  const valueRef = useRef(value);
+  valueRef.current = value;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
-  const commit = useCallback((next: number) => {
+  const clampSnap = useCallback((next: number) => {
     const clamped = clamp(next, min, max);
     // Round to step precision to avoid float drift.
     const snapped = Math.round(clamped / step) * step;
-    const final = Math.abs(snapped - clamped) < step / 2 ? snapped : clamped;
-    if (final === value) return;
-    onChange(final);
-  }, [min, max, step, value, onChange]);
+    return Math.abs(snapped - clamped) < step / 2 ? snapped : clamped;
+  }, [min, max, step]);
+
+  const commitFromRef = useCallback((next: number) => {
+    const final = clampSnap(next);
+    if (final === valueRef.current) return;
+    onChangeRef.current(final);
+  }, [clampSnap]);
 
   const scheduleUndoToast = useCallback(() => {
     if (undoToken.current !== null) toast.dismiss(undoToken.current);
     const prior = priorRef.current;
+    const current = valueRef.current;
     undoToken.current = toast(`${label} changed`, {
-      description: `${prior} → ${value} ${unit}`,
+      description: `${prior} → ${current} ${unit}`,
       duration: 6000,
       action: {
         label: 'Undo',
-        onClick: () => onChange(prior),
+        onClick: () => onChangeRef.current(prior),
       },
     });
-  }, [label, value, unit, onChange]);
+  }, [label, unit]);
 
   const stopHold = useCallback(() => {
     if (holdTimer.current !== null) {
@@ -65,25 +75,25 @@ export function StepperControl({
   }, [scheduleUndoToast]);
 
   const startHold = useCallback((dir: 1 | -1) => {
-    captureBaseline();
+    priorRef.current = valueRef.current;
     let interval = 200;
     const tick = () => {
-      commit(value + dir * step); // note: value is stale in closure — see effect below
+      commitFromRef(valueRef.current + dir * step);
       interval = Math.max(40, interval - 20);
       holdTimer.current = window.setTimeout(tick, interval);
     };
-    // First step happens on click (below); acceleration kicks in after 350ms.
+    // First step happens on pointerdown (below); acceleration kicks in after 350ms.
     holdTimer.current = window.setTimeout(tick, 350);
-  }, [captureBaseline, commit, value, step]);
+  }, [commitFromRef]);
 
   useEffect(() => () => {
     if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
   }, []);
 
   const singleStep = (dir: 1 | -1, big = false) => {
-    captureBaseline();
-    commit(value + dir * step * (big ? bigStepMult : 1));
-    // Debounced undo for discrete keypresses.
+    priorRef.current = valueRef.current;
+    commitFromRef(valueRef.current + dir * step * (big ? bigStepMult : 1));
+    // Debounced undo for discrete keypresses — reads fresh state via refs.
     window.setTimeout(scheduleUndoToast, 0);
   };
 
@@ -115,7 +125,7 @@ export function StepperControl({
         <button
           type="button"
           aria-label={`Decrease ${label}`}
-          onPointerDown={() => { captureBaseline(); commit(value - step); startHold(-1); }}
+          onPointerDown={() => { commitFromRef(valueRef.current - step); startHold(-1); }}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
           onPointerCancel={stopHold}
@@ -129,7 +139,7 @@ export function StepperControl({
         <button
           type="button"
           aria-label={`Increase ${label}`}
-          onPointerDown={() => { captureBaseline(); commit(value + step); startHold(1); }}
+          onPointerDown={() => { commitFromRef(valueRef.current + step); startHold(1); }}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
           onPointerCancel={stopHold}
