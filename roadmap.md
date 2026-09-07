@@ -10,3 +10,4 @@
 - [x] Rebuild poster from a clean A1 master using the approved graphic-design optimization plan
 - [x] Remove the top-right "Academic poster" label and footer references
 - [x] Verify both QR codes from the final rendered PDF
+- [x] Rewrite Results section: successful build, team reception, Salisbury course adoption (poster v11)
