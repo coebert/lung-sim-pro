@@ -1,7 +1,6 @@
 import { PatientPhysiology, VentSettings, CommonSettings, VCVSettings, PCVSettings, PRVCSettings, SIMVSettings, PSVSettings, APRVSettings } from './types';
 
-const SAMPLE_RATE = 50; // Hz (kept for parity; not currently used here)
-void SAMPLE_RATE;
+const SAMPLE_RATE = 50; // Hz — ECG beat phase is locked to this sample grid
 
 // --- Breath Stacking / Air Trapping ---
 // For high-resistance patients, if expiratory time is too short relative to
@@ -203,28 +202,33 @@ export type { VCVSettings, PCVSettings };
 
 export function generateECG(time: number, hr: number): number {
   const cycleTime = 60 / hr;
-  const t0 = time % cycleTime;
 
-  // Smooth P-QRS-T built from Gaussian pulses defined in SECONDS, not in
-  // fractional cycle phase.  Phase-based widths shrink as heart rate rises, so
-  // at fast rates the R-wave became only ~1 sample wide at the 50 Hz render
-  // rate and successive beats were sampled at different points of the peak —
-  // the beat-to-beat amplitude variation that looked like electrical
-  // alternans.  Fixed-width pulses (with a sampling-safe minimum R width) keep
-  // every beat identical at any heart rate.
+  // Beat *boundaries* are snapped to the 50 Hz render grid, so at the render
+  // rate every beat is sampled at exactly the same offsets and all beats are
+  // identical.  Previously a narrow R-wave landed at slightly different points
+  // of its peak on consecutive beats, producing beat-to-beat amplitude
+  // variation that mimicked electrical alternans.  The waveform itself stays a
+  // continuous function of time, so finer sampling still yields a smooth trace.
+  const cycleSamples = Math.max(1, Math.round(cycleTime * SAMPLE_RATE));
+  const gridCycle = cycleSamples / SAMPLE_RATE;
+  const beatIndex = Math.floor(Math.round(time * SAMPLE_RATE * 1e6) / 1e6 / cycleSamples);
+  const t0 = time - beatIndex * gridCycle;
+
+
   // Systole compresses only mildly at fast rates; diastole absorbs the rest.
-  const k = Math.min(1, cycleTime / 0.8);
+  const k = Math.min(1, (cycleSamples / SAMPLE_RATE) / 0.8);
   const g = (centre: number, sigma: number) =>
     Math.exp(-((t0 - centre) ** 2) / (2 * sigma ** 2));
 
   const p = 0.15 * g(0.10 * k, Math.max(0.030, 0.035 * k));
-  const q = -0.12 * g(0.185 * k, Math.max(0.014, 0.016 * k));
-  const r = 1.0 * g(0.225 * k, Math.max(0.042, 0.044 * k));
-  const s = -0.20 * g(0.275 * k, Math.max(0.016, 0.018 * k));
+  const q = -0.12 * g(0.185 * k, Math.max(0.016, 0.016 * k));
+  const r = 1.0 * g(0.225 * k, Math.max(0.048, 0.044 * k));
+  const s = -0.20 * g(0.275 * k, Math.max(0.018, 0.018 * k));
   const tw = 0.30 * g(0.42 * k, Math.max(0.055, 0.070 * k));
 
   return p + q + r + s + tw;
 }
+
 
 
 export function generateABP(time: number, hr: number, sbp: number, dbp: number): number {
