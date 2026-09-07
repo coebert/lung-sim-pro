@@ -1,7 +1,6 @@
 import { PatientPhysiology, VentSettings, CommonSettings, VCVSettings, PCVSettings, PRVCSettings, SIMVSettings, PSVSettings, APRVSettings } from './types';
 
-const SAMPLE_RATE = 50; // Hz (kept for parity; not currently used here)
-void SAMPLE_RATE;
+const SAMPLE_RATE = 50; // Hz — ECG beat phase is locked to this sample grid
 
 // --- Breath Stacking / Air Trapping ---
 // For high-resistance patients, if expiratory time is too short relative to
