@@ -203,15 +203,17 @@ export type { VCVSettings, PCVSettings };
 export function generateECG(time: number, hr: number): number {
   const cycleTime = 60 / hr;
 
-  // Beat phase is locked to the 50 Hz sample grid: every beat therefore starts
-  // on a sample boundary and is sampled at exactly the same offsets as every
-  // other beat.  Without this, a narrow R-wave lands at slightly different
-  // points of its peak on consecutive beats, producing beat-to-beat amplitude
-  // variation on screen that mimics electrical alternans.  Heart rate is
-  // quantised by at most half a sample per beat, which is not perceptible.
-  const sampleIndex = Math.round(time * SAMPLE_RATE);
+  // Beat *boundaries* are snapped to the 50 Hz render grid, so at the render
+  // rate every beat is sampled at exactly the same offsets and all beats are
+  // identical.  Previously a narrow R-wave landed at slightly different points
+  // of its peak on consecutive beats, producing beat-to-beat amplitude
+  // variation that mimicked electrical alternans.  The waveform itself stays a
+  // continuous function of time, so finer sampling still yields a smooth trace.
   const cycleSamples = Math.max(1, Math.round(cycleTime * SAMPLE_RATE));
-  const t0 = (((sampleIndex % cycleSamples) + cycleSamples) % cycleSamples) / SAMPLE_RATE;
+  const gridCycle = cycleSamples / SAMPLE_RATE;
+  const beatIndex = Math.floor(Math.round(time * SAMPLE_RATE * 1e6) / 1e6 / cycleSamples);
+  const t0 = time - beatIndex * gridCycle;
+
 
   // Systole compresses only mildly at fast rates; diastole absorbs the rest.
   const k = Math.min(1, (cycleSamples / SAMPLE_RATE) / 0.8);
