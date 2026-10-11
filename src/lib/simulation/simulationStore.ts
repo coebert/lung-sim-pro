@@ -134,6 +134,10 @@ class SimulationStore {
     capno: new Ring(BUFFER_SIZE),
     aprvMarkers: new Ring(BUFFER_SIZE),
   };
+  /** Simulation time of the last settings/patient change — measured values
+   * are computed only over samples since then, so they track changes within
+   * one breath instead of averaging 10 s of stale waveform. */
+  private measureStartTime = 0;
   /** Last APRV cycle phase seen, for detecting the T Low → P High wrap. */
   private prevAprvPhase = 0;
   /** Last APRV cycle length; a change resets phase tracking. */
