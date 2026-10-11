@@ -232,42 +232,80 @@ export type { VCVSettings, PCVSettings };
 
 // --- Patient Monitor Waveforms ---
 
-export function generateECG(time: number, hr: number): number {
-  const cycleTime = 60 / hr;
+/** Beat-relative timing shared by ECG, arterial line and pleth. */
+export interface BeatTime {
+  /** Seconds since the start of the current beat. */
+  t0: number;
+  /** Length of the current beat (s), a whole number of 50 Hz samples. */
+  cycle: number;
+}
 
-  // Beat *boundaries* are snapped to the 50 Hz render grid, so at the render
-  // rate every beat is sampled at exactly the same offsets and all beats are
-  // identical.  Previously a narrow R-wave landed at slightly different points
-  // of its peak on consecutive beats, producing beat-to-beat amplitude
-  // variation that mimicked electrical alternans.  The waveform itself stays a
-  // continuous function of time, so finer sampling still yields a smooth trace.
-  const cycleSamples = Math.max(1, Math.round(cycleTime * SAMPLE_RATE));
-  const gridCycle = cycleSamples / SAMPLE_RATE;
+/**
+ * Stateful cardiac clock (one per live simulator). The beat length is fixed
+ * at the START of each beat, so heart-rate changes take effect on the next
+ * beat instead of shifting the phase mid-beat — no truncated/double QRS
+ * complexes however long the simulation runs. Beat lengths are whole
+ * samples, so every beat is sampled identically (no pseudo-alternans).
+ */
+export class CardiacClock {
+  private n = 0;
+  private cycleSamples = 0;
+  next(hr: number): BeatTime {
+    if (this.n >= this.cycleSamples) {
+      this.n = 0;
+      this.cycleSamples = Math.max(1, Math.round((60 / Math.max(20, hr)) * SAMPLE_RATE));
+    }
+    const bt = { t0: this.n / SAMPLE_RATE, cycle: this.cycleSamples / SAMPLE_RATE };
+    this.n++;
+    return bt;
+  }
+  reset(): void { this.n = 0; this.cycleSamples = 0; }
+}
+
+/** Stateless beat time from absolute time (legacy/tests): grid-snapped beats. */
+export function beatTimeAt(time: number, hr: number): BeatTime {
+  const cycleSamples = Math.max(1, Math.round((60 / hr) * SAMPLE_RATE));
+  const cycle = cycleSamples / SAMPLE_RATE;
   const beatIndex = Math.floor(Math.round(time * SAMPLE_RATE * 1e6) / 1e6 / cycleSamples);
-  const t0 = time - beatIndex * gridCycle;
+  return { t0: time - beatIndex * cycle, cycle };
+}
 
+// Electromechanical timing relative to beat start (P-wave onset):
+const R_PEAK = 0.225;          // s (scaled by k at fast rates)
+const ABP_DELAY = 0.18;        // R-wave → radial upstroke (pre-ejection + pulse transit)
+const PLETH_DELAY = 0.30;      // R-wave → finger pleth upstroke
 
+function systoleScale(cycle: number): number {
   // Systole compresses only mildly at fast rates; diastole absorbs the rest.
-  const k = Math.min(1, (cycleSamples / SAMPLE_RATE) / 0.8);
+  return Math.min(1, cycle / 0.8);
+}
+
+export function ecgAtBeat({ t0, cycle }: BeatTime): number {
+  // P wave and QRS have fixed timing (QRS width doesn't change with rate),
+  // so every beat's QRS is sampled identically whatever the heart rate —
+  // no beat-to-beat amplitude change that could mimic electrical alternans.
+  // Only the T wave (QT interval) moves earlier as the rate rises.
+  const k = systoleScale(cycle);
   const g = (centre: number, sigma: number) =>
     Math.exp(-((t0 - centre) ** 2) / (2 * sigma ** 2));
-
-  const p = 0.15 * g(0.10 * k, Math.max(0.030, 0.035 * k));
-  const q = -0.12 * g(0.185 * k, Math.max(0.016, 0.016 * k));
-  const r = 1.0 * g(0.225 * k, Math.max(0.048, 0.044 * k));
-  const s = -0.20 * g(0.275 * k, Math.max(0.018, 0.018 * k));
-  const tw = 0.30 * g(0.42 * k, Math.max(0.055, 0.070 * k));
-
+  const p = 0.15 * g(0.10, 0.032);
+  const q = -0.12 * g(0.185, 0.016);
+  const r = 1.0 * g(R_PEAK, 0.046);
+  const s = -0.20 * g(0.275, 0.018);
+  const tw = 0.30 * g(0.30 + 0.12 * k, Math.max(0.045, 0.070 * k));
   return p + q + r + s + tw;
 }
 
+/** Phase (0–1) of a pulse wave whose upstroke lags the R wave by `delay`. */
+function pulsePhase({ t0, cycle }: BeatTime, delay: number): number {
+  const onset = R_PEAK + delay * systoleScale(cycle);
+  const tt = (((t0 - onset) % cycle) + cycle) % cycle;
+  return tt / cycle;
+}
 
-
-export function generateABP(time: number, hr: number, sbp: number, dbp: number): number {
-  const cycleTime = 60 / hr;
-  const phase = (time % cycleTime) / cycleTime;
+export function abpAtBeat(bt: BeatTime, sbp: number, dbp: number): number {
+  const phase = pulsePhase(bt, ABP_DELAY);
   const pp = sbp - dbp;
-
   if (phase < 0.1) {
     return dbp + pp * Math.sin((phase / 0.1) * Math.PI * 0.5);
   } else if (phase < 0.15) {
@@ -281,10 +319,8 @@ export function generateABP(time: number, hr: number, sbp: number, dbp: number):
   }
 }
 
-export function generateSpO2Pleth(time: number, hr: number): number {
-  const cycleTime = 60 / hr;
-  const phase = (time % cycleTime) / cycleTime;
-
+export function plethAtBeat(bt: BeatTime): number {
+  const phase = pulsePhase(bt, PLETH_DELAY);
   if (phase < 0.25) {
     return Math.sin((phase / 0.25) * Math.PI * 0.5);
   } else if (phase < 0.35) {
@@ -292,6 +328,17 @@ export function generateSpO2Pleth(time: number, hr: number): number {
   } else {
     return 0.85 * Math.exp(-((phase - 0.35) / 0.65) * 3);
   }
+}
+
+// Time-based wrappers (legacy callers & tests).
+export function generateECG(time: number, hr: number): number {
+  return ecgAtBeat(beatTimeAt(time, hr));
+}
+export function generateABP(time: number, hr: number, sbp: number, dbp: number): number {
+  return abpAtBeat(beatTimeAt(time, hr), sbp, dbp);
+}
+export function generateSpO2Pleth(time: number, hr: number): number {
+  return plethAtBeat(beatTimeAt(time, hr));
 }
 
 export function generateCapnography(time: number, rr: number, etco2: number, spontaneousRate: number = 0): number {

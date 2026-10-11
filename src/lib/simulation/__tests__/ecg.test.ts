@@ -62,3 +62,42 @@ describe('ECG amplitude consistency', () => {
     });
   }
 });
+
+import { CardiacClock, ecgAtBeat, abpAtBeat, plethAtBeat } from '../waveformGenerators';
+
+describe('CardiacClock — shared beat timing', () => {
+  it('keeps QRS amplitude identical while HR drifts, and pulses lag the R wave', () => {
+    const clock = new CardiacClock();
+    const peaks: number[] = [];
+    let beatMax = -Infinity, rIdx = 0, abpIdx = 0, plIdx = 0, abpMax = -Infinity, plMax = -Infinity, i = 0, beatLen = 1;
+    let lags: Array<[number, number]> = [];
+    let hr = 80;
+    for (let n = 0; n < 50 * 120; n++) {
+      hr = 80 + 30 * Math.sin(n / 1500); // drifting heart rate
+      const bt = clock.next(hr);
+      if (bt.t0 === 0 && n > 0) {
+        peaks.push(beatMax);
+        const m = (x: number) => ((x % beatLen) + beatLen) % beatLen; // pulse peaks may wrap into next beat
+        lags.push([m(abpIdx - rIdx), m(plIdx - rIdx)]);
+        i = 0;
+        beatMax = -Infinity; abpMax = -Infinity; plMax = -Infinity;
+      }
+      beatLen = Math.round(bt.cycle * 50);
+      const e = ecgAtBeat(bt), a = abpAtBeat(bt, 120, 70), p = plethAtBeat(bt);
+      if (e > beatMax) { beatMax = e; rIdx = i; }
+      if (a > abpMax) { abpMax = a; abpIdx = i; }
+      if (p > plMax) { plMax = p; plIdx = i; }
+      i++;
+    }
+    // Morphology may change slowly with rate, but consecutive beats must
+    // match (beat-to-beat alternation would mimic electrical alternans).
+    for (let b = 1; b < peaks.length; b++) {
+      expect(Math.abs(peaks[b] - peaks[b - 1])).toBeLessThan(0.005);
+    }
+    lags = lags.slice(1);
+    for (const [abpLag, plLag] of lags) {
+      expect(abpLag).toBeGreaterThan(0);
+      expect(plLag).toBeGreaterThan(abpLag);
+    }
+  });
+});
