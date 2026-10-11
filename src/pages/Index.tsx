@@ -13,8 +13,7 @@ import {
   useVitalsSnapshot,
   useControls,
 } from '@/lib/simulation/simulationStore';
-import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw, BedSingle, LayoutGrid } from 'lucide-react';
-import { BedsideView } from '@/components/simulator/BedsideView';
+import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw, BedSingle } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
@@ -38,7 +37,6 @@ const Index = () => {
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
-  const [bedsideView, setBedsideView] = useState(false);
 
   // On desktop the tutorial is a side panel; on mobile it lives in the
   // bottom-sheet overlay, so the header button routes there instead.
@@ -218,7 +216,6 @@ const Index = () => {
             </div>
           </div>
           </>
-          )}
           <MobileBottomNav variant="portrait" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
           <MobileOverlayPanel {...overlayProps} bottomOffset={44} maxHeight="60vh" />
         </div>
