@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { computeIE, computeShunt, computeAPRV } from '../scoring';
+import { computeIE, computeShunt, computeAPRV, computeInverseRatio } from '../scoring';
 import { patients } from '../patients';
 import type { APRVSettings, CommonSettings, PatientPhysiology } from '../types';
 
