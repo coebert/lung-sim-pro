@@ -71,8 +71,10 @@ function vcvWaveform(time: number, s: VCVLike, p: PatientPhysiology) {
     // boundary. Steady state: (trapped+TV)·r = trapped.
     const volume = (trapped + s.tidalVolume) * Math.exp(-ePhase / tau);
     const flow = -(volume / 1000) / tau;
-    const pressure = s.peep + (volume / 1000) / C;
-    return { pressure: Math.max(pressure, s.peep + autoPEEP), flow: flow * 60, volume: Math.max(volume, 0) };
+    // Exhalation valve open: AIRWAY pressure sits at set PEEP. Alveolar
+    // pressure (and so auto-PEEP) is hidden — it is only revealed by an
+    // expiratory hold, which the measured auto-PEEP value represents.
+    return { pressure: s.peep, flow: flow * 60, volume: Math.max(volume, 0) };
   }
 }
 
@@ -108,8 +110,10 @@ function pcvWaveform(time: number, s: PCVLike, p: PatientPhysiology) {
     // Total-volume decay (see vcvWaveform) — no step at the breath boundary.
     const volume = (trapped + deliveredVol) * Math.exp(-ePhase / tau);
     const flow = -(volume / 1000) / tau;
-    const pressure = s.peep + (volume / 1000) / C;
-    return { pressure: Math.max(pressure, s.peep + autoPEEP), flow: flow * 60, volume: Math.max(volume, 0) };
+    // Exhalation valve open: AIRWAY pressure sits at set PEEP. Alveolar
+    // pressure (and so auto-PEEP) is hidden — it is only revealed by an
+    // expiratory hold, which the measured auto-PEEP value represents.
+    return { pressure: s.peep, flow: flow * 60, volume: Math.max(volume, 0) };
   }
 }
 
@@ -129,26 +133,35 @@ function prvcWaveform(time: number, s: PRVCSettings, p: PatientPhysiology) {
   return pcvWaveform(time, pcvLike, p);
 }
 
-function simvWaveform(time: number, s: SIMVSettings, p: PatientPhysiology) {
+/**
+ * SIMV breath schedule. Every set-rate cycle starts with a mandatory breath;
+ * if the patient's own rate exceeds the set rate, the extra spontaneous
+ * (pressure-supported) breaths are spaced evenly between mandatory ones.
+ */
+export function simvSchedule(s: CommonSettings, p: PatientPhysiology) {
   const cycleTime = 60 / s.respiratoryRate;
-  const breathIndex = Math.floor(time / cycleTime);
-  const isMandatory = breathIndex % 2 === 0 || p.spontaneousRate === 0;
+  const extra = p.spontaneousRate > 0
+    ? Math.max(0, Math.round(p.spontaneousRate / s.respiratoryRate) - 1)
+    : 0;
+  const slots = extra + 1;
+  return { cycleTime, slots, slotLen: cycleTime / slots, totalRate: s.respiratoryRate * slots };
+}
 
-  if (isMandatory) {
-    // Mandatory VCV breath using the SIMV target TV
-    const vcvLike: VCVLike = { ...pickCommon(s), tidalVolume: s.tidalVolume };
-    return vcvWaveform(time, vcvLike, p);
+function simvWaveform(time: number, s: SIMVSettings, p: PatientPhysiology) {
+  const { cycleTime, slotLen } = simvSchedule(s, p);
+  const phase = time % cycleTime;
+  const slot = Math.floor(phase / slotLen);
+  const slotPhase = phase - slot * slotLen;
+  const slotRate = 60 / slotLen;
+
+  if (slot === 0) {
+    // Mandatory volume-controlled breath at the full set rate.
+    const vcvLike: VCVLike = { ...pickCommon(s), respiratoryRate: slotRate, tidalVolume: s.tidalVolume };
+    return vcvWaveform(slotPhase, vcvLike, p);
   }
-  // Spontaneous PS breath
-  const spontRate = p.spontaneousRate || 10;
-  const spontCycle = 60 / spontRate;
-  const spontPhase = time % spontCycle;
-  const psLike: PCVLike = {
-    ...pickCommon(s),
-    respiratoryRate: spontRate,
-    pInsp: s.pressureSupport,
-  };
-  return pcvWaveform(spontPhase, psLike, p);
+  // Spontaneous pressure-supported breath between mandatory breaths.
+  const psLike: PCVLike = { ...pickCommon(s), respiratoryRate: slotRate, ieRatio: 2, inspiratoryTime: 0, pInsp: s.pressureSupport };
+  return pcvWaveform(slotPhase, psLike, p);
 }
 
 function psvWaveform(time: number, s: PSVSettings, p: PatientPhysiology) {
@@ -199,8 +212,8 @@ function aprvWaveform(time: number, s: APRVSettings, p: PatientPhysiology) {
     const vend = volMax * (1 - kH) + vee * kH; // volume at the moment of release
     const volume = vend * Math.exp(-ePhase / tau);
     const flow = -(volume / 1000) / tau * 60;
-    const pressure = s.pLow + (volume / 1000) / C;
-    return { pressure: Math.max(pressure, s.pLow), flow, volume: Math.max(volume, 0) };
+    // Release valve open: airway pressure drops straight to P Low (square wave).
+    return { pressure: s.pLow, flow, volume: Math.max(volume, 0) };
   }
 }
 

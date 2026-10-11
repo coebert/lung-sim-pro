@@ -5,6 +5,7 @@ import {
   generateABP,
   generateSpO2Pleth,
   generateCapnography,
+  simvSchedule,
 } from './waveformGenerators';
 import { clamp, computeAPRV, computeShunt } from './scoring';
 
@@ -74,6 +75,7 @@ export function generateWaveformSample(
 export function effectiveRate(settings: VentSettings, patient: PatientPhysiology): number {
   if (settings.mode === 'APRV') return 60 / Math.max(0.2, settings.tHigh + settings.tLow);
   if (settings.mode === 'PSV') return Math.max(0, patient.spontaneousRate);
+  if (settings.mode === 'SIMV') return simvSchedule(settings, patient).totalRate;
   return settings.respiratoryRate;
 }
 
