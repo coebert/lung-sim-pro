@@ -77,9 +77,9 @@ export const patients: PatientPhysiology[] = [
   {
     id: 'ards',
     name: 'ARDS Patient',
-    description: 'Very low compliance, requires protective ventilation (6mL/kg)',
+    description: 'Mild ARDS — reduced compliance, requires protective ventilation (6mL/kg)',
     weight: 70,
-    compliance: 15,
+    compliance: 40,
     resistance: 8,
     frc: 1200,
     spontaneousRate: 0,
