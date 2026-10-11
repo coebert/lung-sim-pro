@@ -78,59 +78,105 @@ function vcvWaveform(time: number, s: VCVLike, p: PatientPhysiology) {
   }
 }
 
-function pcvWaveform(time: number, s: PCVLike, p: PatientPhysiology) {
-  const cycleTime = 60 / s.respiratoryRate;
-  const iTime = getITime(s);
-  const phase = time % cycleTime;
-  const C = p.compliance / 1000;
-  const R = p.resistance;
-  const tau = R * C;
+// --- Pressure-targeted breaths (PCV / PRVC / PSV / SIMV pressure support) ---
+//
+// Single-compartment RC lung driven by a pressure target that ramps from
+// PEEP to PEEP + Pinsp over the rise time, then holds. Closed form:
+//   ramp  (t ≤ Tr): V = C·k·(t − τ(1 − e^(−t/τ))),  k = D/Tr
+//   hold  (t > Tr): V = C·D − (C·D − V(Tr))·e^(−(t−Tr)/τ)
+// Flow = (Pset − V/C)/R, so flow peaks at the end of the ramp then decays
+// exponentially — the decelerating flow pattern of every pressure mode.
 
-  // The ventilator targets PEEP + Pinsp at the airway. Intrinsic PEEP
-  // reduces the effective driving pressure (and so VT) — it does NOT raise
-  // PIP. Solve delivered volume and trapped volume together (fixed point).
-  const fill = 1 - Math.exp(-iTime / tau);
-  let autoPEEP = 0;
-  let deliveredVol = 0;
-  let trapped = 0;
+/** Volume (L) above the start of inspiration for driving pressure D. */
+function rampFill(t: number, D: number, tr: number, C: number, tau: number): number {
+  if (D <= 0 || t <= 0) return 0;
+  if (tr <= 1e-3) return D * C * (1 - Math.exp(-t / tau));
+  if (t <= tr) return C * (D / tr) * (t - tau * (1 - Math.exp(-t / tau)));
+  const v1 = C * (D / tr) * (tr - tau * (1 - Math.exp(-tr / tau)));
+  return C * D - (C * D - v1) * Math.exp(-(t - tr) / tau);
+}
+
+/** Trapped volume (mL) for a breath of `deliveredMl` with expiratory time `eTime`. */
+function trappedFor(deliveredMl: number, eTime: number, tau: number): number {
+  const r = Math.exp(-Math.max(0.1, eTime) / tau);
+  return r > 0.01 ? (deliveredMl * r) / (1 - r) : 0;
+}
+
+/** Steady-state delivered/trapped volumes for a pressure breath (auto-PEEP aware). */
+function solvePressureBreath(pInsp: number, iTime: number, cycleTime: number, tr: number, p: PatientPhysiology) {
+  const C = p.compliance / 1000;
+  const tau = p.resistance * C;
+  // Intrinsic PEEP reduces the effective driving pressure (and so VT) —
+  // it does NOT raise PIP. Solve delivered and trapped volume together.
+  let autoPEEP = 0, delivered = 0, trapped = 0;
   for (let k = 0; k < 12; k++) {
-    deliveredVol = Math.max(0, s.pInsp - autoPEEP) * C * fill * 1000;
-    trapped = calcTrappedVolume(s, p, deliveredVol);
+    delivered = rampFill(iTime, Math.max(0, pInsp - autoPEEP), tr, C, tau) * 1000;
+    trapped = trappedFor(delivered, cycleTime - iTime, tau);
     autoPEEP = (trapped / 1000) / C;
   }
-  const driving = Math.max(0, s.pInsp - autoPEEP);
+  return { delivered, trapped, driving: Math.max(0, pInsp - autoPEEP), C, tau };
+}
 
+function pressureBreath(
+  phase: number, cycleTime: number, iTime: number,
+  pInsp: number, tr: number, peep: number, p: PatientPhysiology,
+) {
+  const { delivered, trapped, driving, C, tau } = solvePressureBreath(pInsp, iTime, cycleTime, tr, p);
+  const R = p.resistance;
+  const trEff = Math.min(tr, iTime);
   if (phase < iTime) {
-    const volume = trapped + driving * C * (1 - Math.exp(-phase / tau)) * 1000;
-    const flow = (driving / R) * Math.exp(-phase / tau);
-    const pressure = s.peep + s.pInsp;
-    return { pressure, flow: flow * 60, volume };
-  } else {
-    const ePhase = phase - iTime;
-    // Total-volume decay (see vcvWaveform) — no step at the breath boundary.
-    const volume = (trapped + deliveredVol) * Math.exp(-ePhase / tau);
-    const flow = -(volume / 1000) / tau;
-    // Exhalation valve open: AIRWAY pressure sits at set PEEP. Alveolar
-    // pressure (and so auto-PEEP) is hidden — it is only revealed by an
-    // expiratory hold, which the measured auto-PEEP value represents.
-    return { pressure: s.peep, flow: flow * 60, volume: Math.max(volume, 0) };
+    const vL = rampFill(phase, driving, trEff, C, tau);
+    const ramp = trEff > 1e-3 ? Math.min(1, phase / trEff) : 1;
+    const flow = Math.max(0, (driving * ramp - vL / C) / R);
+    return { pressure: peep + pInsp * ramp, flow: flow * 60, volume: trapped + vL * 1000 };
   }
+  const ePhase = phase - iTime;
+  // Total-volume decay (see vcvWaveform) — no step at the breath boundary.
+  const volume = (trapped + delivered) * Math.exp(-ePhase / tau);
+  const flow = -(volume / 1000) / tau;
+  // Exhalation valve open: airway pressure sits at set PEEP.
+  return { pressure: peep, flow: flow * 60, volume: Math.max(volume, 0) };
+}
+
+function pcvWaveform(time: number, s: PCVLike, p: PatientPhysiology, riseTime = 0) {
+  const cycleTime = 60 / s.respiratoryRate;
+  return pressureBreath(time % cycleTime, cycleTime, getITime(s), s.pInsp, riseTime, s.peep, p);
+}
+
+/**
+ * PRVC (Autoflow / VC+): the ventilator regulates inspiratory pressure
+ * breath-to-breath so the delivered VT meets the target, never exceeding
+ * Pmax − 5 cmH₂O (Maquet/Dräger behaviour). Returns Pinsp above PEEP.
+ */
+export function prvcInspPressure(s: PRVCSettings, p: PatientPhysiology) {
+  const C = p.compliance / 1000;
+  const tau = p.resistance * C;
+  const iTime = getITime(s);
+  const cycleTime = 60 / s.respiratoryRate;
+  const fillPerCm = rampFill(iTime, 1, Math.min(s.riseTime, iTime), C, tau); // L per cmH₂O
+  const trapped = trappedFor(s.tidalVolume, cycleTime - iTime, tau);
+  const needed = (s.tidalVolume / 1000) / Math.max(1e-6, fillPerCm) + (trapped / 1000) / C;
+  const ceiling = Math.max(0, s.pMax - 5 - s.peep);
+  return { pInsp: Math.min(needed, ceiling), limited: needed > ceiling, needed };
 }
 
 function prvcWaveform(time: number, s: PRVCSettings, p: PatientPhysiology) {
-  // PRVC auto-adjusts pressure to achieve target volume
-  const C = p.compliance / 1000;
-  const R = p.resistance;
-  const tau = R * C;
-  const iTime = getITime(s);
+  const { pInsp } = prvcInspPressure(s, p);
+  return pcvWaveform(time, { ...pickCommon(s), pInsp }, p, s.riseTime);
+}
 
-  const targetPressure = Math.min(
-    (s.tidalVolume / 1000) / (C * (1 - Math.exp(-iTime / tau))),
-    Math.max(0, s.pMax - s.peep) // Pmax is an absolute airway-pressure ceiling
-  );
-
-  const pcvLike: PCVLike = { ...pickCommon(s), pInsp: targetPressure };
-  return pcvWaveform(time, pcvLike, p);
+/**
+ * PSV inspiratory time is set by the PATIENT's lung, not a timer: the breath
+ * cycles off when flow decays to ETS % of its peak. Flow peaks at the end of
+ * the rise and then decays with τ = R·C, so Ti = Tr + τ·ln(100/ETS).
+ * High resistance (long τ) ⇒ long Ti; ventilators cap Ti for safety.
+ */
+export function psvInspTime(s: PSVSettings, p: PatientPhysiology): number {
+  const tau = p.resistance * (p.compliance / 1000);
+  const rate = Math.max(1, p.spontaneousRate);
+  const cycleTime = 60 / rate;
+  const ti = s.riseTime + tau * Math.log(100 / Math.min(90, Math.max(5, s.ets)));
+  return Math.max(0.3, Math.min(ti, 2.5, cycleTime - 0.3));
 }
 
 /**
@@ -167,20 +213,19 @@ function simvWaveform(time: number, s: SIMVSettings, p: PatientPhysiology) {
 function psvWaveform(time: number, s: PSVSettings, p: PatientPhysiology) {
   // PSV needs patient effort: no respiratory drive ⇒ no breaths (apnoea).
   if (p.spontaneousRate <= 0) return { pressure: s.peep, flow: 0, volume: 0 };
-  const rate = p.spontaneousRate > 0 ? p.spontaneousRate : 12;
-  const psLike: PCVLike = {
-    ...pickCommon(s),
-    respiratoryRate: rate,
-    ieRatio: 2,
-    pInsp: s.pressureSupport,
-  };
-  const result = pcvWaveform(time, psLike, p);
-
-  // Small negative deflection for patient trigger
+  const rate = p.spontaneousRate;
   const cycleTime = 60 / rate;
   const phase = time % cycleTime;
-  if (phase < 0.15) {
-    result.pressure -= 1.5 * Math.sin(phase / 0.15 * Math.PI);
+  const TRIGGER = 0.12; // patient effort dips Paw before the ventilator responds
+  const ti = psvInspTime(s, p);
+  const result = pressureBreath(
+    Math.max(0, phase - TRIGGER), cycleTime, ti, s.pressureSupport, s.riseTime, s.peep, p,
+  );
+  if (phase < TRIGGER) {
+    // Trigger: small negative pressure + small inspiratory flow from patient effort.
+    const w = Math.sin((phase / TRIGGER) * Math.PI);
+    const pre = pressureBreath(cycleTime - TRIGGER + phase, cycleTime, ti, s.pressureSupport, s.riseTime, s.peep, p);
+    return { pressure: s.peep - 1.5 * w, flow: pre.flow * (1 - phase / TRIGGER) + 4 * w, volume: pre.volume };
   }
   return result;
 }
