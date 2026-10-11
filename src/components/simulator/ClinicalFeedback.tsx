@@ -112,14 +112,28 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     const { ieActual, iTime, eTime } = ie;
 
     if (shuntFraction > 0.15) {
-      list.push({ text: `Significant intrapulmonary shunting (${(shuntFraction * 100).toFixed(0)}%). Excessive PEEP and/or prolonged I-time causing refractory hypoxaemia.`, severity: 'danger' });
+      list.push({ text: `Significant intrapulmonary shunting (${(shuntFraction * 100).toFixed(0)}%). Excessive PEEP causing refractory hypoxaemia.`, severity: 'danger' });
     } else if (shuntFraction > 0.05) {
       list.push({ text: `Mild shunting developing. High mean airway pressure may be compressing pulmonary capillaries.`, severity: 'warn' });
     }
 
-    // ── I:E ratio ──
-    if (ieActual > 1) {
-      list.push({ text: `Inverse I:E ratio (1:${(1 / ieActual).toFixed(1)}). Risk of air trapping, auto-PEEP and haemodynamic compromise.`, severity: 'warn' });
+    // ── I:E ratio / inverse-ratio ventilation ──
+    const irv = computeInverseRatio(settings, patient);
+    if (irv.isInverse) {
+      const ratioText = `${ieActual.toFixed(1)}:1`;
+      if (irv.recruitmentBonus > 0.3) {
+        list.push({ text: `Inverse-ratio ventilation (${ratioText}). Mean airway pressure ~${irv.meanAirwayPressure.toFixed(0)} cmH₂O — recruiting collapsed alveoli and improving oxygenation in this recruitable lung.`, severity: 'good' });
+      } else if (patient.optimalPEEP < 8) {
+        list.push({ text: `Inverse I:E ratio (${ratioText}). This lung is not significantly recruitable — the raised mean airway pressure adds haemodynamic burden without an oxygenation benefit.`, severity: 'warn' });
+      } else {
+        list.push({ text: `Inverse I:E ratio (${ratioText}). Mean airway pressure ~${irv.meanAirwayPressure.toFixed(0)} cmH₂O. Some recruitment benefit; watch for auto-PEEP and rising CO₂.`, severity: 'warn' });
+      }
+      if (irv.haemodynamicBurden > 0.3) {
+        list.push({ text: `High mean airway pressure from inverse ratio is impeding venous return — watch blood pressure.`, severity: 'warn' });
+      }
+      if (eTime < 0.8) {
+        list.push({ text: `Expiratory time very short (${eTime.toFixed(1)}s) with inverse ratio. Air trapping and auto-PEEP likely — check the flow waveform returns towards zero.`, severity: 'warn' });
+      }
     }
     if (eTime < 1 && patient.resistance > 15) {
       list.push({ text: `Expiratory time very short (${eTime.toFixed(1)}s) with high airway resistance. Air trapping likely.`, severity: 'danger' });
