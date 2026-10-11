@@ -6,7 +6,7 @@ exports[`physiology trajectory â€” golden files > ards (ARDS Patient) > 'APRV â€
     "measured": {
       "autoPEEP": 0,
       "dynamicCompliance": 80,
-      "meanPressure": 12.5,
+      "meanPressure": 12.4,
       "measuredRR": 22,
       "measuredTV": 1120,
       "minuteVentilation": 24.6,
@@ -26,7 +26,7 @@ exports[`physiology trajectory â€” golden files > ards (ARDS Patient) > 'APRV â€
     "measured": {
       "autoPEEP": 8,
       "dynamicCompliance": 57,
-      "meanPressure": 25,
+      "meanPressure": 24.7,
       "measuredRR": 22,
       "measuredTV": 799,
       "minuteVentilation": 17.6,
@@ -46,7 +46,7 @@ exports[`physiology trajectory â€” golden files > ards (ARDS Patient) > 'APRV â€
     "measured": {
       "autoPEEP": 8,
       "dynamicCompliance": 57,
-      "meanPressure": 25,
+      "meanPressure": 24.7,
       "measuredRR": 22,
       "measuredTV": 799,
       "minuteVentilation": 17.6,
@@ -66,7 +66,7 @@ exports[`physiology trajectory â€” golden files > ards (ARDS Patient) > 'APRV â€
     "measured": {
       "autoPEEP": 8,
       "dynamicCompliance": 57,
-      "meanPressure": 25,
+      "meanPressure": 24.7,
       "measuredRR": 22,
       "measuredTV": 799,
       "minuteVentilation": 17.6,
