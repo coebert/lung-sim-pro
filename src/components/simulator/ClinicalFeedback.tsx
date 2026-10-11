@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues } from '@/lib/simulation/types';
-import { computeAPRV, computeShunt } from '@/lib/simulation/scoring';
+import { computeAPRV, computeInverseRatio, computeShunt } from '@/lib/simulation/scoring';
 import { AlertTriangle, ChevronDown, ChevronUp, CircleAlert, CircleCheck, Zap } from 'lucide-react';
 
 interface ClinicalFeedbackProps {
