@@ -284,8 +284,8 @@ function TimingToggleAndControl({
         <SettingControl
           label="I:E"
           value={ieRatio}
-          unit={`1:${ieRatio}`}
-          min={1} max={4} step={0.5}
+          unit={ieRatio >= 1 ? `1:${ieRatio}` : `${(1 / ieRatio).toFixed(1)}:1`}
+          min={0.25} max={4} step={0.25}
           onChange={(v) => onUpdate({ ieRatio: v })}
         />
       ) : (

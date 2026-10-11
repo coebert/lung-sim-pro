@@ -219,8 +219,8 @@ export function updateVitals(
   const shuntBPPenalty = shuntFraction * 30;
   // Sustained high mean airway pressure (inverse ratio) impedes venous return.
   const irvBPPenalty = irv.haemodynamicBurden * 15;
-  const targetSBP = patient.baseSBP - peepEffect - shuntBPPenalty + distress * 10;
-  const targetDBP = patient.baseDBP - peepEffect * 0.5 - shuntBPPenalty * 0.5 + distress * 5;
+  const targetSBP = patient.baseSBP - peepEffect - shuntBPPenalty - irvBPPenalty + distress * 10;
+  const targetDBP = patient.baseDBP - peepEffect * 0.5 - shuntBPPenalty * 0.5 - irvBPPenalty * 0.5 + distress * 5;
 
   // Apnoea / no effective ventilation: progressive hypoxaemia.
   if (measured.measuredTV < 50) {
