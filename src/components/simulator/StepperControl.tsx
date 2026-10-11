@@ -44,7 +44,7 @@ const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(mi
  * closure captured at pointerdown.
  */
 export function StepperControl({
-  label, value, unit, min, max, step, onChange, bigStepMult = 10, holdAccel,
+  label, value, unit, min, max, step, onChange, bigStepMult = 10, holdAccel, variant = 'default',
 }: StepperControlProps) {
   const {
     initialDelay = 350,
@@ -148,6 +148,7 @@ export function StepperControl({
     }
   };
 
+  const drager = variant === 'drager';
   const holdButtonClass = (dir: 1 | -1) =>
     `w-6 h-6 rounded text-xs font-bold flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
       ramping === dir
@@ -161,10 +162,19 @@ export function StepperControl({
       role="group"
       aria-label={`${label} ${value} ${unit}${ramping !== null ? ' (ramping)' : ''}`}
       onKeyDown={onKeyDown}
-      className="bg-secondary rounded p-2 flex flex-col items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className={drager
+        ? `group rounded-md border-2 px-2 pt-1 pb-1.5 flex flex-col gap-0.5 min-w-[88px] transition-colors focus-visible:outline-none ${ramping !== null ? 'bg-vent-select border-vent-select text-vent-select-foreground' : 'bg-vent-tile border-vent-tile-border focus-visible:border-vent-select focus-within:border-vent-select'}`
+        : "bg-secondary rounded p-2 flex flex-col items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"}
     >
-      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</span>
-      <div className="flex items-center gap-1">
+      {drager ? (
+        <div className="flex items-baseline justify-between gap-2">
+          <span className={`text-[11px] font-semibold ${ramping !== null ? '' : 'text-vent-label'}`}>{label}</span>
+          <span className={`text-[9px] ${ramping !== null ? '' : 'text-vent-label'}`}>{unit}</span>
+        </div>
+      ) : (
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</span>
+      )}
+      <div className={`flex items-center gap-1 ${drager ? 'justify-between' : ''}`}>
         <button
           type="button"
           aria-label={`Decrease ${label}${ramping === -1 ? ' (ramping)' : ''}`}
@@ -178,12 +188,12 @@ export function StepperControl({
           {ramping === -1 ? <ChevronsDown className="w-3.5 h-3.5 animate-pulse" /> : '−'}
         </button>
         <div className="flex flex-col items-center">
-          <span className="monitor-text text-sm font-bold text-foreground min-w-[3rem] text-center tabular-nums">
+          <span className={`monitor-text font-bold min-w-[3rem] text-center tabular-nums ${drager ? `text-xl leading-tight ${ramping !== null ? '' : 'text-foreground'}` : 'text-sm text-foreground'}`}>
             {value % 1 === 0 ? value : value.toFixed(1)}
           </span>
           <span
             aria-live="polite"
-            className={`text-[8px] uppercase tracking-wider h-3 ${ramping !== null ? 'text-primary' : 'text-transparent'}`}
+            className={`text-[8px] uppercase tracking-wider h-3 ${ramping !== null ? (drager ? '' : 'text-primary') : 'text-transparent'}`}
           >
             Ramping…
           </span>
@@ -201,7 +211,7 @@ export function StepperControl({
           {ramping === 1 ? <ChevronsUp className="w-3.5 h-3.5 animate-pulse" /> : '+'}
         </button>
       </div>
-      <span className="text-[9px] text-muted-foreground">{unit}</span>
+      {!drager && <span className="text-[9px] text-muted-foreground">{unit}</span>}
     </div>
   );
 }
