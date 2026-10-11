@@ -567,6 +567,87 @@ exports[`physiology trajectory — golden files > healthy (Healthy Adult (70kg))
 ]
 `;
 
+exports[`physiology trajectory — golden files > healthy (Healthy Adult — Paralyzed (70kg)) > 'VCV — protective baseline' 1`] = `
+[
+  {
+    "measured": {
+      "dynamicCompliance": 41,
+      "meanPressure": 7.6,
+      "measuredRR": 14,
+      "measuredTV": 490,
+      "minuteVentilation": 6.9,
+      "peakPressure": 17.1,
+      "plateauPressure": 14.5,
+    },
+    "t": 5,
+    "vitals": {
+      "dbp": 75,
+      "etco2": 38.1,
+      "hr": 72.2,
+      "sbp": 120.1,
+      "spo2": 99,
+    },
+  },
+  {
+    "measured": {
+      "dynamicCompliance": 40,
+      "meanPressure": 7.1,
+      "measuredRR": 14,
+      "measuredTV": 484,
+      "minuteVentilation": 6.8,
+      "peakPressure": 17.1,
+      "plateauPressure": 14.5,
+    },
+    "t": 15,
+    "vitals": {
+      "dbp": 75,
+      "etco2": 38.1,
+      "hr": 72.2,
+      "sbp": 120.1,
+      "spo2": 99.1,
+    },
+  },
+  {
+    "measured": {
+      "dynamicCompliance": 40,
+      "meanPressure": 7,
+      "measuredRR": 14,
+      "measuredTV": 483,
+      "minuteVentilation": 6.8,
+      "peakPressure": 17.1,
+      "plateauPressure": 14.5,
+    },
+    "t": 30,
+    "vitals": {
+      "dbp": 75,
+      "etco2": 38,
+      "hr": 72.2,
+      "sbp": 120.1,
+      "spo2": 99.3,
+    },
+  },
+  {
+    "measured": {
+      "dynamicCompliance": 40,
+      "meanPressure": 7,
+      "measuredRR": 14,
+      "measuredTV": 483,
+      "minuteVentilation": 6.8,
+      "peakPressure": 17.1,
+      "plateauPressure": 14.5,
+    },
+    "t": 60,
+    "vitals": {
+      "dbp": 75,
+      "etco2": 38,
+      "hr": 72.2,
+      "sbp": 120.1,
+      "spo2": 99.4,
+    },
+  },
+]
+`;
+
 exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg)) > 'PCV — pInsp 22 obesity' 1`] = `
 [
   {
