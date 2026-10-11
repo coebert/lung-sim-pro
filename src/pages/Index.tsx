@@ -12,7 +12,8 @@ import {
   useVitalsSnapshot,
   useControls,
 } from '@/lib/simulation/simulationStore';
-import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw } from 'lucide-react';
+import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw, BedSingle, LayoutGrid } from 'lucide-react';
+import { BedsideView } from '@/components/simulator/BedsideView';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
@@ -35,6 +36,7 @@ const Index = () => {
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
+  const [bedsideView, setBedsideView] = useState(false);
 
   // On desktop the tutorial is a side panel; on mobile it lives in the
   // bottom-sheet overlay, so the header button routes there instead.
@@ -100,6 +102,17 @@ const Index = () => {
             <RotateCcw className="w-3.5 h-3.5" />
             {prone && <span className="text-[9px] font-bold">PRONE</span>}
           </button>
+          {isDesktop && (
+            <button
+              onClick={() => setBedsideView((b) => !b)}
+              aria-label={bedsideView ? 'Switch to full view' : 'Switch to bedside view'}
+              aria-pressed={bedsideView}
+              className={`p-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${bedsideView ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+              title={bedsideView ? 'Full view' : 'Bedside view'}
+            >
+              {bedsideView ? <LayoutGrid className="w-3.5 h-3.5" /> : <BedSingle className="w-3.5 h-3.5" />}
+            </button>
+          )}
           <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" aria-hidden />
           {!isLandscape && (
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
@@ -124,7 +137,18 @@ const Index = () => {
       )}
 
       {/* ===== DESKTOP LAYOUT ===== */}
-      {isDesktop && (
+      {isDesktop && bedsideView && (
+        <div className="flex-1 min-h-0">
+          <BedsideView
+            buffers={buffers}
+            measured={measured}
+            settings={settings}
+            etco2KPa={vitals.etco2 / 7.501}
+            onUpdate={simulationStore.updateSettings}
+          />
+        </div>
+      )}
+      {isDesktop && !bedsideView && (
         <>
           <div className="flex flex-1 min-h-0">
             <div className="flex-[2] flex flex-col border-r border-border min-w-0">
