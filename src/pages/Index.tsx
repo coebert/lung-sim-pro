@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { useGlobalShortcuts } from '@/hooks/use-global-shortcuts';
 import { VentilatorPanel } from '@/components/simulator/VentilatorPanel';
