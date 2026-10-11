@@ -64,9 +64,13 @@ export function StepperControl({
 
   const clampSnap = useCallback((next: number) => {
     const clamped = clamp(next, min, max);
-    // Round to step precision to avoid float drift.
+    // Round to the step's decimal precision: bare `Math.round(v/step)*step`
+    // leaves float residue (12*0.1 = 1.2000000000000002) that breaks
+    // threshold comparisons and shows up in the undo toast.
+    const decimals = (String(step).split('.')[1] ?? '').length;
     const snapped = Math.round(clamped / step) * step;
-    return Math.abs(snapped - clamped) < step / 2 ? snapped : clamped;
+    const rounded = Number(snapped.toFixed(decimals));
+    return Math.abs(rounded - clamped) < step / 2 ? rounded : clamped;
   }, [min, max, step]);
 
   const commitFromRef = useCallback((next: number) => {
@@ -100,6 +104,9 @@ export function StepperControl({
   }, [scheduleUndoToast]);
 
   const startHold = useCallback((dir: 1 | -1) => {
+    // A second pointerdown (multi-touch, or − and + together) must not
+    // orphan the first timer chain — it would ramp forever until unmount.
+    if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
     setRamping(dir);
     let interval = startInterval;
     const tick = () => {
@@ -157,7 +164,8 @@ export function StepperControl({
         <button
           type="button"
           aria-label={`Decrease ${label}${ramping === -1 ? ' (ramping)' : ''}`}
-          onPointerDown={() => { priorRef.current = valueRef.current; commitFromRef(valueRef.current - step); startHold(-1); }}
+          onPointerDown={(e) => { if (e.button !== 0) return; priorRef.current = valueRef.current; commitFromRef(valueRef.current - step); startHold(-1); }}
+          onClick={() => singleStep(-1)}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
           onPointerCancel={stopHold}
@@ -179,7 +187,8 @@ export function StepperControl({
         <button
           type="button"
           aria-label={`Increase ${label}${ramping === 1 ? ' (ramping)' : ''}`}
-          onPointerDown={() => { priorRef.current = valueRef.current; commitFromRef(valueRef.current + step); startHold(1); }}
+          onPointerDown={(e) => { if (e.button !== 0) return; priorRef.current = valueRef.current; commitFromRef(valueRef.current + step); startHold(1); }}
+          onClick={() => singleStep(1)}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
           onPointerCancel={stopHold}
