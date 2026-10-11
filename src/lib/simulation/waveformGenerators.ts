@@ -196,11 +196,11 @@ function aprvWaveform(time: number, s: APRVSettings, p: PatientPhysiology) {
   // real machines, where release flow decays more slowly than it rose).
   const tauE = tau * 1.25;
 
-  // Real-machine edge shapes: the ventilator takes ~0.12 s to build up to
-  // P High (rounded leading edge, flow peak slightly delayed), while the
-  // release valve opens almost instantly (~40 ms pressure fall, sharp PEFR).
-  const RISE = 0.12;
-  const VALVE = 0.04;
+  // Tuned to Dräger Evita / V500 APRV defaults: pressure "Slope" (ramp) of
+  // 0.2 s back up to P High, and an expiratory valve that dumps to P Low in
+  // ~30 ms. The cycle-back marker sits at phase 0 = start of the Dräger ramp.
+  const RISE = 0.2;
+  const VALVE = 0.03;
 
   // Closed-form steady state keeps the waveform a pure function of time.
   const volMax = (s.pHigh - s.pLow) * C * 1000; // ml above P Low equilibrium
