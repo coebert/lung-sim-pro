@@ -98,7 +98,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, onUpdate }:
       </div>
 
       {/* Settings */}
-      <div className="shrink-0 border-t border-border pt-1 bg-vent-screen rounded-md">
+      <div className="shrink-0 border-t border-border pt-1 bg-vent-screen rounded-md max-h-[38vh] overflow-y-auto">
         <VentilatorControls settings={settings} onUpdate={onUpdate} />
       </div>
     </div>

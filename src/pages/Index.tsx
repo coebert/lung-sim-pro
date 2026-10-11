@@ -102,8 +102,7 @@ const Index = () => {
             <RotateCcw className="w-3.5 h-3.5" />
             {prone && <span className="text-[9px] font-bold">PRONE</span>}
           </button>
-          {isDesktop && (
-            <button
+          <button
               onClick={() => setBedsideView((b) => !b)}
               aria-label={bedsideView ? 'Switch to full view' : 'Switch to bedside view'}
               aria-pressed={bedsideView}
@@ -112,7 +111,6 @@ const Index = () => {
             >
               {bedsideView ? <LayoutGrid className="w-3.5 h-3.5" /> : <BedSingle className="w-3.5 h-3.5" />}
             </button>
-          )}
           <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" aria-hidden />
           {!isLandscape && (
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
@@ -201,6 +199,17 @@ const Index = () => {
       {/* ===== MOBILE LANDSCAPE ===== */}
       {isLandscape && (
         <div className="flex-1 flex flex-col min-h-0 relative">
+          {bedsideView ? (
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <BedsideView
+                buffers={buffers}
+                measured={measured}
+                settings={settings}
+                etco2KPa={vitals.etco2 / 7.501}
+                onUpdate={simulationStore.updateSettings}
+              />
+            </div>
+          ) : (
           <div className="flex-1 min-h-0 flex flex-row overflow-hidden">
             <div className="flex-1 min-h-0 min-w-0 p-0.5 border-r border-border">
               <VentilatorPanel buffers={buffers} measured={measured} settings={settings} compact />
@@ -209,6 +218,7 @@ const Index = () => {
               <MonitorPanel buffers={buffers} vitals={vitals} compact />
             </div>
           </div>
+          )}
           <MobileBottomNav variant="landscape" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
           <MobileOverlayPanel {...overlayProps} bottomOffset={24} maxHeight="55vh" />
         </div>
@@ -217,6 +227,18 @@ const Index = () => {
       {/* ===== MOBILE PORTRAIT ===== */}
       {isPortrait && (
         <div className="flex-1 flex flex-col min-h-0 relative">
+          {bedsideView ? (
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <BedsideView
+                buffers={buffers}
+                measured={measured}
+                settings={settings}
+                etco2KPa={vitals.etco2 / 7.501}
+                onUpdate={simulationStore.updateSettings}
+              />
+            </div>
+          ) : (
+          <>
           <div className="flex-[3] min-h-0 p-1 border-b border-border">
             <MonitorPanel buffers={buffers} vitals={vitals} layout="grid" />
           </div>
@@ -228,7 +250,8 @@ const Index = () => {
               <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} compact prone={prone} />
             </div>
           </div>
-
+          </>
+          )}
           <MobileBottomNav variant="portrait" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
           <MobileOverlayPanel {...overlayProps} bottomOffset={44} maxHeight="60vh" />
         </div>
