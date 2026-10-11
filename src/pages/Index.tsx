@@ -218,6 +218,7 @@ const Index = () => {
               <MonitorPanel buffers={buffers} vitals={vitals} compact />
             </div>
           </div>
+          )}
           <MobileBottomNav variant="landscape" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
           <MobileOverlayPanel {...overlayProps} bottomOffset={24} maxHeight="55vh" />
         </div>
@@ -249,7 +250,8 @@ const Index = () => {
               <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} compact prone={prone} />
             </div>
           </div>
-
+          </>
+          )}
           <MobileBottomNav variant="portrait" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
           <MobileOverlayPanel {...overlayProps} bottomOffset={44} maxHeight="60vh" />
         </div>
