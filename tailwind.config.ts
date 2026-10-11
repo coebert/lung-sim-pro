@@ -66,6 +66,15 @@ export default {
           spo2: "hsl(var(--wave-spo2))",
           capno: "hsl(var(--wave-capno))",
         },
+        vent: {
+          screen: "hsl(var(--vent-screen))",
+          header: "hsl(var(--vent-header))",
+          tile: "hsl(var(--vent-tile))",
+          "tile-border": "hsl(var(--vent-tile-border))",
+          select: "hsl(var(--vent-select))",
+          "select-foreground": "hsl(var(--vent-select-foreground))",
+          label: "hsl(var(--vent-label))",
+        },
         monitor: {
           bg: "hsl(var(--monitor-bg))",
           grid: "hsl(var(--monitor-grid))",

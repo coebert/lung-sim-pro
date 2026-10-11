@@ -45,6 +45,14 @@
 
     /* Monitor background */
     --monitor-bg: 220 30% 3%;
+    /* Dräger-style ventilator screen */
+    --vent-screen: 214 38% 8%;
+    --vent-header: 214 32% 14%;
+    --vent-tile: 214 26% 17%;
+    --vent-tile-border: 214 20% 28%;
+    --vent-select: 45 100% 55%;
+    --vent-select-foreground: 214 38% 8%;
+    --vent-label: 210 15% 70%;
     --monitor-grid: 216 20% 10%;
     --grid-strong: 216 20% 14%;
     --grid-weak: 216 20% 9%;

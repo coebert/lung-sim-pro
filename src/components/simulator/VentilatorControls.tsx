@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { VentSettings, VentMode, AllModeParams } from '@/lib/simulation/types';
-import { StepperControl as SettingControl } from '@/components/simulator/StepperControl';
+import { StepperControl } from '@/components/simulator/StepperControl';
+import type { ComponentProps } from 'react';
+
+/** Dräger-style therapy tile. */
+const SettingControl = (p: ComponentProps<typeof StepperControl>) => <StepperControl variant="drager" {...p} />;
 
 type TimingMode = 'ie' | 'ti';
 
@@ -34,15 +38,17 @@ export function VentilatorControls({ settings, onUpdate }: VentilatorControlsPro
   return (
     <div className="flex flex-col gap-2">
       {/* Mode selector */}
-      <div className="grid grid-cols-3 sm:flex gap-1">
+      <div className="grid grid-cols-3 sm:flex gap-1" role="tablist" aria-label="Ventilation mode">
         {MODES.map((mode) => (
           <button
             key={mode}
+            role="tab"
+            aria-selected={settings.mode === mode}
             onClick={() => onUpdate({ mode })}
-            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded transition-colors monitor-text
+            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-md border-2 transition-colors monitor-text
               ${settings.mode === mode
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-muted-foreground hover:bg-accent'
+                ? 'bg-vent-select border-vent-select text-vent-select-foreground'
+                : 'bg-vent-tile border-vent-tile-border text-vent-label hover:border-vent-select'
               }`}
           >
             {mode}
@@ -51,7 +57,7 @@ export function VentilatorControls({ settings, onUpdate }: VentilatorControlsPro
       </div>
 
       {/* Settings grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {settings.mode !== 'APRV' && (
           <SettingControl
             label="PEEP"
@@ -248,7 +254,7 @@ function TimingToggleAndControl({
 
   return (
     <>
-      <div className="bg-secondary rounded p-2 flex flex-col items-center gap-1">
+      <div className="bg-vent-tile border-2 border-vent-tile-border rounded-md px-2 py-1 flex flex-col items-center gap-1">
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Timing</span>
         <div className="flex rounded overflow-hidden border border-border">
           <button
@@ -292,7 +298,7 @@ function TimingToggleAndControl({
         />
       )}
 
-      <div className="bg-secondary rounded p-2 flex flex-col items-center justify-center gap-0.5">
+      <div className="bg-vent-tile border-2 border-vent-tile-border rounded-md px-2 py-1 flex flex-col items-center justify-center gap-0.5 min-w-[88px]">
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
           {timingMode === 'ie' ? 'Computed Ti' : 'Computed I:E'}
         </span>

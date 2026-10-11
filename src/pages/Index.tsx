@@ -121,9 +121,9 @@ const Index = () => {
           <div className="flex flex-1 min-h-0">
             <div className="flex-[2] flex flex-col border-r border-border min-w-0">
               <div className="flex-1 min-h-0 p-1">
-                <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
+                <VentilatorPanel buffers={buffers} measured={measured} settings={settings} alarms={alarms} />
               </div>
-              <div className="border-t border-border p-2">
+              <div className="border-t border-border p-2 bg-vent-screen">
                 <VentilatorControls settings={settings} onUpdate={simulationStore.updateSettings} />
               </div>
             </div>
@@ -189,7 +189,7 @@ const Index = () => {
           </div>
           <div className="flex-[2] min-h-0 flex flex-row border-b border-border">
             <div className="flex-1 min-h-0 p-1">
-              <VentilatorPanel buffers={buffers} measured={measured} settings={settings} />
+              <VentilatorPanel buffers={buffers} measured={measured} settings={settings} alarms={alarms} />
             </div>
             <div className="w-[120px] shrink-0 border-l border-border p-0.5">
               <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} compact prone={prone} />
