@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { useGlobalShortcuts } from '@/hooks/use-global-shortcuts';
 import { VentilatorPanel } from '@/components/simulator/VentilatorPanel';
@@ -12,8 +13,7 @@ import {
   useVitalsSnapshot,
   useControls,
 } from '@/lib/simulation/simulationStore';
-import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw, BedSingle, LayoutGrid } from 'lucide-react';
-import { BedsideView } from '@/components/simulator/BedsideView';
+import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw, BedSingle } from 'lucide-react';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
@@ -24,6 +24,7 @@ import { AboutButton } from '@/components/simulator/AboutButton';
 import { VITAL_COLOR, spo2Color } from '@/lib/theme';
 
 const Index = () => {
+  const navigate = useNavigate();
   const layoutMode = useLayoutMode();
   const isDesktop = layoutMode === 'desktop';
   const isLandscape = layoutMode === 'mobile-landscape';
@@ -36,7 +37,6 @@ const Index = () => {
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
-  const [bedsideView, setBedsideView] = useState(false);
 
   // On desktop the tutorial is a side panel; on mobile it lives in the
   // bottom-sheet overlay, so the header button routes there instead.
@@ -103,13 +103,12 @@ const Index = () => {
             {prone && <span className="text-[9px] font-bold">PRONE</span>}
           </button>
           <button
-              onClick={() => setBedsideView((b) => !b)}
-              aria-label={bedsideView ? 'Switch to full view' : 'Switch to bedside view'}
-              aria-pressed={bedsideView}
-              className={`p-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${bedsideView ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
-              title={bedsideView ? 'Full view' : 'Bedside view'}
+              onClick={() => navigate('/bedside')}
+              aria-label="Open bedside view"
+              className="p-1 rounded transition-colors hover:bg-muted text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              title="Bedside view"
             >
-              {bedsideView ? <LayoutGrid className="w-3.5 h-3.5" /> : <BedSingle className="w-3.5 h-3.5" />}
+              <BedSingle className="w-3.5 h-3.5" />
             </button>
           <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" aria-hidden />
           {!isLandscape && (
@@ -135,18 +134,7 @@ const Index = () => {
       )}
 
       {/* ===== DESKTOP LAYOUT ===== */}
-      {isDesktop && bedsideView && (
-        <div className="flex-1 min-h-0">
-          <BedsideView
-            buffers={buffers}
-            measured={measured}
-            settings={settings}
-            etco2KPa={vitals.etco2 / 7.501}
-            onUpdate={simulationStore.updateSettings}
-          />
-        </div>
-      )}
-      {isDesktop && !bedsideView && (
+      {isDesktop && (
         <>
           <div className="flex flex-1 min-h-0">
             <div className="flex-[2] flex flex-col border-r border-border min-w-0">
@@ -199,17 +187,6 @@ const Index = () => {
       {/* ===== MOBILE LANDSCAPE ===== */}
       {isLandscape && (
         <div className="flex-1 flex flex-col min-h-0 relative">
-          {bedsideView ? (
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <BedsideView
-                buffers={buffers}
-                measured={measured}
-                settings={settings}
-                etco2KPa={vitals.etco2 / 7.501}
-                onUpdate={simulationStore.updateSettings}
-              />
-            </div>
-          ) : (
           <div className="flex-1 min-h-0 flex flex-row overflow-hidden">
             <div className="flex-1 min-h-0 min-w-0 p-0.5 border-r border-border">
               <VentilatorPanel buffers={buffers} measured={measured} settings={settings} compact />
@@ -218,7 +195,6 @@ const Index = () => {
               <MonitorPanel buffers={buffers} vitals={vitals} compact />
             </div>
           </div>
-          )}
           <MobileBottomNav variant="landscape" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
           <MobileOverlayPanel {...overlayProps} bottomOffset={24} maxHeight="55vh" />
         </div>
@@ -227,17 +203,6 @@ const Index = () => {
       {/* ===== MOBILE PORTRAIT ===== */}
       {isPortrait && (
         <div className="flex-1 flex flex-col min-h-0 relative">
-          {bedsideView ? (
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <BedsideView
-                buffers={buffers}
-                measured={measured}
-                settings={settings}
-                etco2KPa={vitals.etco2 / 7.501}
-                onUpdate={simulationStore.updateSettings}
-              />
-            </div>
-          ) : (
           <>
           <div className="flex-[3] min-h-0 p-1 border-b border-border">
             <MonitorPanel buffers={buffers} vitals={vitals} layout="grid" />
@@ -251,7 +216,6 @@ const Index = () => {
             </div>
           </div>
           </>
-          )}
           <MobileBottomNav variant="portrait" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
           <MobileOverlayPanel {...overlayProps} bottomOffset={44} maxHeight="60vh" />
         </div>
