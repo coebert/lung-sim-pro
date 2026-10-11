@@ -15,4 +15,5 @@
 # Opus bug check #2 (Oct 2026)
 - [x] Quick fixes: Space/keys on focused buttons, alarm re-sounds on new alarm + 2-min silence cap, apnoea alarm, audio unlock, Ti capped to breath cycle, APRV NaN guards, APRV tutorial selectable, tutorial targets match text
 - [x] Clinical: PSV apnoea in paralysed patients, healthy-lung oxygenation, mL/kg on predicted body weight, PCV/PRVC pressure (auto-PEEP lowers VT not raises PIP), FiO₂ advice only when desaturated, 10 s measurement window
-- [ ] Bigger model changes: model-derived plateau pressure, airway pressure = PEEP in expiration, auto-PEEP haemodynamics, SIMV mandatory rate/scheduling, shared cardiac phase (ECG/ABP/pleth sync)
+- [x] Model-derived plateau pressure + auto-PEEP, airway pressure = PEEP in expiration, auto-PEEP lowers BP, SIMV full mandatory rate
+- [ ] Shared cardiac phase (ECG/ABP/pleth sync)
