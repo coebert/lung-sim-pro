@@ -56,9 +56,7 @@ export function generateWaveformSample(
   vitals: Vitals,
 ): WaveformSample {
   const vent = generateVentWaveformPoint(time, settings, patient);
-  const actualRR = settings.mode === 'PSV'
-    ? (patient.spontaneousRate || 12)
-    : settings.respiratoryRate;
+  const actualRR = effectiveRate(settings, patient);
   return {
     pressure: vent.pressure,
     flow: vent.flow,

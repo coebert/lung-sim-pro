@@ -12,8 +12,10 @@ import {
   BUFFER_SIZE,
   RECENT_WINDOW,
   TICK_DT,
+  baselinePressure,
   computeMeasured,
   createInitialVitals,
+  effectiveRate,
   generateWaveformSample,
   updateVitals,
 } from './engine';
@@ -283,14 +285,11 @@ class SimulationStore {
     this.msSinceVitalsNotify += TICK_INTERVAL_MS;
     if (this.msSinceVitalsNotify >= VITALS_NOTIFY_INTERVAL_MS) {
       this.msSinceVitalsNotify = 0;
-      const actualRR = this.settings.mode === 'PSV'
-        ? (this.patient.spontaneousRate || 12)
-        : this.settings.respiratoryRate;
       this.measured = computeMeasured(
         this.rings.pressure.recent(RECENT_WINDOW),
         this.rings.volume.recent(RECENT_WINDOW),
-        actualRR,
-        this.settings.peep,
+        effectiveRate(this.settings, this.patient),
+        baselinePressure(this.settings),
       );
       this.vitals = updateVitals(this.settings, this.patient, this.vitals, this.measured, this.prone);
       this.alarms = evaluateAlarms(this.measured, this.vitals, DEFAULT_ALARM_LIMITS);
