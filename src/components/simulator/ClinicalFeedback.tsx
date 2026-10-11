@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues } from '@/lib/simulation/types';
 import { computeAPRV, computeInverseRatio, computeShunt } from '@/lib/simulation/scoring';
+import { prvcInspPressure, psvInspTime } from '@/lib/simulation/waveformGenerators';
 import { AlertTriangle, ChevronDown, ChevronUp, CircleAlert, CircleCheck, Zap } from 'lucide-react';
 
 interface ClinicalFeedbackProps {
@@ -77,6 +78,26 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     // ── Tidal volume ── (only meaningful for volume-configured modes)
     if (settings.mode === 'PSV' && patient.spontaneousRate <= 0) {
       list.push({ text: 'APNOEA: this patient has no respiratory drive, so pressure support delivers no breaths. Use a mandatory mode (VCV/PCV/PRVC/SIMV).', severity: 'danger' });
+    }
+
+    // ── Pressure-mode specifics ──
+    if (settings.mode === 'PCV' && settings.peep + settings.pInsp > 30) {
+      list.push({ text: `Peak pressure ${settings.peep + settings.pInsp} cmH₂O (PEEP + Pinsp) exceeds 30. In PCV the delivered VT changes with compliance — reduce Pinsp.`, severity: 'warn' });
+    }
+    if (settings.mode === 'PRVC') {
+      const r = prvcInspPressure(settings, patient);
+      if (r.limited) {
+        list.push({ text: `PRVC pressure limited: needs ${Math.round(r.needed + settings.peep)} cmH₂O but the ceiling is Pmax − 5 (${settings.pMax - 5}). Target VT is not being reached ("Volume not reached" alarm).`, severity: 'danger' });
+      }
+    }
+    if (settings.mode === 'PSV' && patient.spontaneousRate > 0) {
+      const ti = psvInspTime(settings, patient);
+      if (ti >= 1.5) {
+        list.push({ text: `Long PSV inspiration (Ti ${ti.toFixed(1)} s): slow flow decay from high resistance. Raise ETS (e.g. 40–60 %) so the breath cycles off earlier and air-trapping falls.`, severity: 'warn' });
+      }
+      if (settings.riseTime >= 0.3) {
+        list.push({ text: 'Slow PSV rise time may leave the patient flow-starved — increased work of breathing. Shorten rise time.', severity: 'warn' });
+      }
     }
     {
       // mL/kg is dosed on PREDICTED body weight. Volume-set modes grade the set
