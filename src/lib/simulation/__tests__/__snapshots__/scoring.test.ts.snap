@@ -197,7 +197,7 @@ exports[`computeIE — I:E timing > normal 1:2 @ RR12 1`] = `
 }
 `;
 
-exports[`computeShunt — PEEP + I-time driven shunt > ards — PEEP overshoot 1`] = `
+exports[`computeShunt — PEEP-driven shunt > ards — PEEP overshoot 1`] = `
 {
   "ie": {
     "cycleTime": 4.2857,
@@ -211,7 +211,7 @@ exports[`computeShunt — PEEP + I-time driven shunt > ards — PEEP overshoot 1
 }
 `;
 
-exports[`computeShunt — PEEP + I-time driven shunt > ards — inverse ratio 1`] = `
+exports[`computeShunt — PEEP-driven shunt > ards — inverse ratio 1`] = `
 {
   "ie": {
     "cycleTime": 4.2857,
@@ -219,13 +219,13 @@ exports[`computeShunt — PEEP + I-time driven shunt > ards — inverse ratio 1`
     "iTime": 2.8571,
     "ieActual": 2,
   },
-  "ieExcess": 1.2,
+  "ieExcess": 0,
   "peepExcess": 0,
-  "shuntFraction": 0.096,
+  "shuntFraction": 0,
 }
 `;
 
-exports[`computeShunt — PEEP + I-time driven shunt > ards — normal PEEP for ARDS 1`] = `
+exports[`computeShunt — PEEP-driven shunt > ards — normal PEEP for ARDS 1`] = `
 {
   "ie": {
     "cycleTime": 4.2857,
@@ -239,7 +239,7 @@ exports[`computeShunt — PEEP + I-time driven shunt > ards — normal PEEP for 
 }
 `;
 
-exports[`computeShunt — PEEP + I-time driven shunt > bronchospasm — long i-time 1`] = `
+exports[`computeShunt — PEEP-driven shunt > bronchospasm — long i-time 1`] = `
 {
   "ie": {
     "cycleTime": 6,
@@ -253,7 +253,7 @@ exports[`computeShunt — PEEP + I-time driven shunt > bronchospasm — long i-t
 }
 `;
 
-exports[`computeShunt — PEEP + I-time driven shunt > healthy — excessive PEEP 1`] = `
+exports[`computeShunt — PEEP-driven shunt > healthy — excessive PEEP 1`] = `
 {
   "ie": {
     "cycleTime": 4.2857,
@@ -267,7 +267,7 @@ exports[`computeShunt — PEEP + I-time driven shunt > healthy — excessive PEE
 }
 `;
 
-exports[`computeShunt — PEEP + I-time driven shunt > healthy — sane settings 1`] = `
+exports[`computeShunt — PEEP-driven shunt > healthy — sane settings 1`] = `
 {
   "ie": {
     "cycleTime": 4.2857,

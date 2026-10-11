@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { computeIE, computeShunt, computeAPRV } from '../scoring';
+import { computeIE, computeShunt, computeAPRV, computeInverseRatio } from '../scoring';
 import { patients } from '../patients';
 import type { APRVSettings, CommonSettings, PatientPhysiology } from '../types';
 
@@ -48,7 +48,7 @@ describe('computeIE — I:E timing', () => {
 
 // ─── Shunt fraction ─────────────────────────────────────────────────
 
-describe('computeShunt — PEEP + I-time driven shunt', () => {
+describe('computeShunt — PEEP-driven shunt', () => {
   const settings = (over: Partial<CommonSettings>): CommonSettings => ({
     peep: 5, fio2: 0.4, respiratoryRate: 14, ieRatio: 2, inspiratoryTime: 0, ...over,
   });
@@ -64,6 +64,50 @@ describe('computeShunt — PEEP + I-time driven shunt', () => {
 
   it.each(cases)('%s', (_label, id, over) => {
     expect(round(computeShunt(settings(over), patient(id)))).toMatchSnapshot();
+  });
+
+  it('inverse ratio does not cause shunt', () => {
+    const s = settings({ peep: 14, ieRatio: 0.5 });
+    expect(computeShunt(s, patient('ards')).shuntFraction).toBe(0);
+  });
+});
+
+describe('computeInverseRatio — IRV recruitment vs burden', () => {
+  const settings = (over: Partial<CommonSettings>): CommonSettings => ({
+    peep: 5, fio2: 0.4, respiratoryRate: 14, ieRatio: 2, inspiratoryTime: 0, ...over,
+  });
+
+  it('ARDS: inverse ratio raises mean airway pressure and recruits', () => {
+    const irv = computeInverseRatio(settings({ peep: 14, ieRatio: 0.5 }), patient('ards'));
+    expect(irv.isInverse).toBe(true);
+    expect(irv.meanAirwayPressure).toBeGreaterThan(14);
+    expect(irv.recruitmentBonus).toBeGreaterThan(0);
+  });
+
+  it('healthy lung: inverse ratio gives no recruitment benefit', () => {
+    const irv = computeInverseRatio(settings({ peep: 5, ieRatio: 0.5 }), patient('healthy'));
+    expect(irv.isInverse).toBe(true);
+    expect(irv.recruitmentBonus).toBe(0);
+  });
+
+  it('normal ratio: not inverse, no bonus', () => {
+    const irv = computeInverseRatio(settings({ peep: 14, ieRatio: 2 }), patient('ards'));
+    expect(irv.isInverse).toBe(false);
+    expect(irv.recruitmentBonus).toBe(0);
+  });
+
+  it('recruitment bonus is monotonic in I:E for ARDS', () => {
+    const ratios = [2, 1, 0.5, 0.33, 0.25];
+    const bonuses = ratios.map((r) => computeInverseRatio(settings({ peep: 14, ieRatio: r }), patient('ards')).recruitmentBonus);
+    for (let i = 1; i < bonuses.length; i++) {
+      expect(bonuses[i]).toBeGreaterThanOrEqual(bonuses[i - 1]);
+    }
+  });
+
+  it('haemodynamic burden grows as mean airway pressure rises', () => {
+    const mild = computeInverseRatio(settings({ peep: 14, ieRatio: 1 }), patient('ards'));
+    const extreme = computeInverseRatio(settings({ peep: 14, ieRatio: 0.25 }), patient('ards'));
+    expect(extreme.haemodynamicBurden).toBeGreaterThanOrEqual(mild.haemodynamicBurden);
   });
 });
 
