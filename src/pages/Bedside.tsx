@@ -78,6 +78,7 @@ const Bedside = () => {
           measured={measured}
           settings={settings}
           etco2KPa={vitals.etco2 / 7.501}
+          patient={patient}
           onUpdate={simulationStore.updateSettings}
         />
       </div>

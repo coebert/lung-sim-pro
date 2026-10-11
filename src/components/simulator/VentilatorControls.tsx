@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { VentSettings, VentMode, AllModeParams } from '@/lib/simulation/types';
+import { VentSettings, VentMode, AllModeParams, PatientPhysiology } from '@/lib/simulation/types';
+import { prvcInspPressure, psvInspTime } from '@/lib/simulation/waveformGenerators';
 import { StepperControl } from '@/components/simulator/StepperControl';
 import type { ComponentProps } from 'react';
 
@@ -16,13 +17,15 @@ const PEEP_ACCEL = { initialDelay: 300, startInterval: 160, minInterval: 35, dec
 
 interface VentilatorControlsProps {
   settings: VentSettings;
+  /** Current patient — lets PRVC/PSV show the pressure and Ti the machine is using. */
+  patient?: PatientPhysiology;
   /** Patch the persistent all-mode parameters (may include `mode` to switch mode). */
   onUpdate: (patch: Partial<AllModeParams>) => void;
 }
 
 const MODES: VentMode[] = ['VCV', 'PCV', 'PRVC', 'SIMV', 'PSV', 'APRV'];
 
-export function VentilatorControls({ settings, onUpdate }: VentilatorControlsProps) {
+export function VentilatorControls({ settings, patient, onUpdate }: VentilatorControlsProps) {
   const [timingMode, setTimingMode] = useState<TimingMode>('ie');
 
   // Compute I:E and Te from Ti and RR
@@ -117,6 +120,13 @@ export function VentilatorControls({ settings, onUpdate }: VentilatorControlsPro
               onChange={(v) => onUpdate({ pInsp: v })}
             />
             <SettingControl
+              label="Rise"
+              value={settings.riseTime}
+              unit="sec"
+              min={0} max={0.6} step={0.05}
+              onChange={(v) => onUpdate({ riseTime: Math.round(v * 100) / 100 })}
+            />
+            <SettingControl
               label="RR"
               value={settings.respiratoryRate}
               unit="/min"
@@ -159,6 +169,25 @@ export function VentilatorControls({ settings, onUpdate }: VentilatorControlsPro
               min={15} max={50} step={1}
               onChange={(v) => onUpdate({ pMax: v })}
             />
+            <SettingControl
+              label="Rise"
+              value={settings.riseTime}
+              unit="sec"
+              min={0} max={0.6} step={0.05}
+              onChange={(v) => onUpdate({ riseTime: Math.round(v * 100) / 100 })}
+            />
+            {patient && (() => {
+              const r = prvcInspPressure(settings, patient);
+              return (
+                <ReadoutTile
+                  label="Pinsp auto"
+                  value={(r.pInsp).toFixed(0)}
+                  unit="cmH₂O"
+                  warn={r.limited}
+                  note={r.limited ? 'Pmax−5 limit' : 'regulated'}
+                />
+              );
+            })()}
             <TimingToggleAndControl
               timingMode={timingMode}
               onTimingModeChange={setTimingMode}
@@ -183,13 +212,38 @@ export function VentilatorControls({ settings, onUpdate }: VentilatorControlsPro
         )}
 
         {settings.mode === 'PSV' && (
-          <SettingControl
-            label="PS"
-            value={settings.pressureSupport}
-            unit="cmH₂O"
-            min={0} max={30} step={1}
-            onChange={(v) => onUpdate({ pressureSupport: v })}
-          />
+          <>
+            <SettingControl
+              label="PS"
+              value={settings.pressureSupport}
+              unit="cmH₂O"
+              min={0} max={30} step={1}
+              onChange={(v) => onUpdate({ pressureSupport: v })}
+            />
+            <SettingControl
+              label="Rise"
+              value={settings.riseTime}
+              unit="sec"
+              min={0} max={0.6} step={0.05}
+              onChange={(v) => onUpdate({ riseTime: Math.round(v * 100) / 100 })}
+            />
+            <SettingControl
+              label="ETS"
+              value={settings.ets}
+              unit="% pk"
+              min={5} max={80} step={5}
+              onChange={(v) => onUpdate({ ets: v })}
+            />
+            {patient && patient.spontaneousRate > 0 && (
+              <ReadoutTile
+                label="Ti (pt)"
+                value={psvInspTime(settings, patient).toFixed(2)}
+                unit="sec"
+                warn={psvInspTime(settings, patient) >= 1.5}
+                note={`RR ${patient.spontaneousRate} pt`}
+              />
+            )}
+          </>
         )}
 
         {settings.mode === 'APRV' && (
@@ -312,3 +366,18 @@ function TimingToggleAndControl({
 }
 
 /* SettingControl imported from StepperControl (long-press + keyboard + undo). */
+
+/* ── Read-only tile for values the ventilator regulates itself ── */
+function ReadoutTile({ label, value, unit, note, warn }: { label: string; value: string; unit: string; note?: string; warn?: boolean }) {
+  return (
+    <div
+      className={`rounded-md border-2 border-dashed px-2 py-1 flex flex-col items-center justify-center min-w-[72px]
+        ${warn ? 'border-destructive text-destructive' : 'border-vent-tile-border text-vent-label'}`}
+      aria-label={`${label} ${value} ${unit}`}
+    >
+      <span className="text-[10px] uppercase tracking-wider">{label}</span>
+      <span className="text-lg font-bold monitor-text leading-tight">{value}</span>
+      <span className="text-[9px] opacity-80">{unit}{note ? ` · ${note}` : ''}</span>
+    </div>
+  );
+}

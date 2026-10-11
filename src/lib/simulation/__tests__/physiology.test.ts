@@ -127,6 +127,8 @@ function makeSettings(patient: PatientPhysiology, patch: Partial<AllModeParams>)
     pInsp: 15,
     pMax: 35,
     pressureSupport: patient.optimalPS,
+    riseTime: 0.15,
+    ets: 25,
     pHigh: 28,
     pLow: 0,
     tHigh: 4.5,

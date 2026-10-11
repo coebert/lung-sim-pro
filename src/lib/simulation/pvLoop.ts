@@ -15,9 +15,13 @@ import type { PatientPhysiology, VentSettings } from './types';
  *    the airway pressure sits slightly above PEEP by the circuit/valve
  *    resistance times expiratory flow.
  *
- * Pressure-targeted modes keep the ventilator's set airway pressure (the
- * lung shape then shows up in the volume reached, which the model already
- * captures through the time constant).
+ * Pressure-targeted modes (PCV/PRVC/PSV/APRV) are drawn straight from the
+ * measured airway pressure and volume, as a real ventilator does: Paw is
+ * held near-square, so the loop is box-like. Its shape comes from the rise
+ * time and the R·C time constant — high resistance delays filling, so more
+ * of the pressure rise happens before volume arrives and the loop widens.
+ * The recruitment knee / overdistension beak only belong to flow-controlled
+ * (VCV / SIMV mandatory) breaths.
  */
 const UPPER_KNEE = 25;      // cmH₂O alveolar pressure where overdistension starts
 const UPPER_GAIN = 0.04;    // cmH₂O per cmH₂O² above the knee
@@ -39,18 +43,20 @@ export function pvLoopPressures(
   const recruitAmp = Math.max(0, opening - base) * LOWER_GAIN;
   const v0 = 3 * C; // mL over which recruitment completes
 
+  const volumeControlled = settings.mode === 'VCV' || settings.mode === 'SIMV';
   for (let i = 0; i < n; i++) {
     const p = pressure[i];
+    if (!volumeControlled) {
+      out[i] = p;
+      continue;
+    }
     const fLs = flow[i] / 60;
     if (fLs < 0) {
       out[i] = p + EXP_CIRCUIT_R * -fLs;
       continue;
     }
-    // Pressure-targeted modes (APRV/PCV/PSV/PRVC) hold Paw at the set level,
-    // so shape the displayed pressure around it: strip the resistive drop to
-    // get alveolar pressure, apply the compliance knees, then add it back.
-    // With flow ≈ 0 on the APRV T High plateau this still curves the loop
-    // with compliance (recruitment limb) and resistance (hysteresis width).
+    // Strip the resistive drop to get alveolar pressure, apply the
+    // compliance knees, then add it back.
     const resistive = R * fLs;
     const vel = Math.max(0, (p - base - resistive) * C); // mL above PEEP (incl. trapped)
     const palvLin = base + vel / C;

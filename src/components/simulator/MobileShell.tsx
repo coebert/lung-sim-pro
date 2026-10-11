@@ -81,7 +81,7 @@ export function MobileOverlayPanel({
 
   let content: ReactNode = null;
   if (overlay === 'controls') {
-    content = <VentilatorControls settings={settings} onUpdate={simulationStore.updateSettings} />;
+    content = <VentilatorControls settings={settings} patient={patient} onUpdate={simulationStore.updateSettings} />;
   } else if (overlay === 'patients') {
     content = (
       <PatientSelector
