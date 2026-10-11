@@ -27,7 +27,7 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     const peepRatio = settings.peep / patient.optimalPEEP;
 
     if (vitals.spo2 < 88) {
-      list.push({ text: `Critical hypoxaemia (SpO₂ ${Math.round(vitals.spo2)}%). Consider increasing FiO₂ or PEEP.`, severity: 'danger' });
+      list.push({ text: `Critical hypoxaemia (SpO₂ ${Math.round(vitals.spo2)}%). Consider increasing FiO₂ or ${settings.mode === 'APRV' ? 'P High / shortening T Low' : 'PEEP'}.`, severity: 'danger' });
     } else if (vitals.spo2 < 92) {
       list.push({ text: `SpO₂ is low (${Math.round(vitals.spo2)}%). Oxygenation may be inadequate.`, severity: 'warn' });
     } else if (vitals.spo2 >= 96) {
@@ -41,8 +41,10 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       list.push({ text: `FiO₂ may be insufficient for this patient's pathology. Target ~${(patient.optimalFiO2 * 100).toFixed(0)}%.`, severity: 'warn' });
     }
 
-    // ── PEEP ──
-    if (peepRatio < 0.6) {
+    // ── PEEP ── (not applicable in APRV: end-expiratory pressure comes from P Low + auto-PEEP)
+    if (settings.mode === 'APRV') {
+      // handled in APRV-specific section
+    } else if (peepRatio < 0.6) {
       list.push({ text: `PEEP is low (${settings.peep} cmH₂O) for this patient. Optimal ~${patient.optimalPEEP} cmH₂O. Risk of atelectasis.`, severity: 'warn' });
     } else if (settings.peep > patient.optimalPEEP * 1.5) {
       list.push({ text: `PEEP is excessive (${settings.peep} cmH₂O). Risk of overdistension, haemodynamic compromise and shunting.`, severity: 'danger' });
