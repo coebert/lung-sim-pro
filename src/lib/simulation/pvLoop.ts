@@ -34,7 +34,6 @@ export function pvLoopPressures(
   const out = new Array<number>(n);
   const C = patient.compliance; // mL/cmH₂O
   const R = patient.resistance;
-  const flowControlled = settings.mode === 'VCV' || settings.mode === 'SIMV';
   const base = settings.mode === 'APRV' ? settings.pLow : settings.peep;
   const opening = patient.openingPressure ?? patient.optimalPEEP * 1.5;
   const recruitAmp = Math.max(0, opening - base) * LOWER_GAIN;
@@ -47,7 +46,11 @@ export function pvLoopPressures(
       out[i] = p + EXP_CIRCUIT_R * -fLs;
       continue;
     }
-    if (!flowControlled || fLs === 0) { out[i] = p; continue; }
+    // Pressure-targeted modes (APRV/PCV/PSV/PRVC) hold Paw at the set level,
+    // so shape the displayed pressure around it: strip the resistive drop to
+    // get alveolar pressure, apply the compliance knees, then add it back.
+    // With flow ≈ 0 on the APRV T High plateau this still curves the loop
+    // with compliance (recruitment limb) and resistance (hysteresis width).
     const resistive = R * fLs;
     const vel = Math.max(0, (p - base - resistive) * C); // mL above PEEP (incl. trapped)
     const palvLin = base + vel / C;
