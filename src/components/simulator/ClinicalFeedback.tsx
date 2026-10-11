@@ -164,17 +164,20 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
         list.push({ text: `T High (${tHigh.toFixed(1)}s) allows adequate time for sustained alveolar recruitment.`, severity: 'good' });
       }
 
-      // T Low assessment
+      // T Low assessment — tidal volume is a function of T Low: a long T Low
+      // permits full exhalation (large VT, derecruitment); the ideal T Low
+      // cycles back to P High before expiration has completed.
+      const measuredVT = measured.measuredTV;
       if (tLow < 0.1) {
         list.push({ text: `T Low too short (${tLow.toFixed(1)}s). No meaningful release occurring — CO₂ cannot be cleared.`, severity: 'danger' });
       } else if (tLow > 1.2) {
-        list.push({ text: `T Low too long (${tLow.toFixed(1)}s). Full exhalation is occurring — this causes de-recruitment, losing the benefit of P High. Keep T Low 0.3–0.8s to maintain auto-PEEP.`, severity: 'danger' });
+        list.push({ text: `T Low too long (${tLow.toFixed(1)}s). Expiration completes fully before the ventilator cycles back to P High — hence the large tidal volume (measured VT ${measuredVT} mL). Full exhalation causes de-recruitment and loss of oxygenation. Shorten T Low (0.3–0.8s) so it cycles back to P High before the patient has fully expired.`, severity: 'danger' });
       } else if (tLow > 0.8) {
-        list.push({ text: `T Low is slightly long (${tLow.toFixed(1)}s). Exhalation may be too complete, risking partial de-recruitment. Ideal: 0.3–0.8s.`, severity: 'warn' });
+        list.push({ text: `T Low is slightly long (${tLow.toFixed(1)}s). Expiration is nearly complete (VT ${measuredVT} mL), risking partial de-recruitment. Ideal: 0.3–0.8s.`, severity: 'warn' });
       } else if (tLow < 0.3) {
-        list.push({ text: `T Low is very short (${tLow.toFixed(1)}s). Auto-PEEP is maintained but CO₂ clearance is limited. May cause hypercapnia.`, severity: 'warn' });
+        list.push({ text: `T Low is very short (${tLow.toFixed(1)}s). Auto-PEEP is maintained (VT truncated to ${measuredVT} mL) but CO₂ clearance is limited. May cause hypercapnia.`, severity: 'warn' });
       } else {
-        list.push({ text: `T Low (${tLow.toFixed(1)}s) is optimal — brief release maintains auto-PEEP while permitting CO₂ clearance.`, severity: 'good' });
+        list.push({ text: `T Low (${tLow.toFixed(1)}s) is optimal — the ventilator cycles back to P High before expiration is complete, maintaining auto-PEEP and recruitment while permitting CO₂ clearance (VT ${measuredVT} mL).`, severity: 'good' });
       }
 
       // P Low assessment
