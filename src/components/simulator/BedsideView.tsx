@@ -68,7 +68,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, onUpdate }:
       </div>
 
       {/* Single large waveform */}
-      <div className="flex-1 min-h-0 rounded-md border border-vent-tile-border bg-vent-screen p-1">
+      <div className="flex-1 min-h-0 flex flex-col rounded-md border border-vent-tile-border bg-vent-screen p-1">
         <WaveformCanvas
           data={buffers[trace]}
           color={t.color}
