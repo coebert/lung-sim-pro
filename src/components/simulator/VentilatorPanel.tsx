@@ -1,4 +1,5 @@
 import { WaveformCanvas } from './WaveformCanvas';
+import { LoopCanvas } from './LoopCanvas';
 import { WaveformBuffers, MeasuredValues, VentSettings } from '@/lib/simulation/types';
 import type { Alarm } from '@/lib/simulation/alarms';
 import { WAVE_COLOR } from '@/lib/theme';
@@ -71,6 +72,21 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false, 
           <WaveformCanvas data={buffers.volume} color={WAVE_COLOR.volume} label="Volume" unit="mL"
             minValue={0} maxValue={maxVolume} autoHeight />
         </div>
+
+        {!compact && (
+          <div className="flex flex-col gap-1 w-[150px] shrink-0 min-h-0">
+            <div className="flex-1 min-h-0 border border-vent-tile-border rounded">
+              <LoopCanvas x={buffers.pressure} y={buffers.volume} label="P–V loop"
+                xRange={[0, maxPressure]} yRange={[0, maxVolume]}
+                color={WAVE_COLOR.pressure} xUnit="cmH₂O" yUnit="mL" />
+            </div>
+            <div className="flex-1 min-h-0 border border-vent-tile-border rounded">
+              <LoopCanvas x={buffers.volume} y={buffers.flow} label="F–V loop"
+                xRange={[0, maxVolume]} yRange={[-maxFlow, maxFlow]}
+                color={WAVE_COLOR.flow} xUnit="mL" yUnit="L/min" />
+            </div>
+          </div>
+        )}
 
         <div className={`flex flex-col gap-1 ${compact ? 'w-[64px]' : 'w-[104px]'} shrink-0 overflow-y-auto`}>
           <Group compact={compact} color={WAVE_COLOR.pressure} rows={[
