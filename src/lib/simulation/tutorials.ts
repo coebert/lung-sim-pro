@@ -18,6 +18,8 @@ export interface TutorialScenario {
   introduction: string;
   steps: TutorialStep[];
   summary: string;
+  /** Short label for the tutorial picker tab when a patient has several. */
+  tabLabel?: string;
 }
 
 export const tutorials: TutorialScenario[] = [
@@ -59,7 +61,7 @@ export const tutorials: TutorialScenario[] = [
     patientId: 'ards',
     title: 'ARDS: Lung-Protective Ventilation',
     introduction:
-      'This patient has severe ARDS with very low compliance. The lungs are stiff and collapsed. Your goals are: protect the lung from further injury, recruit collapsed alveoli, and maintain acceptable oxygenation. Permissive hypercapnia may be necessary.',
+      'This patient has mild ARDS with reduced compliance. The lungs are stiff and collapsed. Your goals are: protect the lung from further injury, recruit collapsed alveoli, and maintain acceptable oxygenation. Permissive hypercapnia may be necessary.',
     steps: [
       {
         title: 'Reduce tidal volume to ≤6 mL/kg',
@@ -72,7 +74,7 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Increase PEEP to recruit collapsed lung',
         instruction:
-          'ARDS requires higher PEEP to keep collapsed alveoli open (recruitment). Watch the lung animation — atelectasis patches should begin to clear. Target PEEP 12–16 cmH₂O. Note that plateau pressure rises with PEEP in these very stiff lungs: if it exceeds 30 cmH₂O, reduce TV towards 4–5 mL/kg and accept a higher CO₂.',
+          'ARDS requires higher PEEP to keep collapsed alveoli open (recruitment). Watch the lung animation — atelectasis patches should begin to clear. Target PEEP 12–16 cmH₂O. Note that plateau pressure rises with PEEP in these stiff lungs: if it exceeds 30 cmH₂O, reduce TV towards 4–5 mL/kg and accept a higher CO₂.',
         hint: 'Increase PEEP to 14 cmH₂O and watch the SpO₂ improve.',
         check: (s) => s.peep >= 12 && s.peep <= 18,
         successMessage: 'PEEP is in the therapeutic range. You should see recruitment occurring in the lung animation.',
@@ -298,6 +300,75 @@ export const tutorials: TutorialScenario[] = [
     ],
     summary:
       'You successfully applied APRV to an ARDS patient. Key principles: P High 25–30 cmH₂O for recruitment, P Low 0 for maximal driving pressure, T High 4–6 s for sustained opening, and T Low 0.3–0.8 s to prevent de-recruitment. APRV maintains a high mean airway pressure that keeps alveoli open while brief releases allow CO₂ clearance.',
+  },
+  {
+    patientId: 'ards',
+    tabLabel: 'ARDSNet',
+    title: 'ARDSNet Protocol: Keeping Plateau Pressure Under 30',
+    introduction:
+      'This patient has mild ARDS (compliance 40 mL/cmH₂O, predicted body weight 70 kg). You will apply the ARDSNet low tidal volume protocol step by step. The key relationship: plateau pressure ≈ PEEP + tidal volume ÷ compliance. Both PEEP and tidal volume push plateau up, so every PEEP increase must be balanced against tidal volume to keep plateau ≤ 30 cmH₂O.',
+    steps: [
+      {
+        title: 'Use volume control (VCV)',
+        instruction:
+          'ARDSNet was carried out using volume-assist control. Select VCV so you set the tidal volume directly and can read plateau pressure from the lung model.',
+        hint: 'Choose VCV from the mode selector.',
+        check: (s) => s.mode === 'VCV',
+        successMessage: 'VCV is active. Tidal volume is now fixed, so plateau pressure tells you how stiff the lung is.',
+      },
+      {
+        title: 'Set tidal volume to 6 mL/kg PBW',
+        instruction:
+          'ARDSNet starts at 8 mL/kg predicted body weight and reduces to 6 mL/kg. Always use predicted (not actual) body weight. For PBW 70 kg, 6 mL/kg is 420 mL.',
+        hint: 'Set tidal volume to 420 mL (accepted range 400–440 mL).',
+        check: (s) => s.mode === 'VCV' && s.tidalVolume >= 400 && s.tidalVolume <= 440,
+        successMessage: 'Tidal volume is 6 mL/kg PBW. At this compliance each breath adds about 10–11 cmH₂O above PEEP.',
+      },
+      {
+        title: 'Raise respiratory rate to keep minute ventilation',
+        instruction:
+          'The smaller breaths lower minute ventilation. Increase the rate (ARDSNet maximum 35/min) to clear CO₂. Watch the flow trace: expiratory flow should return to zero before the next breath, or gas becomes trapped.',
+        hint: 'Set RR 20–30/min.',
+        check: (s) => s.respiratoryRate >= 20 && s.respiratoryRate <= 35,
+        successMessage: 'Rate is compensating for the smaller breaths. Minute ventilation is close to its previous level.',
+      },
+      {
+        title: 'Pair PEEP with FiO₂ (ARDSNet lower PEEP table)',
+        instruction:
+          'ARDSNet links PEEP to FiO₂: 0.4 → 5–8, 0.5 → 8–10, 0.6 → 10, 0.7 → 10–14, 0.8 → 14, 0.9 → 14–18, 1.0 → 18–24. Choose a matching pair that gives SpO₂ 88–95%. As you raise PEEP, watch plateau pressure climb by the same amount.',
+        hint: 'Try FiO₂ 0.8 with PEEP 14.',
+        check: (s, v) => {
+          const f = Math.round(s.fio2 * 10) / 10;
+          const table: Record<string, [number, number]> = {
+            '0.4': [5, 8], '0.5': [8, 10], '0.6': [10, 10], '0.7': [10, 14],
+            '0.8': [14, 14], '0.9': [14, 18], '1': [18, 24],
+          };
+          const r = table[String(f)];
+          return !!r && s.peep >= r[0] && s.peep <= r[1] && v.spo2 >= 88;
+        },
+        successMessage: 'PEEP and FiO₂ match the ARDSNet table and oxygenation is on target (SpO₂ 88–95%).',
+      },
+      {
+        title: 'Check plateau pressure ≤ 30 cmH₂O',
+        instruction:
+          'Read the plateau pressure. With PEEP 14 and 420 mL it should be about 24–25 cmH₂O (14 + 420 ÷ 40). If plateau is above 30, ARDSNet tells you to reduce tidal volume by 1 mL/kg steps, down to 4 mL/kg (280 mL), rather than lowering PEEP. Driving pressure (plateau − PEEP) should ideally be ≤ 15.',
+        hint: 'If plateau is over 30, lower TV towards 350 mL (5 mL/kg) or 280 mL (4 mL/kg).',
+        check: (s, _v, m) =>
+          s.mode === 'VCV' && s.tidalVolume >= 280 && s.tidalVolume <= 440 &&
+          m.plateauPressure <= 30 && m.plateauPressure - s.peep <= 15,
+        successMessage: 'Plateau ≤ 30 and driving pressure ≤ 15. The lung is protected from overdistension.',
+      },
+      {
+        title: 'Accept permissive hypercapnia',
+        instruction:
+          'Low tidal volume often raises CO₂. ARDSNet accepts this as long as pH stays ≥ 7.30, raising the rate (up to 35) if needed. Never increase tidal volume above 6 mL/kg to correct CO₂ if that pushes plateau above 30.',
+        hint: 'Keep EtCO₂ ≤ 60 mmHg, with plateau still ≤ 30.',
+        check: (s, v, m) => v.etco2 <= 60 && m.plateauPressure <= 30 && s.tidalVolume <= 440,
+        successMessage: 'CO₂ is acceptable and plateau is still protective. You have completed the ARDSNet protocol.',
+      },
+    ],
+    summary:
+      'ARDSNet in brief: VCV, tidal volume 6 mL/kg PBW (4–8), rate up to 35, PEEP paired with FiO₂ from the table, SpO₂ 88–95%, plateau ≤ 30 cmH₂O. Plateau ≈ PEEP + VT ÷ compliance, so when PEEP rises, tidal volume must sometimes fall. Protect the lung first; accept a higher CO₂.',
   },
 ];
 

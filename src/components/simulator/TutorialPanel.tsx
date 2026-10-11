@@ -276,7 +276,7 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
               className={`flex-1 truncate text-[10px] px-1.5 py-0.5 rounded border ${i === tutorialIdx ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}
               title={t.title}
             >
-              {t.title.startsWith('APRV') ? 'APRV' : 'Conventional'}
+              {t.tabLabel ?? (t.title.startsWith('APRV') ? 'APRV' : 'Conventional')}
             </button>
           ))}
         </div>
