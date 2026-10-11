@@ -82,6 +82,7 @@ function runTrajectory(
         volume.recent(RECENT_WINDOW),
         actualRR,
         settings.peep,
+        patient.compliance,
       );
       vitals = updateVitals(settings, patient, vitals, measured, /* prone */ false);
     }

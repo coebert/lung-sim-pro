@@ -88,6 +88,8 @@ export function computeMeasured(
   recentVolume: ArrayLike<number>,
   actualRR: number,
   peep: number,
+  /** Respiratory-system compliance (mL/cmH₂O). Needed for model-derived plateau / auto-PEEP. */
+  complianceMl: number = 0,
 ): MeasuredValues {
   let peakPressure = -Infinity;
   let sumPressure = 0;
@@ -111,9 +113,16 @@ export function computeMeasured(
   }
   const measuredTV = isFinite(volMax) && isFinite(volMin) ? Math.max(0, volMax - volMin) : 0;
 
+  // Plateau = end-inspiratory ALVEOLAR pressure (what an inspiratory hold
+  // reads): baseline + total lung volume above FRC / compliance. Auto-PEEP =
+  // end-expiratory alveolar pressure above baseline (expiratory hold).
+  const hasModel = complianceMl > 0 && isFinite(volMax) && isFinite(volMin);
+  const plateau = hasModel ? Math.min(peakPressure, peep + Math.max(0, volMax) / complianceMl) : peakPressure * 0.85;
+  const autoPEEP = hasModel ? Math.max(0, volMin) / complianceMl : 0;
+
   return {
     peakPressure: Math.round(peakPressure * 10) / 10,
-    plateauPressure: Math.round(peakPressure * 0.85 * 10) / 10,
+    plateauPressure: Math.round(plateau * 10) / 10,
     meanPressure: Math.round(meanPressure * 10) / 10,
     measuredTV: Math.round(measuredTV),
     minuteVentilation: Math.round((measuredTV * actualRR) / 100) / 10,
@@ -121,6 +130,7 @@ export function computeMeasured(
     dynamicCompliance: measuredTV > 0 && peakPressure > peep
       ? Math.round(measuredTV / (peakPressure - peep))
       : 0,
+    autoPEEP: Math.round(autoPEEP * 10) / 10,
   };
 }
 
@@ -179,9 +189,13 @@ export function updateVitals(
   // Over-supply of O₂/PEEP is not "distress"; under-ventilation and
   // gross over-ventilation both are.
   const distress = Math.max(0, 1 - oxygenScore) + Math.abs(1 - Math.min(ventRatio, 2)) + shuntFraction * 3;
-  const targetHR = patient.baseHR + distress * 25;
+  const targetHR = patient.baseHR + distress * 25 + hyperinflation * 2;
 
-  const peepEffect = Math.max(0, settings.peep - patient.optimalPEEP) * 2;
+  // Dynamic hyperinflation: trapped gas raises intrathoracic pressure,
+  // cutting venous return (hypotension, tachycardia) and adding dead space.
+  const hyperinflation = Math.max(0, measured.autoPEEP - 2);
+  targetEtCO2 += hyperinflation * 1.5;
+  const peepEffect = Math.max(0, settings.peep - patient.optimalPEEP) * 2 + hyperinflation * 4;
   const shuntBPPenalty = shuntFraction * 30;
   const targetSBP = patient.baseSBP - peepEffect - shuntBPPenalty + distress * 10;
   const targetDBP = patient.baseDBP - peepEffect * 0.5 - shuntBPPenalty * 0.5 + distress * 5;
@@ -285,6 +299,7 @@ export function simulationTick(
     newBuffers.volume.slice(-RECENT_WINDOW),
     effectiveRate(settings, patient),
     baselinePressure(settings),
+    patient.compliance,
   );
   const newVitals = updateVitals(settings, patient, vitals, measured, prone);
   return { vitals: newVitals, measured, buffers: newBuffers };

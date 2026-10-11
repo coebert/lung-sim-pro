@@ -122,6 +122,8 @@ export interface MeasuredValues {
   minuteVentilation: number;
   measuredRR: number;
   dynamicCompliance: number;
+  /** Intrinsic PEEP (cmH₂O): end-expiratory alveolar pressure above set PEEP / P Low from trapped gas. */
+  autoPEEP: number;
 }
 
 /** Named channels for the seven live waveform buffers. */

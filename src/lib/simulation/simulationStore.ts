@@ -107,7 +107,7 @@ class SimulationStore {
   // Live physiology
   private vitals: Vitals;
   private measured: MeasuredValues = {
-    peakPressure: 0, plateauPressure: 0, meanPressure: 0,
+    peakPressure: 0, plateauPressure: 0, meanPressure: 0, autoPEEP: 0,
     measuredTV: 0, minuteVentilation: 0, measuredRR: 14, dynamicCompliance: 0,
   };
   private alarms: Alarm[] = [];
@@ -193,7 +193,7 @@ class SimulationStore {
     this.patient = patient;
     this.vitals = createInitialVitals(patient);
     this.measured = {
-      peakPressure: 0, plateauPressure: 0, meanPressure: 0,
+      peakPressure: 0, plateauPressure: 0, meanPressure: 0, autoPEEP: 0,
       measuredTV: 0, minuteVentilation: 0, measuredRR: 14, dynamicCompliance: 0,
     };
     this.alarms = [];
@@ -298,6 +298,7 @@ class SimulationStore {
         this.rings.volume.recent(RECENT_WINDOW),
         effectiveRate(this.settings, this.patient),
         baselinePressure(this.settings),
+        this.patient.compliance,
       );
       this.vitals = updateVitals(this.settings, this.patient, this.vitals, this.measured, this.prone);
       this.alarms = evaluateAlarms(this.measured, this.vitals, DEFAULT_ALARM_LIMITS);
