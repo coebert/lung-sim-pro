@@ -13,10 +13,10 @@ export interface CommonSettings {
  * meaningful for that mode, so the compiler flags out-of-mode access at the call site. */
 export type VentSettings =
   | (CommonSettings & { mode: 'VCV';  tidalVolume: number; flowRate: number })
-  | (CommonSettings & { mode: 'PCV';  pInsp: number })
-  | (CommonSettings & { mode: 'PRVC'; tidalVolume: number; pMax: number })
+  | (CommonSettings & { mode: 'PCV';  pInsp: number; riseTime: number })
+  | (CommonSettings & { mode: 'PRVC'; tidalVolume: number; pMax: number; riseTime: number })
   | (CommonSettings & { mode: 'SIMV'; tidalVolume: number; pressureSupport: number })
-  | (CommonSettings & { mode: 'PSV';  pressureSupport: number })
+  | (CommonSettings & { mode: 'PSV';  pressureSupport: number; riseTime: number; ets: number })
   | (CommonSettings & { mode: 'APRV'; pHigh: number; pLow: number; tHigh: number; tLow: number });
 
 export type VCVSettings  = Extract<VentSettings, { mode: 'VCV'  }>;
@@ -38,6 +38,10 @@ export interface AllModeParams extends CommonSettings {
   pInsp: number;
   pMax: number;
   pressureSupport: number;
+  /** Pressure rise time (s) for pressure-targeted breaths (PCV/PRVC/PSV). */
+  riseTime: number;
+  /** PSV expiratory trigger sensitivity: cycle off at this % of peak flow. */
+  ets: number;
   pHigh: number;
   pLow: number;
   tHigh: number;
@@ -55,10 +59,10 @@ export function buildVentSettings(all: AllModeParams): VentSettings {
   };
   switch (all.mode) {
     case 'VCV':  return { ...common, mode: 'VCV',  tidalVolume: all.tidalVolume, flowRate: all.flowRate };
-    case 'PCV':  return { ...common, mode: 'PCV',  pInsp: all.pInsp };
-    case 'PRVC': return { ...common, mode: 'PRVC', tidalVolume: all.tidalVolume, pMax: all.pMax };
+    case 'PCV':  return { ...common, mode: 'PCV',  pInsp: all.pInsp, riseTime: all.riseTime };
+    case 'PRVC': return { ...common, mode: 'PRVC', tidalVolume: all.tidalVolume, pMax: all.pMax, riseTime: all.riseTime };
     case 'SIMV': return { ...common, mode: 'SIMV', tidalVolume: all.tidalVolume, pressureSupport: all.pressureSupport };
-    case 'PSV':  return { ...common, mode: 'PSV',  pressureSupport: all.pressureSupport };
+    case 'PSV':  return { ...common, mode: 'PSV',  pressureSupport: all.pressureSupport, riseTime: all.riseTime, ets: all.ets };
     case 'APRV': return { ...common, mode: 'APRV', pHigh: all.pHigh, pLow: all.pLow, tHigh: all.tHigh, tLow: all.tLow };
   }
 }

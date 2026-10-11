@@ -188,6 +188,8 @@ export function getDefaultAllParams(_patient: PatientPhysiology): AllModeParams 
     pInsp: 15,
     pMax: 35,
     pressureSupport: 10,
+    riseTime: 0.15,
+    ets: 25,
     pHigh: 25,
     pLow: 0,
     tHigh: 4,

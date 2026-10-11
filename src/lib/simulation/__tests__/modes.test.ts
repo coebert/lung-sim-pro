@@ -33,6 +33,8 @@ const baseParams: AllModeParams = {
   pInsp: 18,
   pMax: 35,
   pressureSupport: 10,
+  riseTime: 0.15,
+  ets: 25,
   pHigh: 28,
   pLow: 0,
   tHigh: 4.5,
@@ -46,10 +48,10 @@ describe('buildVentSettings — discriminated-union narrowing', () => {
 
   const expectedExtraKeys: Record<VentMode, string[]> = {
     VCV:  ['tidalVolume', 'flowRate'],
-    PCV:  ['pInsp'],
-    PRVC: ['tidalVolume', 'pMax'],
+    PCV:  ['pInsp', 'riseTime'],
+    PRVC: ['tidalVolume', 'pMax', 'riseTime'],
     SIMV: ['tidalVolume', 'pressureSupport'],
-    PSV:  ['pressureSupport'],
+    PSV:  ['pressureSupport', 'riseTime', 'ets'],
     APRV: ['pHigh', 'pLow', 'tHigh', 'tLow'],
   };
 
