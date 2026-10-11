@@ -486,7 +486,7 @@ exports[`physiology trajectory — golden files > bronchospasm (Severe Bronchosp
 ]
 `;
 
-exports[`physiology trajectory — golden files > healthy (Healthy Adult (70kg)) > 'VCV — protective baseline' 1`] = `
+exports[`physiology trajectory — golden files > healthy (Healthy Adult — Paralyzed (70kg)) > 'VCV — protective baseline' 1`] = `
 [
   {
     "measured": {
@@ -561,6 +561,87 @@ exports[`physiology trajectory — golden files > healthy (Healthy Adult (70kg))
       "etco2": 38,
       "hr": 72.2,
       "sbp": 120.1,
+      "spo2": 99.4,
+    },
+  },
+]
+`;
+
+exports[`physiology trajectory — golden files > healthy-spont (Healthy Adult — Self-Ventilating (70kg)) > 'PSV — self-ventilating healthy' 1`] = `
+[
+  {
+    "measured": {
+      "dynamicCompliance": 49,
+      "meanPressure": 8.7,
+      "measuredRR": 14,
+      "measuredTV": 491,
+      "minuteVentilation": 6.9,
+      "peakPressure": 15,
+      "plateauPressure": 12.8,
+    },
+    "t": 5,
+    "vitals": {
+      "dbp": 75,
+      "etco2": 38,
+      "hr": 72.1,
+      "sbp": 120,
+      "spo2": 99,
+    },
+  },
+  {
+    "measured": {
+      "dynamicCompliance": 49,
+      "meanPressure": 7.6,
+      "measuredRR": 14,
+      "measuredTV": 490,
+      "minuteVentilation": 6.9,
+      "peakPressure": 15,
+      "plateauPressure": 12.8,
+    },
+    "t": 15,
+    "vitals": {
+      "dbp": 75,
+      "etco2": 38,
+      "hr": 72.1,
+      "sbp": 120,
+      "spo2": 99.1,
+    },
+  },
+  {
+    "measured": {
+      "dynamicCompliance": 49,
+      "meanPressure": 7.5,
+      "measuredRR": 14,
+      "measuredTV": 490,
+      "minuteVentilation": 6.9,
+      "peakPressure": 15,
+      "plateauPressure": 12.8,
+    },
+    "t": 30,
+    "vitals": {
+      "dbp": 75,
+      "etco2": 38,
+      "hr": 72,
+      "sbp": 120,
+      "spo2": 99.3,
+    },
+  },
+  {
+    "measured": {
+      "dynamicCompliance": 49,
+      "meanPressure": 7.5,
+      "measuredRR": 14,
+      "measuredTV": 490,
+      "minuteVentilation": 6.9,
+      "peakPressure": 15,
+      "plateauPressure": 12.8,
+    },
+    "t": 60,
+    "vitals": {
+      "dbp": 75,
+      "etco2": 38,
+      "hr": 72,
+      "sbp": 120,
       "spo2": 99.4,
     },
   },
