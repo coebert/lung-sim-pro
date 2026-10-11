@@ -12,8 +12,10 @@ import {
   BUFFER_SIZE,
   RECENT_WINDOW,
   TICK_DT,
+  baselinePressure,
   computeMeasured,
   createInitialVitals,
+  effectiveRate,
   generateWaveformSample,
   updateVitals,
 } from './engine';
@@ -132,6 +134,8 @@ class SimulationStore {
   };
   /** Last APRV cycle phase seen, for detecting the T Low → P High wrap. */
   private prevAprvPhase = 0;
+  /** Last APRV cycle length; a change resets phase tracking. */
+  private prevAprvCycle = 0;
 
   // Cached immutable snapshots — replaced on each notification.
   private waveformSnapshot: WaveformBuffers;
@@ -267,7 +271,13 @@ class SimulationStore {
     // APRV: flag the sample where the cycle wraps from T Low back to P High,
     // so the flow trace can mark the moment relative to expiratory flow.
     if (this.settings.mode === 'APRV') {
-      const totalCycle = this.settings.tHigh + this.settings.tLow;
+      const totalCycle = Math.max(0.2, this.settings.tHigh + this.settings.tLow);
+      // If the cycle length changed mid-run the phase comparison is
+      // meaningless — restart it rather than fire a spurious marker.
+      if (totalCycle !== this.prevAprvCycle) {
+        this.prevAprvCycle = totalCycle;
+        this.prevAprvPhase = 0;
+      }
       const phase = this.time % totalCycle;
       this.rings.aprvMarkers.push(phase < this.prevAprvPhase ? 1 : 0);
       this.prevAprvPhase = phase;
@@ -283,14 +293,11 @@ class SimulationStore {
     this.msSinceVitalsNotify += TICK_INTERVAL_MS;
     if (this.msSinceVitalsNotify >= VITALS_NOTIFY_INTERVAL_MS) {
       this.msSinceVitalsNotify = 0;
-      const actualRR = this.settings.mode === 'PSV'
-        ? (this.patient.spontaneousRate || 12)
-        : this.settings.respiratoryRate;
       this.measured = computeMeasured(
         this.rings.pressure.recent(RECENT_WINDOW),
         this.rings.volume.recent(RECENT_WINDOW),
-        actualRR,
-        this.settings.peep,
+        effectiveRate(this.settings, this.patient),
+        baselinePressure(this.settings),
       );
       this.vitals = updateVitals(this.settings, this.patient, this.vitals, this.measured, this.prone);
       this.alarms = evaluateAlarms(this.measured, this.vitals, DEFAULT_ALARM_LIMITS);
