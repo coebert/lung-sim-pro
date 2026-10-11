@@ -169,17 +169,26 @@ function aprvWaveform(time: number, s: APRVSettings, p: PatientPhysiology) {
   const R = p.resistance;
   const tau = R * C;
 
+  // The release breath obeys the patient's real expiratory time constant, so
+  // T Low genuinely determines how much lung volume is exhaled per cycle:
+  // a short T Low truncates expiration (small tidal volume, auto-PEEP above
+  // P Low preserves recruitment); a long T Low allows full exhalation (large
+  // tidal volume, derecruitment).  Closed-form steady state keeps the
+  // waveform a pure function of time — no state carried between samples.
+  const volMax = (s.pHigh - s.pLow) * C * 1000; // ml above P Low equilibrium
+  const kH = Math.exp(-s.tHigh / tau);
+  const kL = Math.exp(-s.tLow / tau);
+  const vee = volMax * (1 - kH) * kL / (1 - kH * kL); // steady end-expiratory volume (auto-PEEP)
+
   if (phase < s.tHigh) {
-    const transitionTime = Math.min(phase, tau * 3);
-    const pressure = s.pHigh;
-    const volume = (s.pHigh - s.pLow) * C * (1 - Math.exp(-transitionTime / tau)) * 1000;
-    const flow = phase < tau * 3 ? ((s.pHigh - s.pLow) / R) * Math.exp(-transitionTime / tau) * 60 : 0;
-    return { pressure, flow, volume };
+    const volume = volMax * (1 - Math.exp(-phase / tau)) + vee * Math.exp(-phase / tau);
+    const flow = ((s.pHigh - s.pLow) / R) * Math.exp(-phase / tau) * 60;
+    return { pressure: s.pHigh, flow, volume };
   } else {
     const ePhase = phase - s.tHigh;
-    const vol0 = (s.pHigh - s.pLow) * C * 1000;
-    const volume = vol0 * Math.exp(-ePhase / (tau * 0.3));
-    const flow = -(volume / 1000) / (tau * 0.3) * 60;
+    const vend = volMax * (1 - kH) + vee * kH; // volume at the moment of release
+    const volume = vend * Math.exp(-ePhase / tau);
+    const flow = -(volume / 1000) / tau * 60;
     const pressure = s.pLow + (volume / 1000) / C;
     return { pressure: Math.max(pressure, s.pLow), flow, volume: Math.max(volume, 0) };
   }
