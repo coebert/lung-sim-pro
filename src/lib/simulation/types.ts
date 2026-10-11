@@ -68,6 +68,7 @@ export function buildVentSettings(all: AllModeParams): VentSettings {
  * and mis-typed IDs surface as errors instead of silently failing at runtime. */
 export type PatientId =
   | 'healthy'
+  | 'healthy-spont'
   | 'obese'
   | 'ards'
   | 'bronchospasm'
