@@ -41,46 +41,46 @@ exports[`SIMV — mandatory VT is independent of pressure support > mandatory ti
 exports[`generateVentWaveformPoint — per-mode waveform shape > APRV — ARDS waveform samples are stable 1`] = `
 [
   {
-    "flow": 210,
-    "pressure": 28,
+    "flow": 0,
+    "pressure": 0,
     "t": 0,
-    "volume": 234.76,
+    "volume": 320.89,
   },
   {
     "flow": 50.74,
     "pressure": 28,
     "t": 0.45,
-    "volume": 906.12,
+    "volume": 926.93,
   },
   {
     "flow": 12.26,
     "pressure": 28,
     "t": 0.91,
-    "volume": 1068.33,
+    "volume": 1073.35,
   },
   {
     "flow": 2.96,
     "pressure": 28,
     "t": 1.36,
-    "volume": 1107.52,
+    "volume": 1108.73,
   },
   {
     "flow": 0.72,
     "pressure": 28,
     "t": 1.82,
-    "volume": 1116.98,
+    "volume": 1117.28,
   },
   {
     "flow": 0.17,
     "pressure": 28,
     "t": 2.27,
-    "volume": 1119.27,
+    "volume": 1119.34,
   },
   {
     "flow": 0.04,
     "pressure": 28,
     "t": 2.73,
-    "volume": 1119.82,
+    "volume": 1119.84,
   },
   {
     "flow": 0.01,
@@ -101,16 +101,16 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > APRV — ARDS w
     "volume": 1120,
   },
   {
-    "flow": -182.19,
-    "pressure": 0,
+    "flow": -144.99,
+    "pressure": 0.93,
     "t": 4.55,
-    "volume": 971.69,
+    "volume": 999.69,
   },
   {
-    "flow": 210,
-    "pressure": 28,
+    "flow": 0,
+    "pressure": 0,
     "t": 5,
-    "volume": 234.76,
+    "volume": 320.89,
   },
 ]
 `;

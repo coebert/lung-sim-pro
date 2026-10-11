@@ -191,29 +191,38 @@ function aprvWaveform(time: number, s: APRVSettings, p: PatientPhysiology) {
   const C = p.compliance / 1000;
   const R = p.resistance;
   const tau = R * C;
+  // Exhalation is passive through the ETT + expiratory limb, so the
+  // expiratory time constant is longer than the inspiratory one (as on
+  // real machines, where release flow decays more slowly than it rose).
+  const tauE = tau * 1.25;
 
-  // The release breath obeys the patient's real expiratory time constant, so
-  // T Low genuinely determines how much lung volume is exhaled per cycle:
-  // a short T Low truncates expiration (small tidal volume, auto-PEEP above
-  // P Low preserves recruitment); a long T Low allows full exhalation (large
-  // tidal volume, derecruitment).  Closed-form steady state keeps the
-  // waveform a pure function of time — no state carried between samples.
+  // Real-machine edge shapes: the ventilator takes ~0.12 s to build up to
+  // P High (rounded leading edge, flow peak slightly delayed), while the
+  // release valve opens almost instantly (~40 ms pressure fall, sharp PEFR).
+  const RISE = 0.12;
+  const VALVE = 0.04;
+
+  // Closed-form steady state keeps the waveform a pure function of time.
   const volMax = (s.pHigh - s.pLow) * C * 1000; // ml above P Low equilibrium
   const kH = Math.exp(-s.tHigh / tau);
-  const kL = Math.exp(-s.tLow / tau);
-  const vee = volMax * (1 - kH) * kL / Math.max(1e-6, 1 - kH * kL); // steady end-expiratory volume (auto-PEEP)
+  const kL = Math.exp(-s.tLow / tauE);
+  const vee = volMax * (1 - kH) * kL / Math.max(1e-6, 1 - kH * kL); // end-expiratory volume (auto-PEEP)
 
   if (phase < s.tHigh) {
     const volume = volMax * (1 - Math.exp(-phase / tau)) + vee * Math.exp(-phase / tau);
-    const flow = ((s.pHigh - s.pLow) / R) * Math.exp(-phase / tau) * 60;
-    return { pressure: s.pHigh, flow, volume };
+    const ramp = Math.min(1, phase / RISE);
+    const smooth = ramp * ramp * (3 - 2 * ramp); // ease-in/out leading edge
+    const pressure = s.pLow + (s.pHigh - s.pLow) * smooth;
+    const flow = ((s.pHigh - s.pLow) / R) * Math.exp(-phase / tau) * 60 * smooth;
+    return { pressure, flow, volume };
   } else {
     const ePhase = phase - s.tHigh;
     const vend = volMax * (1 - kH) + vee * kH; // volume at the moment of release
-    const volume = vend * Math.exp(-ePhase / tau);
-    const flow = -(volume / 1000) / tau * 60;
-    // Release valve open: airway pressure drops straight to P Low (square wave).
-    return { pressure: s.pLow, flow, volume: Math.max(volume, 0) };
+    const volume = vend * Math.exp(-ePhase / tauE);
+    const open = 1 - Math.exp(-ePhase / (VALVE / 3));
+    const flow = -(volume / 1000) / tauE * 60 * open;
+    const pressure = s.pLow + (s.pHigh - s.pLow) * Math.exp(-ePhase / (VALVE / 3));
+    return { pressure, flow, volume: Math.max(volume, 0) };
   }
 }
 
