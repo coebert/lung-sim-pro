@@ -142,7 +142,7 @@ const Index = () => {
                 <VentilatorPanel buffers={buffers} measured={measured} settings={settings} alarms={alarms} patient={patient} />
               </div>
               <div className="border-t border-border p-2 bg-vent-screen">
-                <VentilatorControls settings={settings} onUpdate={simulationStore.updateSettings} />
+                <VentilatorControls settings={settings} patient={patient} onUpdate={simulationStore.updateSettings} />
               </div>
             </div>
             <div className="flex-[2] flex flex-col min-w-0 border-l border-border">
