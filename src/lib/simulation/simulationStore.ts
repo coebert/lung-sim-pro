@@ -12,6 +12,7 @@ import {
 import {
   BUFFER_SIZE,
   RECENT_WINDOW,
+  SAMPLE_RATE,
   TICK_DT,
   baselinePressure,
   computeMeasured,

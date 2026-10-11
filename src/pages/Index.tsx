@@ -36,7 +36,15 @@ const Index = () => {
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
 
-  const toggleTutorial = useCallback(() => setTutorialActive((t) => !t), []);
+  // On desktop the tutorial is a side panel; on mobile it lives in the
+  // bottom-sheet overlay, so the header button routes there instead.
+  const toggleTutorial = useCallback(() => {
+    if (isDesktop) {
+      setTutorialActive((t) => !t);
+    } else {
+      setMobileOverlay((o) => (o === 'tutorial' ? 'none' : 'tutorial'));
+    }
+  }, [isDesktop]);
   useGlobalShortcuts({ onToggleTutorial: toggleTutorial });
 
   // Compact vitals bar for mobile header
