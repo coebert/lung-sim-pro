@@ -60,7 +60,7 @@ function runTrajectory(
   let vitals = createInitialVitals(patient);
   let measured: MeasuredValues = {
     peakPressure: 0, plateauPressure: 0, meanPressure: 0,
-    measuredTV: 0, minuteVentilation: 0, measuredRR: 14, dynamicCompliance: 0,
+    measuredTV: 0, minuteVentilation: 0, measuredRR: 14, dynamicCompliance: 0, autoPEEP: 0,
   };
   const frames: Frame[] = [];
   const totalTicks = Math.round(seconds * SAMPLE_RATE);
@@ -82,6 +82,7 @@ function runTrajectory(
         volume.recent(RECENT_WINDOW),
         actualRR,
         settings.peep,
+        patient.compliance,
       );
       vitals = updateVitals(settings, patient, vitals, measured, /* prone */ false);
     }
