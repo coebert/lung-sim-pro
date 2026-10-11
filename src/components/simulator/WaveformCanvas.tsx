@@ -12,6 +12,14 @@ interface WaveformCanvasProps {
   showGrid?: boolean;
   currentValue?: string;
   autoHeight?: boolean;
+  /**
+   * Optional per-sample flags aligned with `data`: 1 marks a sample where a
+   * vertical event line is drawn (used for the APRV cycle-back-to-P-High
+   * marker on the flow trace).
+   */
+  markers?: number[];
+  /** Caption drawn beside the first visible marker line. */
+  markerLabel?: string;
 }
 
 export function WaveformCanvas({
@@ -25,6 +33,8 @@ export function WaveformCanvas({
   showGrid = true,
   currentValue,
   autoHeight = false,
+  markers,
+  markerLabel,
 }: WaveformCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
