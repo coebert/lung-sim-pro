@@ -13,7 +13,9 @@ function calcTrappedVolume(s: CommonSettings, p: PatientPhysiology, deliveredVol
   const tau = R * C;
   const cycleTime = 60 / s.respiratoryRate;
   const iTime = s.inspiratoryTime > 0 ? s.inspiratoryTime : cycleTime / (1 + s.ieRatio);
-  const eTime = cycleTime - iTime;
+  // Clamp like computeIE: at high RR with a fixed Ti, eTime can hit ≤ 0,
+  // which made retainedFraction = 1 and trapped volume Infinity.
+  const eTime = Math.max(0.1, cycleTime - iTime);
 
   const retainedFraction = Math.exp(-eTime / tau);
   if (retainedFraction > 0.01) {
@@ -68,10 +70,11 @@ function vcvWaveform(time: number, s: VCVLike, p: PatientPhysiology) {
     return { pressure, flow: flow * 60, volume };
   } else {
     const ePhase = phase - iTime;
-    const vol0 = s.tidalVolume;
-    const exhaledVolume = vol0 * Math.exp(-ePhase / tau);
-    const volume = trapped + exhaledVolume;
-    const flow = -(exhaledVolume / 1000) / tau;
+    // The TOTAL volume decays toward PEEP equilibrium — decaying only the
+    // exhaled part left a volume/pressure step of TV·r at every breath
+    // boundary. Steady state: (trapped+TV)·r = trapped.
+    const volume = (trapped + s.tidalVolume) * Math.exp(-ePhase / tau);
+    const flow = -(volume / 1000) / tau;
     const pressure = s.peep + (volume / 1000) / C;
     return { pressure: Math.max(pressure, s.peep + autoPEEP), flow: flow * 60, volume: Math.max(volume, 0) };
   }
@@ -96,10 +99,9 @@ function pcvWaveform(time: number, s: PCVLike, p: PatientPhysiology) {
     return { pressure, flow: flow * 60, volume };
   } else {
     const ePhase = phase - iTime;
-    const vol0 = deliveredVol;
-    const exhaledVolume = vol0 * Math.exp(-ePhase / tau);
-    const volume = trapped + exhaledVolume;
-    const flow = -(exhaledVolume / 1000) / tau;
+    // Total-volume decay (see vcvWaveform) — no step at the breath boundary.
+    const volume = (trapped + deliveredVol) * Math.exp(-ePhase / tau);
+    const flow = -(volume / 1000) / tau;
     const pressure = s.peep + (volume / 1000) / C;
     return { pressure: Math.max(pressure, s.peep + autoPEEP), flow: flow * 60, volume: Math.max(volume, 0) };
   }
@@ -163,7 +165,7 @@ function psvWaveform(time: number, s: PSVSettings, p: PatientPhysiology) {
 }
 
 function aprvWaveform(time: number, s: APRVSettings, p: PatientPhysiology) {
-  const totalCycle = s.tHigh + s.tLow;
+  const totalCycle = Math.max(0.2, s.tHigh + s.tLow); // guard against % 0 → NaN
   const phase = time % totalCycle;
   const C = p.compliance / 1000;
   const R = p.resistance;
