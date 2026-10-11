@@ -136,18 +136,7 @@ const Index = () => {
       )}
 
       {/* ===== DESKTOP LAYOUT ===== */}
-      {isDesktop && bedsideView && (
-        <div className="flex-1 min-h-0">
-          <BedsideView
-            buffers={buffers}
-            measured={measured}
-            settings={settings}
-            etco2KPa={vitals.etco2 / 7.501}
-            onUpdate={simulationStore.updateSettings}
-          />
-        </div>
-      )}
-      {isDesktop && !bedsideView && (
+      {isDesktop && (
         <>
           <div className="flex flex-1 min-h-0">
             <div className="flex-[2] flex flex-col border-r border-border min-w-0">
@@ -200,17 +189,6 @@ const Index = () => {
       {/* ===== MOBILE LANDSCAPE ===== */}
       {isLandscape && (
         <div className="flex-1 flex flex-col min-h-0 relative">
-          {bedsideView ? (
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <BedsideView
-                buffers={buffers}
-                measured={measured}
-                settings={settings}
-                etco2KPa={vitals.etco2 / 7.501}
-                onUpdate={simulationStore.updateSettings}
-              />
-            </div>
-          ) : (
           <div className="flex-1 min-h-0 flex flex-row overflow-hidden">
             <div className="flex-1 min-h-0 min-w-0 p-0.5 border-r border-border">
               <VentilatorPanel buffers={buffers} measured={measured} settings={settings} compact />
