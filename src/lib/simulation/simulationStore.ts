@@ -134,6 +134,8 @@ class SimulationStore {
   };
   /** Last APRV cycle phase seen, for detecting the T Low → P High wrap. */
   private prevAprvPhase = 0;
+  /** Last APRV cycle length; a change resets phase tracking. */
+  private prevAprvCycle = 0;
 
   // Cached immutable snapshots — replaced on each notification.
   private waveformSnapshot: WaveformBuffers;
@@ -269,7 +271,13 @@ class SimulationStore {
     // APRV: flag the sample where the cycle wraps from T Low back to P High,
     // so the flow trace can mark the moment relative to expiratory flow.
     if (this.settings.mode === 'APRV') {
-      const totalCycle = this.settings.tHigh + this.settings.tLow;
+      const totalCycle = Math.max(0.2, this.settings.tHigh + this.settings.tLow);
+      // If the cycle length changed mid-run the phase comparison is
+      // meaningless — restart it rather than fire a spurious marker.
+      if (totalCycle !== this.prevAprvCycle) {
+        this.prevAprvCycle = totalCycle;
+        this.prevAprvPhase = 0;
+      }
       const phase = this.time % totalCycle;
       this.rings.aprvMarkers.push(phase < this.prevAprvPhase ? 1 : 0);
       this.prevAprvPhase = phase;
