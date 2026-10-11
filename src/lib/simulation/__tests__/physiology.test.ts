@@ -139,6 +139,7 @@ const CAPTURE_AT = [5, 15, 30, 60];
 
 const scenarios: Scenario[] = [
   { id: 'healthy',      label: 'VCV — protective baseline',        settingsPatch: {} },
+  { id: 'healthy-spont', label: 'PSV — self-ventilating healthy',  settingsPatch: { mode: 'PSV' } },
   { id: 'obese',        label: 'VCV — high-PEEP obesity',          settingsPatch: {} },
   { id: 'ards',         label: 'VCV — ARDSNet low VT',             settingsPatch: {} },
   { id: 'ards',         label: 'APRV — optimal recruitment',       settingsPatch: { mode: 'APRV' } },
