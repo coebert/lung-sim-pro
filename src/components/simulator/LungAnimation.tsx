@@ -630,9 +630,9 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               <path d="M18,18 C17,14 16,10 16,8" fill="none" stroke="url(#aorta-grad)" strokeWidth="2.8" strokeLinecap="round" opacity="0.75" />
               {/* Aortic valve hint */}
               <circle cx="17" cy="16" r="1.5" fill="none" stroke="#c04040" strokeWidth="0.3" opacity="0.25" />
-              <path d="M24,-5 C26,-10 28,-14" fill="none" stroke="#c04040" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
-              <path d="M22,-6 C22,-12 22,-16" fill="none" stroke="#c04040" strokeWidth="1" strokeLinecap="round" opacity="0.45" />
-              <path d="M20,-5 C18,-10 16,-14" fill="none" stroke="#c04040" strokeWidth="1" strokeLinecap="round" opacity="0.45" />
+              <path d="M24,-5 Q26,-10 28,-14" fill="none" stroke="#c04040" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+              <path d="M22,-6 Q22,-12 22,-16" fill="none" stroke="#c04040" strokeWidth="1" strokeLinecap="round" opacity="0.45" />
+              <path d="M20,-5 Q18,-10 16,-14" fill="none" stroke="#c04040" strokeWidth="1" strokeLinecap="round" opacity="0.45" />
               <path d="M32,6 C34,16 34,30 32,44" fill="none" stroke="url(#aorta-grad)" strokeWidth="2.2" strokeLinecap="round" opacity="0.6" />
 
               {/* Pulmonary trunk */}
