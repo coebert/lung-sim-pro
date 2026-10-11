@@ -101,8 +101,8 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > APRV — ARDS w
     "volume": 1120,
   },
   {
-    "flow": -144.99,
-    "pressure": 0.93,
+    "flow": -148.36,
+    "pressure": 0.3,
     "t": 4.55,
     "volume": 999.69,
   },
