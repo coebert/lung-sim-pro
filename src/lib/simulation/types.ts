@@ -127,4 +127,10 @@ export type WaveformChannel =
   | 'ecg' | 'abp' | 'spo2Pleth' | 'capno';
 
 /** Mapped type so adding a new channel updates every consumer via one edit. */
-export type WaveformBuffers = Record<WaveformChannel, number[]>;
+export type WaveformBuffers = Record<WaveformChannel, number[]> & {
+  /**
+   * APRV only: 1 at samples where the ventilator cycles back to P High
+   * (end of T Low), 0 elsewhere. Aligned sample-for-sample with `flow`.
+   */
+  aprvCycleMarkers?: number[];
+};

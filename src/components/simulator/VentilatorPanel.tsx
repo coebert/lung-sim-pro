@@ -44,6 +44,8 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false }
             minValue={-maxFlow}
             maxValue={maxFlow}
             autoHeight
+            markers={settings.mode === 'APRV' ? buffers.aprvCycleMarkers : undefined}
+            markerLabel={settings.mode === 'APRV' ? 'cycle back to P High' : undefined}
           />
           <WaveformCanvas
             data={buffers.volume}

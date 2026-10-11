@@ -128,7 +128,10 @@ class SimulationStore {
     abp: new Ring(BUFFER_SIZE),
     spo2Pleth: new Ring(BUFFER_SIZE),
     capno: new Ring(BUFFER_SIZE),
+    aprvMarkers: new Ring(BUFFER_SIZE),
   };
+  /** Last APRV cycle phase seen, for detecting the T Low → P High wrap. */
+  private prevAprvPhase = 0;
 
   // Cached immutable snapshots — replaced on each notification.
   private waveformSnapshot: WaveformBuffers;
@@ -194,6 +197,7 @@ class SimulationStore {
     Object.values(this.trendRings).forEach(r => r.reset());
     this.trendCounter = 0;
     this.time = 0;
+    this.prevAprvPhase = 0;
     this.emitControls();
     this.emitWaveforms();
     this.emitVitals();
@@ -260,6 +264,18 @@ class SimulationStore {
     this.rings.spo2Pleth.push(sample.spo2Pleth);
     this.rings.capno.push(sample.capno);
 
+    // APRV: flag the sample where the cycle wraps from T Low back to P High,
+    // so the flow trace can mark the moment relative to expiratory flow.
+    if (this.settings.mode === 'APRV') {
+      const totalCycle = this.settings.tHigh + this.settings.tLow;
+      const phase = this.time % totalCycle;
+      this.rings.aprvMarkers.push(phase < this.prevAprvPhase ? 1 : 0);
+      this.prevAprvPhase = phase;
+    } else {
+      this.rings.aprvMarkers.push(0);
+      this.prevAprvPhase = 0;
+    }
+
     // Waveforms notify every tick (50Hz) — canvases need every sample.
     this.emitWaveforms();
 
@@ -303,6 +319,7 @@ class SimulationStore {
       abp: this.rings.abp.snapshot(),
       spo2Pleth: this.rings.spo2Pleth.snapshot(),
       capno: this.rings.capno.snapshot(),
+      aprvCycleMarkers: this.rings.aprvMarkers.snapshot(),
     };
   }
 

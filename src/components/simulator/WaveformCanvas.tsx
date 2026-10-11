@@ -12,6 +12,14 @@ interface WaveformCanvasProps {
   showGrid?: boolean;
   currentValue?: string;
   autoHeight?: boolean;
+  /**
+   * Optional per-sample flags aligned with `data`: 1 marks a sample where a
+   * vertical event line is drawn (used for the APRV cycle-back-to-P-High
+   * marker on the flow trace).
+   */
+  markers?: number[];
+  /** Caption drawn beside the first visible marker line. */
+  markerLabel?: string;
 }
 
 export function WaveformCanvas({
@@ -25,6 +33,8 @@ export function WaveformCanvas({
   showGrid = true,
   currentValue,
   autoHeight = false,
+  markers,
+  markerLabel,
 }: WaveformCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -117,6 +127,39 @@ export function WaveformCanvas({
     }
     ctx.stroke();
 
+    // Event markers (e.g. APRV cycling back to P High): vertical dashed
+    // lines through the trace, with a caption on the first visible one.
+    if (markers && markers.length === data.length) {
+      const markerX: number[] = [];
+      for (let i = 0; i < markers.length; i++) {
+        if (markers[i]) markerX.push(leftGutter + (i / (data.length - 1)) * plotW);
+      }
+      if (markerX.length > 0) {
+        ctx.save();
+        ctx.strokeStyle = MONITOR_COLOR.scaleText;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        for (const x of markerX) {
+          ctx.beginPath();
+          ctx.moveTo(x, 2);
+          ctx.lineTo(x, h - 2);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        if (markerLabel) {
+          const labelFont = Math.max(7, Math.min(9, h * 0.12));
+          ctx.font = `${labelFont}px monospace`;
+          ctx.fillStyle = MONITOR_COLOR.scaleText;
+          const x = markerX[0];
+          const label = `▼ ${markerLabel}`;
+          // Keep the caption inside the plot area.
+          const tx = Math.min(x + 3, w - ctx.measureText(label).width - 2);
+          ctx.fillText(label, Math.max(leftGutter + 2, tx), h - 4);
+        }
+        ctx.restore();
+      }
+    }
+
     // Label (top-left, inside gutter area)
     const fontSize = Math.max(8, Math.min(11, h * 0.15));
     ctx.font = `${fontSize}px monospace`;
@@ -131,7 +174,7 @@ export function WaveformCanvas({
     ctx.fillText(String(Math.round(maxValue)), leftGutter - 2, scaleFontSize + 1);
     ctx.fillText(String(Math.round(minValue)), leftGutter - 2, h - 2);
     ctx.textAlign = 'left';
-  }, [data, color, label, unit, minValue, maxValue, effectiveHeight, showGrid, autoHeight]);
+  }, [data, color, label, unit, minValue, maxValue, effectiveHeight, showGrid, autoHeight, markers, markerLabel]);
 
   if (autoHeight) {
     return (
