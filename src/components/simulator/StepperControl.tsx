@@ -53,6 +53,8 @@ export function StepperControl({
 
   const priorRef = useRef<number>(value);
   const holdTimer = useRef<number | null>(null);
+  /** Set on pointerdown so the follow-up click event doesn't double-step. */
+  const pointerFired = useRef(false);
   const undoToken = useRef<string | number | null>(null);
   const [ramping, setRamping] = useState<1 | -1 | null>(null);
 
@@ -164,8 +166,8 @@ export function StepperControl({
         <button
           type="button"
           aria-label={`Decrease ${label}${ramping === -1 ? ' (ramping)' : ''}`}
-          onPointerDown={(e) => { if (e.button !== 0) return; priorRef.current = valueRef.current; commitFromRef(valueRef.current - step); startHold(-1); }}
-          onClick={() => singleStep(-1)}
+          onPointerDown={(e) => { if (e.button !== 0) return; pointerFired.current = true; priorRef.current = valueRef.current; commitFromRef(valueRef.current - step); startHold(-1); }}
+          onClick={() => { if (pointerFired.current) { pointerFired.current = false; return; } singleStep(-1); }}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
           onPointerCancel={stopHold}
@@ -187,8 +189,8 @@ export function StepperControl({
         <button
           type="button"
           aria-label={`Increase ${label}${ramping === 1 ? ' (ramping)' : ''}`}
-          onPointerDown={(e) => { if (e.button !== 0) return; priorRef.current = valueRef.current; commitFromRef(valueRef.current + step); startHold(1); }}
-          onClick={() => singleStep(1)}
+          onPointerDown={(e) => { if (e.button !== 0) return; pointerFired.current = true; priorRef.current = valueRef.current; commitFromRef(valueRef.current + step); startHold(1); }}
+          onClick={() => { if (pointerFired.current) { pointerFired.current = false; return; } singleStep(1); }}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
           onPointerCancel={stopHold}
