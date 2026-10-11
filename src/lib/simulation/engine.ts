@@ -70,6 +70,18 @@ export function generateWaveformSample(
   };
 }
 
+/** Effective cycle rate: APRV cycles at 60/(tHigh+tLow), PSV at the patient's rate. */
+export function effectiveRate(settings: VentSettings, patient: PatientPhysiology): number {
+  if (settings.mode === 'APRV') return 60 / Math.max(0.2, settings.tHigh + settings.tLow);
+  if (settings.mode === 'PSV') return patient.spontaneousRate || 12;
+  return settings.respiratoryRate;
+}
+
+/** End-expiratory baseline pressure: P Low in APRV, PEEP elsewhere. */
+export function baselinePressure(settings: VentSettings): number {
+  return settings.mode === 'APRV' ? settings.pLow : settings.peep;
+}
+
 /** Compute measured values from the most-recent 5s of pressure & volume. */
 export function computeMeasured(
   recentPressure: ArrayLike<number>,
@@ -87,12 +99,17 @@ export function computeMeasured(
   if (!isFinite(peakPressure)) peakPressure = 0;
   const meanPressure = recentPressure.length > 0 ? sumPressure / recentPressure.length : 0;
 
-  let measuredTV = -Infinity;
+  // Tidal volume is the max−min swing, not the absolute max: the absolute
+  // max includes trapped/auto-PEEP volume (VCV with stacking) or the APRV
+  // end-expiratory volume, inflating TV and falsely improving EtCO₂.
+  let volMax = -Infinity;
+  let volMin = Infinity;
   for (let i = 0; i < recentVolume.length; i++) {
     const v = recentVolume[i];
-    if (v > measuredTV) measuredTV = v;
+    if (v > volMax) volMax = v;
+    if (v < volMin) volMin = v;
   }
-  if (!isFinite(measuredTV)) measuredTV = 0;
+  const measuredTV = isFinite(volMax) && isFinite(volMin) ? Math.max(0, volMax - volMin) : 0;
 
   return {
     peakPressure: Math.round(peakPressure * 10) / 10,
@@ -252,14 +269,11 @@ export function simulationTick(
     spo2Pleth: [...buffers.spo2Pleth.slice(1), sample.spo2Pleth],
     capno: [...buffers.capno.slice(1), sample.capno],
   };
-  const actualRR = settings.mode === 'PSV'
-    ? (patient.spontaneousRate || 12)
-    : settings.respiratoryRate;
   const measured = computeMeasured(
     newBuffers.pressure.slice(-RECENT_WINDOW),
     newBuffers.volume.slice(-RECENT_WINDOW),
-    actualRR,
-    settings.peep,
+    effectiveRate(settings, patient),
+    baselinePressure(settings),
   );
   const newVitals = updateVitals(settings, patient, vitals, measured, prone);
   return { vitals: newVitals, measured, buffers: newBuffers };
