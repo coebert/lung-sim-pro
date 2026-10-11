@@ -197,6 +197,7 @@ class SimulationStore {
     Object.values(this.trendRings).forEach(r => r.reset());
     this.trendCounter = 0;
     this.time = 0;
+    this.prevAprvPhase = 0;
     this.emitControls();
     this.emitWaveforms();
     this.emitVitals();
