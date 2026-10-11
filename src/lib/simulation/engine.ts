@@ -186,15 +186,16 @@ export function updateVitals(
   }
   targetEtCO2 += shuntFraction * 20;
 
+  // Dynamic hyperinflation: trapped gas raises intrathoracic pressure,
+  // cutting venous return (hypotension, tachycardia) and adding dead space.
+  const hyperinflation = Math.max(0, measured.autoPEEP - 2);
+  targetEtCO2 += hyperinflation * 1.5;
+
   // Over-supply of O₂/PEEP is not "distress"; under-ventilation and
   // gross over-ventilation both are.
   const distress = Math.max(0, 1 - oxygenScore) + Math.abs(1 - Math.min(ventRatio, 2)) + shuntFraction * 3;
   const targetHR = patient.baseHR + distress * 25 + hyperinflation * 2;
 
-  // Dynamic hyperinflation: trapped gas raises intrathoracic pressure,
-  // cutting venous return (hypotension, tachycardia) and adding dead space.
-  const hyperinflation = Math.max(0, measured.autoPEEP - 2);
-  targetEtCO2 += hyperinflation * 1.5;
   const peepEffect = Math.max(0, settings.peep - patient.optimalPEEP) * 2 + hyperinflation * 4;
   const shuntBPPenalty = shuntFraction * 30;
   const targetSBP = patient.baseSBP - peepEffect - shuntBPPenalty + distress * 10;
