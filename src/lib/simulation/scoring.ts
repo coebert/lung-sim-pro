@@ -88,7 +88,7 @@ export function computeInverseRatio(s: CommonSettings, p: PatientPhysiology): In
   const recruitable = clamp((p.optimalPEEP - 6) / 8, 0, 1);
   const openingPressure = p.openingPressure ?? p.optimalPEEP * 1.5;
   const recruitmentBonus = isInverse
-    ? recruitable * clamp((meanAirwayPressure - openingPressure * 0.6) / (openingPressure * 0.8), 0, 1) * clamp((ie.ieActual - 1) / 1.5, 0, 1)
+    ? recruitable * clamp((meanAirwayPressure - openingPressure * 0.4) / (openingPressure * 0.5), 0, 1) * clamp((ie.ieActual - 1) / 1.5, 0, 1)
     : 0;
 
   // Sustained high intrathoracic pressure impedes venous return once Pmean
