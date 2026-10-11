@@ -34,11 +34,21 @@ export function AlarmBanner({ alarms }: AlarmBannerProps) {
     return () => stopAlarmSound();
   }, [hasActive, muted, highestSeverity]);
 
-  // Auto-unmute when new alarm appears
+  // Re-sound when a NEW alarm appears or severity escalates; silence lasts max 2 min.
+  const activeKey = activeAlarms.map(a => a.id).sort().join('|');
+  const prevIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (hasActive && !prevActiveRef.current) setMuted(false);
+    const ids = new Set(activeKey ? activeKey.split('|') : []);
+    const hasNew = [...ids].some(id => !prevIdsRef.current.has(id));
+    if (hasNew) setMuted(false);
+    prevIdsRef.current = ids;
     prevActiveRef.current = hasActive;
-  }, [hasActive]);
+  }, [activeKey, hasActive]);
+  useEffect(() => {
+    if (!muted) return;
+    const id = window.setTimeout(() => setMuted(false), 120_000);
+    return () => clearTimeout(id);
+  }, [muted]);
 
   if (!hasActive) return null;
 

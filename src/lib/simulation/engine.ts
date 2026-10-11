@@ -10,7 +10,9 @@ import { clamp, computeAPRV, computeShunt } from './scoring';
 
 export const BUFFER_SIZE = 500;      // 10 seconds at 50Hz
 export const SAMPLE_RATE = 50;
-export const RECENT_WINDOW = SAMPLE_RATE * 5; // 5s window for measured values
+// 10 s window: must span at least one full breath even at low rates (RR 6–8),
+// otherwise slow breathers read as apnoea between breaths.
+export const RECENT_WINDOW = SAMPLE_RATE * 10;
 export const TICK_DT = 1 / SAMPLE_RATE;       // 0.02s per tick
 
 const VITALS_RESPONSE_RATE = 0.005;
@@ -71,7 +73,7 @@ export function generateWaveformSample(
 /** Effective cycle rate: APRV cycles at 60/(tHigh+tLow), PSV at the patient's rate. */
 export function effectiveRate(settings: VentSettings, patient: PatientPhysiology): number {
   if (settings.mode === 'APRV') return 60 / Math.max(0.2, settings.tHigh + settings.tLow);
-  if (settings.mode === 'PSV') return patient.spontaneousRate || 12;
+  if (settings.mode === 'PSV') return Math.max(0, patient.spontaneousRate);
   return settings.respiratoryRate;
 }
 
@@ -140,7 +142,11 @@ export function updateVitals(
 
   const fio2Ratio = settings.fio2 / patient.optimalFiO2;
   const peepRatio = settings.peep / patient.optimalPEEP;
-  const oxygenScore = Math.min(fio2Ratio, 1.2) * Math.min(peepRatio, 1.2);
+  // PEEP only matters in proportion to how recruitable/collapsed the lung is:
+  // normal lungs oxygenate well even at PEEP 0, ARDS lungs do not.
+  const peepFloor = clamp(0.6 - (patient.optimalPEEP - 5) * 0.06, 0, 0.6);
+  const peepPart = Math.min(1.2, peepFloor + (1 - peepFloor) * peepRatio);
+  const oxygenScore = Math.min(fio2Ratio, 1.2) * peepPart;
 
   const { shuntFraction } = computeShunt(settings, patient);
 
@@ -170,13 +176,20 @@ export function updateVitals(
   }
   targetEtCO2 += shuntFraction * 20;
 
-  const distress = Math.abs(1 - oxygenScore) + Math.abs(1 - ventRatio) + shuntFraction * 3;
+  // Over-supply of O₂/PEEP is not "distress"; under-ventilation and
+  // gross over-ventilation both are.
+  const distress = Math.max(0, 1 - oxygenScore) + Math.abs(1 - Math.min(ventRatio, 2)) + shuntFraction * 3;
   const targetHR = patient.baseHR + distress * 25;
 
   const peepEffect = Math.max(0, settings.peep - patient.optimalPEEP) * 2;
   const shuntBPPenalty = shuntFraction * 30;
   const targetSBP = patient.baseSBP - peepEffect - shuntBPPenalty + distress * 10;
   const targetDBP = patient.baseDBP - peepEffect * 0.5 - shuntBPPenalty * 0.5 + distress * 5;
+
+  // Apnoea / no effective ventilation: progressive hypoxaemia.
+  if (measured.measuredTV < 50) {
+    targetSpO2 = Math.min(targetSpO2, 60);
+  }
 
   if (measured.peakPressure > 40) {
     targetSpO2 -= (measured.peakPressure - 40) * 0.5;

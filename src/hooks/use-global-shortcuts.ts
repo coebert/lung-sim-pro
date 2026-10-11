@@ -17,11 +17,13 @@ interface Options {
 export function useGlobalShortcuts({ onToggleTutorial }: Options) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
       const target = e.target as HTMLElement | null;
       if (target) {
         const tag = target.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable) return;
+        // Let focused buttons, links, menus and dialogs keep their own keys (Space activates buttons).
+        if (target.closest('button, a, [role="button"], [role="menu"], [role="menuitem"], [role="dialog"], [role="listbox"], [role="slider"]')) return;
       }
 
       switch (e.key) {

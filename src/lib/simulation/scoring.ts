@@ -8,6 +8,7 @@ import { VentSettings, PatientPhysiology, CommonSettings, APRVSettings } from '.
  */
 
 export function clamp(v: number, min: number, max: number): number {
+  if (Number.isNaN(v)) return min; // never let NaN propagate into vitals
   return Math.max(min, Math.min(max, v));
 }
 
@@ -23,9 +24,11 @@ export interface IEMetrics {
 
 export function computeIE(s: CommonSettings): IEMetrics {
   const cycleTime = 60 / s.respiratoryRate;
-  const iTime = s.inspiratoryTime > 0
+  const rawI = s.inspiratoryTime > 0
     ? s.inspiratoryTime
     : cycleTime / (1 + s.ieRatio);
+  // Ti can never exceed the breath cycle — leave at least 0.1 s to exhale.
+  const iTime = Math.min(rawI, Math.max(0.05, cycleTime - 0.1));
   const eTime = Math.max(cycleTime - iTime, 0.1);
   const ieActual = iTime / eTime;
   return { cycleTime, iTime, eTime, ieActual };
@@ -96,7 +99,7 @@ export function computeAPRV(s: APRVSettings, p: PatientPhysiology): APRVMetrics 
     0, 1
   );
 
-  const meanAirwayPressure = (pHigh * tHigh + pLow * tLow) / (tHigh + tLow);
+  const meanAirwayPressure = (pHigh * tHigh + pLow * tLow) / Math.max(0.2, tHigh + tLow);
 
   return {
     drivingPressure,

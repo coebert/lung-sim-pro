@@ -32,7 +32,7 @@ export const tutorials: TutorialScenario[] = [
         instruction:
           'Aim for 6–8 mL/kg ideal body weight. For a 70 kg patient, target 420–560 mL. Adjust the tidal volume control.',
         hint: 'Try setting TV to around 490 mL (7 mL/kg).',
-        check: (s) => s.tidalVolume >= 400 && s.tidalVolume <= 560,
+        check: (s) => s.tidalVolume >= 420 && s.tidalVolume <= 560,
         successMessage: 'Good — tidal volume is within the lung-protective range for this patient.',
       },
       {
@@ -82,7 +82,7 @@ export const tutorials: TutorialScenario[] = [
         instruction:
           'With recruited lungs, adjust FiO₂ to achieve SpO₂ ≥ 88%. In severe ARDS, we accept lower SpO₂ targets to avoid oxygen toxicity.',
         hint: 'FiO₂ 0.6–0.8 may be needed. Aim for SpO₂ 88–95%.',
-        check: (s, v) => s.fio2 >= 0.5 && v.spo2 >= 86,
+        check: (s, v) => s.fio2 >= 0.5 && v.spo2 >= 88,
         successMessage: 'Oxygenation is acceptable. Remember: in ARDS we accept SpO₂ 88–95% to minimise ventilator-induced lung injury.',
       },
       {
@@ -200,7 +200,7 @@ export const tutorials: TutorialScenario[] = [
         instruction:
           'Apply moderate PEEP (5–8 cmH₂O) and adjust FiO₂ to achieve SpO₂ ≥ 92%.',
         hint: 'PEEP 6, FiO₂ 0.4–0.5.',
-        check: (_s, v) => v.spo2 >= 90,
+        check: (_s, v) => v.spo2 >= 92,
         successMessage: 'Oxygenation is adequate. Well managed!',
       },
     ],
@@ -234,7 +234,7 @@ export const tutorials: TutorialScenario[] = [
         instruction:
           'Adjust PEEP and FiO₂ to maintain SpO₂ ≥ 92% and acceptable EtCO₂.',
         hint: 'PEEP 5, FiO₂ 0.3–0.4 should suffice.',
-        check: (_s, v) => v.spo2 >= 90 && v.etco2 <= 55,
+        check: (_s, v) => v.spo2 >= 92 && v.etco2 <= 55,
         successMessage: 'The patient is breathing comfortably with good gas exchange. This is a good starting point for weaning assessment.',
       },
     ],
@@ -292,7 +292,7 @@ export const tutorials: TutorialScenario[] = [
         instruction:
           'With APRV settings optimised, adjust FiO₂ to achieve SpO₂ ≥ 88%. The high mean airway pressure from APRV should dramatically improve oxygenation compared to conventional ventilation.',
         hint: 'Try FiO₂ 0.6–0.8. Watch the recruitment progress bar and SpO₂.',
-        check: (_s, v) => v.spo2 >= 86,
+        check: (_s, v) => v.spo2 >= 88,
         successMessage: 'Oxygenation is improving with recruited lungs and adequate FiO₂. Excellent APRV management!',
       },
     ],
@@ -303,4 +303,9 @@ export const tutorials: TutorialScenario[] = [
 
 export function getTutorialForPatient(patientId: string): TutorialScenario | undefined {
   return tutorials.find(t => t.patientId === patientId);
+}
+
+/** All tutorials for a patient (e.g. ARDS has both a conventional and an APRV tutorial). */
+export function getTutorialsForPatient(patientId: string): TutorialScenario[] {
+  return tutorials.filter(t => t.patientId === patientId);
 }

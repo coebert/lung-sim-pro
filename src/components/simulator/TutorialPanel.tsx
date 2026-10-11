@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AllModeParams, VentSettings, Vitals, MeasuredValues, PatientPhysiology } from '@/lib/simulation/types';
-import { getTutorialForPatient } from '@/lib/simulation/tutorials';
+import { getTutorialsForPatient } from '@/lib/simulation/tutorials';
 import { GraduationCap, ChevronRight, ChevronLeft, X, CheckCircle2, Lightbulb, RotateCcw, Trophy, Timer, Zap, Star } from 'lucide-react';
 
 /* ── Scoring helpers ─────────────────────────────────────────────── */
@@ -81,7 +81,10 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
   const adjustmentCount = useRef(0);
   const prevSerialized = useRef(JSON.stringify(allSettings));
 
-  const tutorial = getTutorialForPatient(patient.id);
+  const tutorialOptions = getTutorialsForPatient(patient.id);
+  const [tutorialIdx, setTutorialIdx] = useState(0);
+  useEffect(() => { setTutorialIdx(0); }, [patient.id]);
+  const tutorial = tutorialOptions[tutorialIdx] ?? tutorialOptions[0];
 
   // Reset when patient changes
   useEffect(() => {
@@ -93,7 +96,7 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
     stepStartTime.current = Date.now();
     adjustmentCount.current = 0;
     prevSerialized.current = JSON.stringify(allSettings);
-  }, [patient.id]);
+  }, [patient.id, tutorialIdx]);
 
   // Track setting changes as adjustments — any change to any parameter counts once.
   useEffect(() => {
@@ -261,6 +264,23 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
           </button>
         </div>
       </div>
+
+      {tutorialOptions.length > 1 && (
+        <div className="flex gap-1 px-2 pt-1.5 shrink-0" role="tablist" aria-label="Choose tutorial">
+          {tutorialOptions.map((t, i) => (
+            <button
+              key={t.title}
+              role="tab"
+              aria-selected={i === tutorialIdx}
+              onClick={() => setTutorialIdx(i)}
+              className={`flex-1 truncate text-[10px] px-1.5 py-0.5 rounded border ${i === tutorialIdx ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-muted'}`}
+              title={t.title}
+            >
+              {t.title.startsWith('APRV') ? 'APRV' : 'Conventional'}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Progress bar */}
       <div className="px-2 py-1 shrink-0">
