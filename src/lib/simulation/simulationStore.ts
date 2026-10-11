@@ -1,3 +1,4 @@
+import { CardiacClock } from './waveformGenerators';
 import { useSyncExternalStore } from 'react';
 import {
   VentSettings,
@@ -96,6 +97,7 @@ const TICK_INTERVAL_MS = 20;             // 50 Hz — matches TICK_DT
 
 class SimulationStore {
   private time = 0;
+  private cardiac = new CardiacClock();
 
   // Controls
   private allSettings: AllModeParams;
@@ -201,6 +203,7 @@ class SimulationStore {
     Object.values(this.trendRings).forEach(r => r.reset());
     this.trendCounter = 0;
     this.time = 0;
+    this.cardiac.reset();
     this.prevAprvPhase = 0;
     this.emitControls();
     this.emitWaveforms();
@@ -259,7 +262,7 @@ class SimulationStore {
     if (this.frozen) return;
     this.time += TICK_DT;
 
-    const sample = generateWaveformSample(this.time, this.settings, this.patient, this.vitals);
+    const sample = generateWaveformSample(this.time, this.settings, this.patient, this.vitals, this.cardiac.next(this.vitals.hr));
     this.rings.pressure.push(sample.pressure);
     this.rings.flow.push(sample.flow);
     this.rings.volume.push(sample.volume);

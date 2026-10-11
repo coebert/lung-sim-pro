@@ -1,9 +1,11 @@
 import { PatientPhysiology, VentSettings, Vitals, MeasuredValues, WaveformBuffers, APRVSettings } from './types';
 import {
   generateVentWaveformPoint,
-  generateECG,
-  generateABP,
-  generateSpO2Pleth,
+  ecgAtBeat,
+  abpAtBeat,
+  plethAtBeat,
+  beatTimeAt,
+  BeatTime,
   generateCapnography,
   simvSchedule,
 } from './waveformGenerators';
@@ -57,16 +59,21 @@ export function generateWaveformSample(
   settings: VentSettings,
   patient: PatientPhysiology,
   vitals: Vitals,
+  /** Beat timing from the live CardiacClock; derived from `time` if omitted. */
+  beat?: BeatTime,
 ): WaveformSample {
   const vent = generateVentWaveformPoint(time, settings, patient);
+  const bt = beat ?? beatTimeAt(time, vitals.hr);
   const actualRR = effectiveRate(settings, patient);
   return {
     pressure: vent.pressure,
     flow: vent.flow,
     volume: vent.volume,
-    ecg: generateECG(time, vitals.hr),
-    abp: generateABP(time, vitals.hr, vitals.sbp, vitals.dbp),
-    spo2Pleth: generateSpO2Pleth(time, vitals.hr),
+    // All three cardiac traces share one beat clock, so the arterial and
+    // pleth upstrokes always follow the QRS by a fixed delay.
+    ecg: ecgAtBeat(bt),
+    abp: abpAtBeat(bt, vitals.sbp, vitals.dbp),
+    spo2Pleth: plethAtBeat(bt),
     capno: generateCapnography(time, actualRR, vitals.etco2, patient.spontaneousRate),
   };
 }
