@@ -58,7 +58,9 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false }
         {/* Numerical values - right side */}
         <div className={`flex flex-col gap-0.5 ${compact ? 'w-[60px]' : 'w-[90px]'} shrink-0 overflow-y-auto`}>
           <MeasuredBox label="PIP" value={measured.peakPressure} unit="cmH₂O" color={WAVE_COLOR.pressure} compact={compact} />
-          <MeasuredBox label="PEEP" value={settings.peep} unit="cmH₂O" color={WAVE_COLOR.pressure} compact={compact} />
+          {settings.mode === 'APRV'
+            ? <MeasuredBox label="P LOW" value={settings.pLow} unit="cmH₂O" color={WAVE_COLOR.pressure} compact={compact} />
+            : <MeasuredBox label="PEEP" value={settings.peep} unit="cmH₂O" color={WAVE_COLOR.pressure} compact={compact} />}
           <MeasuredBox label="Pmean" value={measured.meanPressure} unit="cmH₂O" color={WAVE_COLOR.pressure} compact={compact} />
           <MeasuredBox label="VTe" value={measured.measuredTV} unit="mL" color={WAVE_COLOR.volume} compact={compact} />
           <MeasuredBox label="MV" value={measured.minuteVentilation} unit="L/min" color={WAVE_COLOR.volume} compact={compact} />
