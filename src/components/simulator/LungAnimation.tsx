@@ -44,8 +44,8 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
       return Math.max(0.15, Math.min(1, aprvRecruitment));
     }
     const peepScore = Math.min(settings.peep / patient.optimalPEEP, 1.2);
-    const fio2Score = Math.min(settings.fio2 / patient.optimalFiO2, 1);
-    return Math.max(0.15, Math.min(1, peepScore * 0.7 + fio2Score * 0.3));
+    // Recruitment is driven by PEEP (FiO₂ does not open lung).
+    return Math.max(0.15, Math.min(1, peepScore));
   }, [pathology, settings.peep, settings.fio2, patient.optimalPEEP, patient.optimalFiO2, aprvRecruitment]);
 
   // Obesity: basal atelectasis severity — improves with adequate PEEP

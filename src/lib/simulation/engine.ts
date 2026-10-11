@@ -165,7 +165,7 @@ export function updateVitals(
   const peepRatio = settings.peep / patient.optimalPEEP;
   // PEEP only matters in proportion to how recruitable/collapsed the lung is:
   // normal lungs oxygenate well even at PEEP 0, ARDS lungs do not.
-  const peepFloor = clamp(0.6 - (patient.optimalPEEP - 5) * 0.06, 0, 0.6);
+  const peepFloor = clamp(0.9 - (patient.optimalPEEP - 5) * 0.09, 0, 0.9);
   const peepPart = Math.min(1.2, peepFloor + (1 - peepFloor) * peepRatio);
   const oxygenScore = Math.min(fio2Ratio, 1.2) * peepPart;
 
@@ -196,6 +196,8 @@ export function updateVitals(
     targetEtCO2 = Math.max(15, 38 - (ventRatio - 1.5) * 20);
   }
   targetEtCO2 += shuntFraction * 20;
+  // Apnoea / no exhaled gas: capnograph reads zero (no CO₂ reaches the sensor).
+  const apnoeic = measured.measuredTV < 50 || measured.measuredRR < 1;
 
   // Dynamic hyperinflation: trapped gas raises intrathoracic pressure,
   // cutting venous return (hypotension, tachycardia) and adding dead space.
@@ -226,7 +228,9 @@ export function updateVitals(
     sbp: clamp(vitals.sbp + (targetSBP - vitals.sbp) * rate, 50, 250),
     dbp: clamp(vitals.dbp + (targetDBP - vitals.dbp) * rate, 20, 150),
     spo2: clamp(vitals.spo2 + (targetSpO2 - vitals.spo2) * rate * 0.5, 40, 100),
-    etco2: clamp(vitals.etco2 + (targetEtCO2 - vitals.etco2) * rate * 0.3, 5, 100),
+    etco2: apnoeic
+      ? Math.max(0, vitals.etco2 + (0 - vitals.etco2) * Math.min(1, rate * 20))
+      : clamp(vitals.etco2 + (targetEtCO2 - vitals.etco2) * rate * 0.3, 5, 100),
   };
 }
 

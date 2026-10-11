@@ -186,6 +186,8 @@ class SimulationStore {
   /** Patch any subset of the ventilator parameters (including `mode`). The store
    * retains all parameters across mode switches. */
   updateSettings = (patch: Partial<AllModeParams>) => {
+    // I:E and Ti are alternative ways to set timing — whichever was set last wins.
+    if ('ieRatio' in patch && !('inspiratoryTime' in patch)) patch = { ...patch, inspiratoryTime: 0 };
     this.allSettings = { ...this.allSettings, ...patch };
     this.settings = buildVentSettings(this.allSettings);
     this.emitControls();
@@ -193,6 +195,11 @@ class SimulationStore {
 
   setPatient = (patient: PatientPhysiology) => {
     this.patient = patient;
+    // A new patient starts from fresh default settings, supine.
+    this.allSettings = getDefaultAllParams(patient);
+    this.settings = buildVentSettings(this.allSettings);
+    this.prone = false;
+    this.msSinceVitalsNotify = 0;
     this.vitals = createInitialVitals(patient);
     this.measured = {
       peakPressure: 0, plateauPressure: 0, meanPressure: 0, autoPEEP: 0,

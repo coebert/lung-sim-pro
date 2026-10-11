@@ -47,8 +47,10 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       // handled in APRV-specific section
     } else if (peepRatio < 0.6) {
       list.push({ text: `PEEP is low (${settings.peep} cmH₂O) for this patient. Optimal ~${patient.optimalPEEP} cmH₂O. Risk of atelectasis.`, severity: 'warn' });
-    } else if (settings.peep > patient.optimalPEEP * 1.5) {
+    } else if (settings.peep > patient.optimalPEEP + 8) {
       list.push({ text: `PEEP is excessive (${settings.peep} cmH₂O). Risk of overdistension, haemodynamic compromise and shunting.`, severity: 'danger' });
+    } else if (settings.peep > Math.max(patient.optimalPEEP * 1.5, patient.optimalPEEP + 5)) {
+      list.push({ text: `PEEP is higher than needed (${settings.peep} cmH₂O; ~${patient.optimalPEEP} expected). Watch blood pressure and plateau pressure.`, severity: 'warn' });
     } else if (peepRatio >= 0.8 && peepRatio <= 1.3) {
       list.push({ text: `PEEP is appropriate (${settings.peep} cmH₂O) for this patient.`, severity: 'good' });
     }
@@ -58,7 +60,13 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     const optimalMV = (patient.optimalTV * patient.optimalRR) / 1000;
     const ventRatio = minuteVent / optimalMV;
 
-    if (vitals.etco2 > 55) {
+    const permissive = patient.id === 'bronchospasm' || patient.id === 'ards' || measured.autoPEEP > 1;
+    if (vitals.etco2 > 45 && permissive) {
+      list.push({ text: patient.id === 'bronchospasm' || measured.autoPEEP > 1
+        ? `Hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Permissive hypercapnia is acceptable if pH > 7.20. Do NOT raise RR or shorten expiratory time — this worsens air trapping.`
+        : `Hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Permissive hypercapnia is acceptable in lung-protective ventilation if pH > 7.20. Increase RR cautiously (watch auto-PEEP); do not raise VT above 6–8 mL/kg PBW.`,
+        severity: vitals.etco2 > 70 ? 'danger' : 'warn' });
+    } else if (vitals.etco2 > 55) {
       list.push({ text: `Significant hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Minute ventilation is inadequate.`, severity: 'danger' });
     } else if (vitals.etco2 > 45) {
       list.push({ text: `Mild hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Consider increasing RR or tidal volume.`, severity: 'warn' });

@@ -182,7 +182,7 @@ export function getDefaultAllParams(_patient: PatientPhysiology): AllModeParams 
     fio2: 0.4,
     respiratoryRate: 14,
     ieRatio: 2,
-    inspiratoryTime: 1.0,
+    inspiratoryTime: 0, // 0 = timing derived from I:E ratio
     tidalVolume: 500,
     flowRate: 40,
     pInsp: 15,
