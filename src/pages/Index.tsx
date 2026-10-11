@@ -137,7 +137,18 @@ const Index = () => {
       )}
 
       {/* ===== DESKTOP LAYOUT ===== */}
-      {isDesktop && (
+      {isDesktop && bedsideView && (
+        <div className="flex-1 min-h-0">
+          <BedsideView
+            buffers={buffers}
+            measured={measured}
+            settings={settings}
+            etco2KPa={vitals.etco2 / 7.501}
+            onUpdate={simulationStore.updateSettings}
+          />
+        </div>
+      )}
+      {isDesktop && !bedsideView && (
         <>
           <div className="flex flex-1 min-h-0">
             <div className="flex-[2] flex flex-col border-r border-border min-w-0">
