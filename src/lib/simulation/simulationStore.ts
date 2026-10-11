@@ -128,7 +128,10 @@ class SimulationStore {
     abp: new Ring(BUFFER_SIZE),
     spo2Pleth: new Ring(BUFFER_SIZE),
     capno: new Ring(BUFFER_SIZE),
+    aprvMarkers: new Ring(BUFFER_SIZE),
   };
+  /** Last APRV cycle phase seen, for detecting the T Low → P High wrap. */
+  private prevAprvPhase = 0;
 
   // Cached immutable snapshots — replaced on each notification.
   private waveformSnapshot: WaveformBuffers;
