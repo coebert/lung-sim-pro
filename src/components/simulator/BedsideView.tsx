@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { WaveformCanvas } from './WaveformCanvas';
 import { VentilatorControls } from './VentilatorControls';
-import { WaveformBuffers, MeasuredValues, VentSettings } from '@/lib/simulation/types';
+import { WaveformBuffers, MeasuredValues, VentSettings, PatientPhysiology } from '@/lib/simulation/types';
 import { WAVE_COLOR } from '@/lib/theme';
 
 interface BedsideViewProps {
@@ -9,6 +9,7 @@ interface BedsideViewProps {
   measured: MeasuredValues;
   settings: VentSettings;
   etco2KPa: number;
+  patient?: PatientPhysiology;
   onUpdate: (patch: Partial<VentSettings>) => void;
 }
 
@@ -25,7 +26,7 @@ const TRACE: Record<TraceKey, { label: string; unit: string; color: string }> = 
  * beneath it and a small measured-values strip (Ppeak, Pplat, VTe, EtCO₂) —
  * like glancing at a single screen at the foot of the bed.
  */
-export function BedsideView({ buffers, measured, settings, etco2KPa, onUpdate }: BedsideViewProps) {
+export function BedsideView({ buffers, measured, settings, etco2KPa, patient, onUpdate }: BedsideViewProps) {
   const [trace, setTrace] = useState<TraceKey>('pressure');
   const isAPRV = settings.mode === 'APRV';
   const t = TRACE[trace];
@@ -99,7 +100,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, onUpdate }:
 
       {/* Settings */}
       <div className="shrink-0 border-t border-border pt-1 bg-vent-screen rounded-md max-h-[38vh] overflow-y-auto">
-        <VentilatorControls settings={settings} onUpdate={onUpdate} />
+        <VentilatorControls settings={settings} patient={patient} onUpdate={onUpdate} />
       </div>
     </div>
   );
