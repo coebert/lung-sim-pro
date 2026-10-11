@@ -86,8 +86,11 @@ describe('CardiacClock — shared beat timing', () => {
       if (p > plMax) { plMax = p; plIdx = i; }
       i++;
     }
-    const spread = Math.max(...peaks) - Math.min(...peaks);
-    expect(spread).toBeLessThan(0.02);
+    // Morphology may change slowly with rate, but consecutive beats must
+    // match (beat-to-beat alternation would mimic electrical alternans).
+    for (let b = 1; b < peaks.length; b++) {
+      expect(Math.abs(peaks[b] - peaks[b - 1])).toBeLessThan(0.005);
+    }
     lags = lags.slice(1);
     for (const [abpLag, plLag] of lags) {
       expect(abpLag).toBeGreaterThan(0);
