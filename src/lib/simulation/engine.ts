@@ -5,7 +5,7 @@ import {
   abpAtBeat,
   plethAtBeat,
   beatTimeAt,
-  BeatTime,
+  type BeatTime,
   generateCapnography,
   simvSchedule,
 } from './waveformGenerators';
