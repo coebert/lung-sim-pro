@@ -9,7 +9,7 @@ import {
   generateCapnography,
   simvSchedule,
 } from './waveformGenerators';
-import { clamp, computeAPRV, computeShunt } from './scoring';
+import { clamp, computeAPRV, computeInverseRatio, computeShunt } from './scoring';
 
 export const BUFFER_SIZE = 500;      // 10 seconds at 50Hz
 export const SAMPLE_RATE = 50;
@@ -176,7 +176,7 @@ export function updateVitals(
   const irvOxyBonus = irv.recruitmentBonus * 0.25;
 
   let targetSpO2 = patient.baseSpO2;
-  const effectiveOxyScore = oxygenScore + proneVQBonus;
+  const effectiveOxyScore = oxygenScore + proneVQBonus + irvOxyBonus;
   if (effectiveOxyScore > 0.8) {
     targetSpO2 = Math.min(100, patient.baseSpO2 + (effectiveOxyScore - 0.8) * 30);
   } else {
@@ -200,6 +200,8 @@ export function updateVitals(
     targetEtCO2 = Math.max(15, 38 - (ventRatio - 1.5) * 20);
   }
   targetEtCO2 += shuntFraction * 20;
+  // Inverse ratio shortens expiratory time → less effective CO₂ clearance.
+  if (irv.isInverse) targetEtCO2 += Math.min(10, (irv.ie.ieActual - 1) * 5);
   // Apnoea / no exhaled gas: capnograph reads zero (no CO₂ reaches the sensor).
   const apnoeic = measured.measuredTV < 50 || measured.measuredRR < 1;
 
@@ -215,6 +217,8 @@ export function updateVitals(
 
   const peepEffect = Math.max(0, settings.peep - patient.optimalPEEP) * 2 + hyperinflation * 4;
   const shuntBPPenalty = shuntFraction * 30;
+  // Sustained high mean airway pressure (inverse ratio) impedes venous return.
+  const irvBPPenalty = irv.haemodynamicBurden * 15;
   const targetSBP = patient.baseSBP - peepEffect - shuntBPPenalty + distress * 10;
   const targetDBP = patient.baseDBP - peepEffect * 0.5 - shuntBPPenalty * 0.5 + distress * 5;
 
