@@ -149,8 +149,10 @@ export function updateVitals(
   vitals: Vitals,
   measured: MeasuredValues,
   prone: boolean = false,
+  /** Number of 20 ms engine ticks this update represents (store calls at 4 Hz). */
+  ticks: number = 1,
 ): Vitals {
-  const rate = VITALS_RESPONSE_RATE;
+  const rate = 1 - Math.pow(1 - VITALS_RESPONSE_RATE, ticks);
 
   // Prone positioning V/Q benefit — patient-specific (see patients.ts)
   const proneVQBonus = prone ? patient.proneVQBonus : 0;

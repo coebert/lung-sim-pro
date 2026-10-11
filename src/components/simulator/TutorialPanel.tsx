@@ -118,7 +118,7 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
   // Check current step completion
   useEffect(() => {
     if (!tutorial) return;
-    const step = tutorial.steps[currentStep];
+    const step = tutorial.steps[Math.min(currentStep, tutorial.steps.length - 1)];
     if (!step || completedSteps.has(currentStep)) return;
 
     if (step.check(allSettings, vitals, measured)) {
@@ -174,7 +174,7 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
     );
   }
 
-  const step = tutorial.steps[currentStep];
+  const step = tutorial.steps[Math.min(currentStep, tutorial.steps.length - 1)];
   const isStepComplete = completedSteps.has(currentStep);
   const allComplete = completedSteps.size === tutorial.steps.length;
   const progress = (completedSteps.size / tutorial.steps.length) * 100;

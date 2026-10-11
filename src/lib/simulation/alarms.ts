@@ -18,7 +18,7 @@ export interface AlarmLimits {
 export const DEFAULT_ALARM_LIMITS: AlarmLimits = {
   pipHigh: 40,
   tvLow: 200,
-  spo2Low: 90,
+  spo2Low: 88, // ARDS target range is 88–95%
 };
 
 export function evaluateAlarms(

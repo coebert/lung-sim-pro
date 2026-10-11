@@ -303,7 +303,7 @@ class SimulationStore {
         baselinePressure(this.settings),
         this.patient.compliance,
       );
-      this.vitals = updateVitals(this.settings, this.patient, this.vitals, this.measured, this.prone);
+      this.vitals = updateVitals(this.settings, this.patient, this.vitals, this.measured, this.prone, VITALS_NOTIFY_INTERVAL_MS / 20);
       this.alarms = evaluateAlarms(this.measured, this.vitals, DEFAULT_ALARM_LIMITS);
 
       // Trends at 1Hz (every 4th vitals tick @ 250ms).
