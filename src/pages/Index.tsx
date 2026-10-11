@@ -12,7 +12,8 @@ import {
   useVitalsSnapshot,
   useControls,
 } from '@/lib/simulation/simulationStore';
-import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw } from 'lucide-react';
+import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw, BedSingle, LayoutGrid } from 'lucide-react';
+import { BedsideView } from '@/components/simulator/BedsideView';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
@@ -35,6 +36,7 @@ const Index = () => {
   const [mobileOverlay, setMobileOverlay] = useState<MobileOverlay>('none');
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
+  const [bedsideView, setBedsideView] = useState(false);
 
   // On desktop the tutorial is a side panel; on mobile it lives in the
   // bottom-sheet overlay, so the header button routes there instead.
