@@ -102,7 +102,7 @@ const Index = () => {
             <RotateCcw className="w-3.5 h-3.5" />
             {prone && <span className="text-[9px] font-bold">PRONE</span>}
           </button>
-          {isDesktop && (
+          {(
             <button
               onClick={() => setBedsideView((b) => !b)}
               aria-label={bedsideView ? 'Switch to full view' : 'Switch to bedside view'}
