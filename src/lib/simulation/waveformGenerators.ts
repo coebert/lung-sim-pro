@@ -324,7 +324,8 @@ export function abpAtBeat(bt: BeatTime, sbp: number, dbp: number): number {
     return (sbp - pp * 0.15) - pp * 0.08 * Math.sin(notchPhase * Math.PI);
   } else {
     const decayPhase = (phase - 0.2) / 0.8;
-    return dbp + pp * 0.3 * Math.exp(-decayPhase * 4);
+    const start = sbp - pp * 0.15; // continuous with end of dicrotic notch
+    return dbp + (start - dbp) * Math.exp(-decayPhase * 4);
   }
 }
 

@@ -129,7 +129,7 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
 
     // ── Compliance ──
     if (measured.dynamicCompliance > 0 && measured.dynamicCompliance < 20) {
-      list.push({ text: `Very low dynamic compliance (${measured.dynamicCompliance} mL/cmH₂O). Stiff lungs — consider lung-protective strategy.`, severity: 'warn' });
+      list.push({ text: `Very low dynamic compliance (${measured.dynamicCompliance.toFixed(0)} mL/cmH₂O). Stiff lungs — consider lung-protective strategy.`, severity: 'warn' });
     }
 
     // ── Patient-specific guidance ──
@@ -177,7 +177,7 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       // T Low assessment — tidal volume is a function of T Low: a long T Low
       // permits full exhalation (large VT, derecruitment); the ideal T Low
       // cycles back to P High before expiration has completed.
-      const measuredVT = measured.measuredTV;
+      const measuredVT = Math.round(measured.measuredTV);
       if (tLow < 0.1) {
         list.push({ text: `T Low too short (${tLow.toFixed(1)}s). No meaningful release occurring — CO₂ cannot be cleared.`, severity: 'danger' });
       } else if (tLow > 1.2) {
