@@ -25,6 +25,7 @@ import { AboutButton } from '@/components/simulator/AboutButton';
 import { VITAL_COLOR, spo2Color } from '@/lib/theme';
 
 const Index = () => {
+  const navigate = useNavigate();
   const layoutMode = useLayoutMode();
   const isDesktop = layoutMode === 'desktop';
   const isLandscape = layoutMode === 'mobile-landscape';
@@ -104,13 +105,12 @@ const Index = () => {
             {prone && <span className="text-[9px] font-bold">PRONE</span>}
           </button>
           <button
-              onClick={() => setBedsideView((b) => !b)}
-              aria-label={bedsideView ? 'Switch to full view' : 'Switch to bedside view'}
-              aria-pressed={bedsideView}
-              className={`p-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${bedsideView ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
-              title={bedsideView ? 'Full view' : 'Bedside view'}
+              onClick={() => navigate('/bedside')}
+              aria-label="Open bedside view"
+              className="p-1 rounded transition-colors hover:bg-muted text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              title="Bedside view"
             >
-              {bedsideView ? <LayoutGrid className="w-3.5 h-3.5" /> : <BedSingle className="w-3.5 h-3.5" />}
+              <BedSingle className="w-3.5 h-3.5" />
             </button>
           <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" aria-hidden />
           {!isLandscape && (
