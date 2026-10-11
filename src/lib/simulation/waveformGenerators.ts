@@ -286,7 +286,10 @@ export function ecgAtBeat({ t0, cycle }: BeatTime): number {
     Math.exp(-((t0 - centre) ** 2) / (2 * sigma ** 2));
   const p = 0.15 * g(0.10 * k, Math.max(0.030, 0.035 * k));
   const q = -0.12 * g(0.185 * k, Math.max(0.016, 0.016 * k));
-  const r = 1.0 * g(R_PEAK * k, Math.max(0.048, 0.044 * k));
+  // R peak centred exactly on a sample, so its sampled height never varies
+  // with heart rate (otherwise HR drift mimics electrical alternans).
+  const rCentre = Math.round(R_PEAK * k * SAMPLE_RATE) / SAMPLE_RATE;
+  const r = 1.0 * g(rCentre, Math.max(0.048, 0.044 * k));
   const s = -0.20 * g(0.275 * k, Math.max(0.018, 0.018 * k));
   const tw = 0.30 * g(0.42 * k, Math.max(0.055, 0.070 * k));
   return p + q + r + s + tw;
