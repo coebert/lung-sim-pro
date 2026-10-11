@@ -281,23 +281,24 @@ function systoleScale(cycle: number): number {
 }
 
 export function ecgAtBeat({ t0, cycle }: BeatTime): number {
+  // P wave and QRS have fixed timing (QRS width doesn't change with rate),
+  // so every beat's QRS is sampled identically whatever the heart rate —
+  // no beat-to-beat amplitude change that could mimic electrical alternans.
+  // Only the T wave (QT interval) moves earlier as the rate rises.
   const k = systoleScale(cycle);
-  // Every wave centre sits exactly on a sample, so beats of slightly
-  // different length are sampled identically (no beat-to-beat alternation).
-  const snap = (c: number) => Math.round(c * SAMPLE_RATE) / SAMPLE_RATE;
   const g = (centre: number, sigma: number) =>
-    Math.exp(-((t0 - snap(centre)) ** 2) / (2 * sigma ** 2));
-  const p = 0.15 * g(0.10 * k, Math.max(0.030, 0.035 * k));
-  const q = -0.12 * g(0.185 * k, Math.max(0.016, 0.016 * k));
-  const r = 1.0 * g(R_PEAK * k, Math.max(0.048, 0.044 * k));
-  const s = -0.20 * g(0.275 * k, Math.max(0.018, 0.018 * k));
-  const tw = 0.30 * g(0.42 * k, Math.max(0.055, 0.070 * k));
+    Math.exp(-((t0 - centre) ** 2) / (2 * sigma ** 2));
+  const p = 0.15 * g(0.10, 0.032);
+  const q = -0.12 * g(0.185, 0.016);
+  const r = 1.0 * g(R_PEAK, 0.046);
+  const s = -0.20 * g(0.275, 0.018);
+  const tw = 0.30 * g(0.30 + 0.12 * k, Math.max(0.045, 0.070 * k));
   return p + q + r + s + tw;
 }
 
 /** Phase (0–1) of a pulse wave whose upstroke lags the R wave by `delay`. */
 function pulsePhase({ t0, cycle }: BeatTime, delay: number): number {
-  const onset = R_PEAK * systoleScale(cycle) + delay * systoleScale(cycle);
+  const onset = R_PEAK + delay * systoleScale(cycle);
   const tt = (((t0 - onset) % cycle) + cycle) % cycle;
   return tt / cycle;
 }
