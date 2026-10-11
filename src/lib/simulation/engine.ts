@@ -170,6 +170,10 @@ export function updateVitals(
   const oxygenScore = Math.min(fio2Ratio, 1.2) * peepPart;
 
   const { shuntFraction } = computeShunt(settings, patient);
+  // Inverse-ratio ventilation: longer inspiratory time raises mean airway
+  // pressure, recruiting collapsed units in recruitable lung disease.
+  const irv = computeInverseRatio(settings, patient);
+  const irvOxyBonus = irv.recruitmentBonus * 0.25;
 
   let targetSpO2 = patient.baseSpO2;
   const effectiveOxyScore = oxygenScore + proneVQBonus;
