@@ -59,14 +59,43 @@ export function LoopCanvas({ x, y, xRange, yRange, color, label, xUnit, yUnit, s
 
     const n = Math.min(x.length, y.length);
     const start = Math.max(1, n - samples);
+
+    // Temporal smoothing, like the display filter on a real ventilator:
+    // an exponential moving average rounds off the sharp corners that raw
+    // 50 Hz samples produce at breath transitions.
+    const alpha = 0.22;
+    const xs: number[] = new Array(n - start);
+    const ys: number[] = new Array(n - start);
+    let fx = x[start - 1], fy = y[start - 1];
+    for (let i = start; i < n; i++) {
+      fx += alpha * (x[i] - fx);
+      fy += alpha * (y[i] - fy);
+      xs[i - start] = fx;
+      ys[i - start] = fy;
+    }
+    const m = xs.length;
+
+    // Draw as smooth curve joins (quadratic through segment midpoints) in
+    // alpha bands so older samples fade, without per-segment stroke seams.
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.6;
     ctx.lineJoin = 'round';
-    for (let i = start; i < n; i++) {
-      ctx.globalAlpha = 0.15 + 0.85 * ((i - start) / (n - start));
+    ctx.lineCap = 'round';
+    const bands = 8;
+    const bandLen = Math.max(2, Math.ceil(m / bands));
+    for (let b = 0; b < bands; b++) {
+      const i0 = b * bandLen;
+      if (i0 >= m - 1) break;
+      const i1 = Math.min(m - 1, i0 + bandLen);
+      ctx.globalAlpha = 0.15 + 0.85 * (i1 / m);
       ctx.beginPath();
-      ctx.moveTo(sx(x[i - 1]), sy(y[i - 1]));
-      ctx.lineTo(sx(x[i]), sy(y[i]));
+      ctx.moveTo(sx(xs[i0]), sy(ys[i0]));
+      for (let i = i0 + 1; i < i1; i++) {
+        const mx = (sx(xs[i]) + sx(xs[i + 1])) / 2;
+        const my = (sy(ys[i]) + sy(ys[i + 1])) / 2;
+        ctx.quadraticCurveTo(sx(xs[i]), sy(ys[i]), mx, my);
+      }
+      ctx.lineTo(sx(xs[i1]), sy(ys[i1]));
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
