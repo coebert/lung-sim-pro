@@ -194,6 +194,7 @@ class SimulationStore {
     if ('ieRatio' in patch && !('inspiratoryTime' in patch)) patch = { ...patch, inspiratoryTime: 0 };
     this.allSettings = { ...this.allSettings, ...patch };
     this.settings = buildVentSettings(this.allSettings);
+    this.measureStartTime = this.time;
     this.emitControls();
   };
 
@@ -214,6 +215,7 @@ class SimulationStore {
     Object.values(this.trendRings).forEach(r => r.reset());
     this.trendCounter = 0;
     this.time = 0;
+    this.measureStartTime = 0;
     this.cardiac.reset();
     this.prevAprvPhase = 0;
     this.emitControls();
@@ -307,9 +309,14 @@ class SimulationStore {
     this.msSinceVitalsNotify += TICK_INTERVAL_MS;
     if (this.msSinceVitalsNotify >= VITALS_NOTIFY_INTERVAL_MS) {
       this.msSinceVitalsNotify = 0;
+      // Measure only over samples since the last settings change (min 1 s so
+      // there is something to measure right after a change), so measured
+      // values track new settings within a breath rather than after 10 s.
+      const samplesSinceChange = Math.round((this.time - this.measureStartTime) * SAMPLE_RATE);
+      const measureWindow = Math.min(RECENT_WINDOW, Math.max(SAMPLE_RATE, samplesSinceChange));
       this.measured = computeMeasured(
-        this.rings.pressure.recent(RECENT_WINDOW),
-        this.rings.volume.recent(RECENT_WINDOW),
+        this.rings.pressure.recent(measureWindow),
+        this.rings.volume.recent(measureWindow),
         effectiveRate(this.settings, this.patient),
         baselinePressure(this.settings),
         this.patient.compliance,
