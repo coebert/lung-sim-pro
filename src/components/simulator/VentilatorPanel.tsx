@@ -1,6 +1,8 @@
 import { WaveformCanvas } from './WaveformCanvas';
 import { LoopCanvas } from './LoopCanvas';
-import { WaveformBuffers, MeasuredValues, VentSettings } from '@/lib/simulation/types';
+import { useMemo } from 'react';
+import { WaveformBuffers, MeasuredValues, VentSettings, PatientPhysiology } from '@/lib/simulation/types';
+import { pvLoopPressures } from '@/lib/simulation/pvLoop';
 import type { Alarm } from '@/lib/simulation/alarms';
 import { WAVE_COLOR } from '@/lib/theme';
 
@@ -11,6 +13,8 @@ interface VentilatorPanelProps {
   compact?: boolean;
   /** Active alarms, shown Dräger-style in the header message fields. */
   alarms?: Alarm[];
+  /** Patient mechanics, used to draw a non-linear P–V loop. */
+  patient?: PatientPhysiology;
 }
 
 const MODE_NAME: Record<VentSettings['mode'], string> = {
@@ -26,7 +30,11 @@ const MODE_NAME: Record<VentSettings['mode'], string> = {
  * Ventilator screen styled after a Dräger Evita / V500: header with mode and
  * alarm message fields, three stacked curves, measured values down the right.
  */
-export function VentilatorPanel({ buffers, measured, settings, compact = false, alarms = [] }: VentilatorPanelProps) {
+export function VentilatorPanel({ buffers, measured, settings, compact = false, alarms = [], patient }: VentilatorPanelProps) {
+  const pvX = useMemo(
+    () => (patient ? pvLoopPressures(buffers.pressure, buffers.flow, settings, patient) : buffers.pressure),
+    [buffers.pressure, buffers.flow, settings, patient],
+  );
   const maxPressure = Math.max(40, measured.peakPressure + 10);
   const maxFlow = 80;
   const maxVolume = Math.max(600, measured.measuredTV + 200);
@@ -76,7 +84,7 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false, 
         {!compact && (
           <div className="flex flex-col gap-1 w-[150px] shrink-0 min-h-0">
             <div className="flex-1 min-h-0 border border-vent-tile-border rounded">
-              <LoopCanvas x={buffers.pressure} y={buffers.volume} label="P–V loop"
+              <LoopCanvas x={pvX} y={buffers.volume} label="P–V loop"
                 xRange={[0, maxPressure]} yRange={[0, maxVolume]}
                 color={WAVE_COLOR.pressure} xUnit="cmH₂O" yUnit="mL" />
             </div>
