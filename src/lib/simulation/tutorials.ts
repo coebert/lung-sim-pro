@@ -72,7 +72,7 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Increase PEEP to recruit collapsed lung',
         instruction:
-          'ARDS requires higher PEEP to keep collapsed alveoli open (recruitment). Watch the lung animation — atelectasis patches should begin to clear. Target PEEP 12–16 cmH₂O.',
+          'ARDS requires higher PEEP to keep collapsed alveoli open (recruitment). Watch the lung animation — atelectasis patches should begin to clear. Target PEEP 12–16 cmH₂O. Note that plateau pressure rises with PEEP in these very stiff lungs: if it exceeds 30 cmH₂O, reduce TV towards 4–5 mL/kg and accept a higher CO₂.',
         hint: 'Increase PEEP to 14 cmH₂O and watch the SpO₂ improve.',
         check: (s) => s.peep >= 12 && s.peep <= 18,
         successMessage: 'PEEP is in the therapeutic range. You should see recruitment occurring in the lung animation.',
