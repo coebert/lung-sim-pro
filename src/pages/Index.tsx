@@ -36,7 +36,15 @@ const Index = () => {
   const [tutorialActive, setTutorialActive] = useState(false);
   const [lungCollapsed, setLungCollapsed] = useState(false);
 
-  const toggleTutorial = useCallback(() => setTutorialActive((t) => !t), []);
+  // On desktop the tutorial is a side panel; on mobile it lives in the
+  // bottom-sheet overlay, so the header button routes there instead.
+  const toggleTutorial = useCallback(() => {
+    if (isDesktop) {
+      setTutorialActive((t) => !t);
+    } else {
+      setMobileOverlay((o) => (o === 'tutorial' ? 'none' : 'tutorial'));
+    }
+  }, [isDesktop]);
   useGlobalShortcuts({ onToggleTutorial: toggleTutorial });
 
   // Compact vitals bar for mobile header
@@ -74,7 +82,7 @@ const Index = () => {
             {frozen ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
           </button>
           <button
-            onClick={() => setTutorialActive((t) => !t)}
+            onClick={toggleTutorial}
             aria-label={tutorialActive ? 'Exit tutorial' : 'Start tutorial'}
             aria-pressed={tutorialActive}
             className={`p-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${tutorialActive ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
@@ -132,35 +140,36 @@ const Index = () => {
                 <MonitorPanel buffers={buffers} vitals={vitals} />
               </div>
             </div>
-            {(!lungCollapsed || tutorialActive) && (
-              <div className={`${tutorialActive ? 'w-[320px]' : 'w-[220px]'} shrink-0 border-l border-border p-1 flex flex-col gap-1 transition-all`}>
-                {tutorialActive ? (
-                  <TutorialPanel allSettings={allSettings}
-                    patient={patient}
-                    settings={settings}
-                    vitals={vitals}
-                    measured={measured}
-                    onClose={() => setTutorialActive(false)}
-                  />
-                ) : (
-                  <>
+            <div className={`${tutorialActive ? 'w-[320px]' : 'w-[220px]'} shrink-0 border-l border-border p-1 flex flex-col gap-1 transition-all`}>
+              {tutorialActive ? (
+                <TutorialPanel allSettings={allSettings}
+                  patient={patient}
+                  settings={settings}
+                  vitals={vitals}
+                  measured={measured}
+                  onClose={() => setTutorialActive(false)}
+                />
+              ) : (
+                <>
+                  {/* Collapsing hides only the lung picture — the clinical
+                      feedback stays visible. */}
+                  {!lungCollapsed && (
                     <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} collapsed={lungCollapsed} onCollapsedChange={setLungCollapsed} prone={prone} />
-                    <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
-                  </>
-                )}
-              </div>
-            )}
-            {lungCollapsed && !tutorialActive && (
-              <div className="shrink-0 border-l border-border">
-                <button
-                  onClick={() => setLungCollapsed(false)}
-                  className="flex items-center justify-center px-1 py-2 h-full hover:bg-muted transition-colors"
-                  title="Show Lung View"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground" />
-                </button>
-              </div>
-            )}
+                  )}
+                  {lungCollapsed && (
+                    <button
+                      onClick={() => setLungCollapsed(false)}
+                      className="flex items-center justify-center gap-1 px-1 py-1.5 hover:bg-muted transition-colors rounded text-[10px] text-muted-foreground"
+                      title="Show Lung View"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      Lung
+                    </button>
+                  )}
+                  <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />
+                </>
+              )}
+            </div>
           </div>
         </>
       )}
