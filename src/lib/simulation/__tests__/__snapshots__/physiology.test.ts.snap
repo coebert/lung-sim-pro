@@ -5,7 +5,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'APRV �
   {
     "measured": {
       "dynamicCompliance": 30,
-      "meanPressure": 25.8,
+      "meanPressure": 12.9,
       "measuredRR": 22,
       "measuredTV": 420,
       "minuteVentilation": 9.2,
@@ -86,7 +86,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'PCV —
   {
     "measured": {
       "dynamicCompliance": 15,
-      "meanPressure": 20.5,
+      "meanPressure": 10.3,
       "measuredRR": 22,
       "measuredTV": 225,
       "minuteVentilation": 4.9,
@@ -124,7 +124,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'PCV —
   {
     "measured": {
       "dynamicCompliance": 15,
-      "meanPressure": 19.6,
+      "meanPressure": 19.5,
       "measuredRR": 22,
       "measuredTV": 225,
       "minuteVentilation": 4.9,
@@ -143,7 +143,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'PCV —
   {
     "measured": {
       "dynamicCompliance": 15,
-      "meanPressure": 19.9,
+      "meanPressure": 19.7,
       "measuredRR": 22,
       "measuredTV": 225,
       "minuteVentilation": 4.9,
@@ -167,7 +167,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'PCV —
   {
     "measured": {
       "dynamicCompliance": 15,
-      "meanPressure": 25,
+      "meanPressure": 12.5,
       "measuredRR": 22,
       "measuredTV": 375,
       "minuteVentilation": 8.2,
@@ -205,7 +205,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'PCV —
   {
     "measured": {
       "dynamicCompliance": 15,
-      "meanPressure": 23.4,
+      "meanPressure": 23.2,
       "measuredRR": 22,
       "measuredTV": 375,
       "minuteVentilation": 8.2,
@@ -224,7 +224,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'PCV —
   {
     "measured": {
       "dynamicCompliance": 15,
-      "meanPressure": 23.9,
+      "meanPressure": 23.4,
       "measuredRR": 22,
       "measuredTV": 375,
       "minuteVentilation": 8.2,
@@ -248,7 +248,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'SIMV �
   {
     "measured": {
       "dynamicCompliance": 13,
-      "meanPressure": 20.7,
+      "meanPressure": 10.4,
       "measuredRR": 22,
       "measuredTV": 350,
       "minuteVentilation": 7.7,
@@ -267,18 +267,18 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'SIMV �
   {
     "measured": {
       "dynamicCompliance": 13,
-      "meanPressure": 20.8,
+      "meanPressure": 20.9,
       "measuredRR": 22,
-      "measuredTV": 347,
-      "minuteVentilation": 7.6,
-      "peakPressure": 39.9,
-      "plateauPressure": 33.9,
+      "measuredTV": 349,
+      "minuteVentilation": 7.7,
+      "peakPressure": 40.1,
+      "plateauPressure": 34.1,
     },
     "t": 15,
     "vitals": {
       "dbp": 60,
       "etco2": 44.5,
-      "hr": 110.2,
+      "hr": 110.1,
       "sbp": 100.1,
       "spo2": 88.8,
     },
@@ -286,7 +286,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'SIMV �
   {
     "measured": {
       "dynamicCompliance": 13,
-      "meanPressure": 20.4,
+      "meanPressure": 19.9,
       "measuredRR": 22,
       "measuredTV": 348,
       "minuteVentilation": 7.7,
@@ -297,7 +297,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'SIMV �
     "vitals": {
       "dbp": 60,
       "etco2": 43.9,
-      "hr": 110.2,
+      "hr": 110.1,
       "sbp": 100.1,
       "spo2": 89.5,
     },
@@ -305,7 +305,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'SIMV �
   {
     "measured": {
       "dynamicCompliance": 13,
-      "meanPressure": 20.6,
+      "meanPressure": 20.1,
       "measuredRR": 22,
       "measuredTV": 348,
       "minuteVentilation": 7.7,
@@ -316,8 +316,8 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'SIMV �
     "vitals": {
       "dbp": 60,
       "etco2": 43,
-      "hr": 110.2,
-      "sbp": 100.1,
+      "hr": 110.1,
+      "sbp": 100,
       "spo2": 90.6,
     },
   },
@@ -329,7 +329,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'VCV —
   {
     "measured": {
       "dynamicCompliance": 13,
-      "meanPressure": 20.7,
+      "meanPressure": 10.4,
       "measuredRR": 22,
       "measuredTV": 350,
       "minuteVentilation": 7.7,
@@ -348,18 +348,18 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'VCV —
   {
     "measured": {
       "dynamicCompliance": 13,
-      "meanPressure": 20.8,
+      "meanPressure": 20.9,
       "measuredRR": 22,
-      "measuredTV": 347,
-      "minuteVentilation": 7.6,
-      "peakPressure": 39.9,
-      "plateauPressure": 33.9,
+      "measuredTV": 349,
+      "minuteVentilation": 7.7,
+      "peakPressure": 40.1,
+      "plateauPressure": 34.1,
     },
     "t": 15,
     "vitals": {
       "dbp": 60,
       "etco2": 44.5,
-      "hr": 110.2,
+      "hr": 110.1,
       "sbp": 100.1,
       "spo2": 88.8,
     },
@@ -367,7 +367,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'VCV —
   {
     "measured": {
       "dynamicCompliance": 13,
-      "meanPressure": 20.4,
+      "meanPressure": 19.9,
       "measuredRR": 22,
       "measuredTV": 348,
       "minuteVentilation": 7.7,
@@ -378,7 +378,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'VCV —
     "vitals": {
       "dbp": 60,
       "etco2": 43.9,
-      "hr": 110.2,
+      "hr": 110.1,
       "sbp": 100.1,
       "spo2": 89.5,
     },
@@ -386,7 +386,7 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'VCV —
   {
     "measured": {
       "dynamicCompliance": 13,
-      "meanPressure": 20.6,
+      "meanPressure": 20.1,
       "measuredRR": 22,
       "measuredTV": 348,
       "minuteVentilation": 7.7,
@@ -397,8 +397,8 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'VCV —
     "vitals": {
       "dbp": 60,
       "etco2": 43,
-      "hr": 110.2,
-      "sbp": 100.1,
+      "hr": 110.1,
+      "sbp": 100,
       "spo2": 90.6,
     },
   },
@@ -410,7 +410,7 @@ exports[`physiology trajectory — golden files > bronchospasm (Severe Bronchosp
   {
     "measured": {
       "dynamicCompliance": 21,
-      "meanPressure": 10.8,
+      "meanPressure": 5.4,
       "measuredRR": 10,
       "measuredTV": 463,
       "minuteVentilation": 4.6,
@@ -429,7 +429,7 @@ exports[`physiology trajectory — golden files > bronchospasm (Severe Bronchosp
   {
     "measured": {
       "dynamicCompliance": 21,
-      "meanPressure": 10.6,
+      "meanPressure": 10.7,
       "measuredRR": 10,
       "measuredTV": 450,
       "minuteVentilation": 4.5,
@@ -438,9 +438,9 @@ exports[`physiology trajectory — golden files > bronchospasm (Severe Bronchosp
     },
     "t": 15,
     "vitals": {
-      "dbp": 85.1,
+      "dbp": 85,
       "etco2": 49.1,
-      "hr": 115.3,
+      "hr": 115.2,
       "sbp": 135.1,
       "spo2": 91.8,
     },
@@ -448,38 +448,38 @@ exports[`physiology trajectory — golden files > bronchospasm (Severe Bronchosp
   {
     "measured": {
       "dynamicCompliance": 21,
-      "meanPressure": 7.9,
+      "meanPressure": 8.6,
       "measuredRR": 10,
-      "measuredTV": 449,
+      "measuredTV": 450,
       "minuteVentilation": 4.5,
       "peakPressure": 26.7,
       "plateauPressure": 22.7,
     },
     "t": 30,
     "vitals": {
-      "dbp": 85.1,
+      "dbp": 85,
       "etco2": 48.1,
-      "hr": 115.4,
-      "sbp": 135.2,
+      "hr": 115.2,
+      "sbp": 135.1,
       "spo2": 92.5,
     },
   },
   {
     "measured": {
       "dynamicCompliance": 21,
-      "meanPressure": 8.3,
+      "meanPressure": 8.7,
       "measuredRR": 10,
-      "measuredTV": 448,
+      "measuredTV": 450,
       "minuteVentilation": 4.5,
       "peakPressure": 26.7,
       "plateauPressure": 22.7,
     },
     "t": 60,
     "vitals": {
-      "dbp": 85.1,
-      "etco2": 46.6,
-      "hr": 115.6,
-      "sbp": 135.3,
+      "dbp": 85,
+      "etco2": 46.5,
+      "hr": 115.1,
+      "sbp": 135,
       "spo2": 93.6,
     },
   },
@@ -491,7 +491,7 @@ exports[`physiology trajectory — golden files > healthy (Healthy Adult — Par
   {
     "measured": {
       "dynamicCompliance": 41,
-      "meanPressure": 7.6,
+      "meanPressure": 3.8,
       "measuredRR": 14,
       "measuredTV": 490,
       "minuteVentilation": 6.9,
@@ -510,18 +510,18 @@ exports[`physiology trajectory — golden files > healthy (Healthy Adult — Par
   {
     "measured": {
       "dynamicCompliance": 40,
-      "meanPressure": 7.1,
+      "meanPressure": 7.7,
       "measuredRR": 14,
-      "measuredTV": 484,
+      "measuredTV": 487,
       "minuteVentilation": 6.8,
-      "peakPressure": 17.1,
-      "plateauPressure": 14.5,
+      "peakPressure": 17.2,
+      "plateauPressure": 14.6,
     },
     "t": 15,
     "vitals": {
       "dbp": 75,
       "etco2": 38.1,
-      "hr": 72.2,
+      "hr": 72.1,
       "sbp": 120.1,
       "spo2": 99.1,
     },
@@ -531,16 +531,16 @@ exports[`physiology trajectory — golden files > healthy (Healthy Adult — Par
       "dynamicCompliance": 40,
       "meanPressure": 7,
       "measuredRR": 14,
-      "measuredTV": 483,
+      "measuredTV": 486,
       "minuteVentilation": 6.8,
-      "peakPressure": 17.1,
-      "plateauPressure": 14.5,
+      "peakPressure": 17.2,
+      "plateauPressure": 14.6,
     },
     "t": 30,
     "vitals": {
       "dbp": 75,
       "etco2": 38,
-      "hr": 72.2,
+      "hr": 72.1,
       "sbp": 120.1,
       "spo2": 99.3,
     },
@@ -550,17 +550,17 @@ exports[`physiology trajectory — golden files > healthy (Healthy Adult — Par
       "dynamicCompliance": 40,
       "meanPressure": 7,
       "measuredRR": 14,
-      "measuredTV": 483,
+      "measuredTV": 486,
       "minuteVentilation": 6.8,
-      "peakPressure": 17.1,
-      "plateauPressure": 14.5,
+      "peakPressure": 17.2,
+      "plateauPressure": 14.6,
     },
     "t": 60,
     "vitals": {
       "dbp": 75,
       "etco2": 38,
-      "hr": 72.2,
-      "sbp": 120.1,
+      "hr": 72.1,
+      "sbp": 120,
       "spo2": 99.4,
     },
   },
@@ -572,7 +572,7 @@ exports[`physiology trajectory — golden files > healthy-spont (Healthy Adult �
   {
     "measured": {
       "dynamicCompliance": 49,
-      "meanPressure": 8.7,
+      "meanPressure": 4.3,
       "measuredRR": 14,
       "measuredTV": 491,
       "minuteVentilation": 6.9,
@@ -591,9 +591,9 @@ exports[`physiology trajectory — golden files > healthy-spont (Healthy Adult �
   {
     "measured": {
       "dynamicCompliance": 49,
-      "meanPressure": 7.6,
+      "meanPressure": 8.2,
       "measuredRR": 14,
-      "measuredTV": 490,
+      "measuredTV": 491,
       "minuteVentilation": 6.9,
       "peakPressure": 15,
       "plateauPressure": 12.8,
@@ -612,7 +612,7 @@ exports[`physiology trajectory — golden files > healthy-spont (Healthy Adult �
       "dynamicCompliance": 49,
       "meanPressure": 7.5,
       "measuredRR": 14,
-      "measuredTV": 490,
+      "measuredTV": 491,
       "minuteVentilation": 6.9,
       "peakPressure": 15,
       "plateauPressure": 12.8,
@@ -621,7 +621,7 @@ exports[`physiology trajectory — golden files > healthy-spont (Healthy Adult �
     "vitals": {
       "dbp": 75,
       "etco2": 38,
-      "hr": 72,
+      "hr": 72.1,
       "sbp": 120,
       "spo2": 99.3,
     },
@@ -631,7 +631,7 @@ exports[`physiology trajectory — golden files > healthy-spont (Healthy Adult �
       "dynamicCompliance": 49,
       "meanPressure": 7.5,
       "measuredRR": 14,
-      "measuredTV": 490,
+      "measuredTV": 491,
       "minuteVentilation": 6.9,
       "peakPressure": 15,
       "plateauPressure": 12.8,
@@ -653,7 +653,7 @@ exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg))
   {
     "measured": {
       "dynamicCompliance": 24,
-      "meanPressure": 20.5,
+      "meanPressure": 10.3,
       "measuredRR": 16,
       "measuredTV": 530,
       "minuteVentilation": 8.5,
@@ -672,7 +672,7 @@ exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg))
   {
     "measured": {
       "dynamicCompliance": 24,
-      "meanPressure": 15.7,
+      "meanPressure": 16.2,
       "measuredRR": 16,
       "measuredTV": 530,
       "minuteVentilation": 8.5,
@@ -691,7 +691,7 @@ exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg))
   {
     "measured": {
       "dynamicCompliance": 24,
-      "meanPressure": 15.7,
+      "meanPressure": 16.1,
       "measuredRR": 16,
       "measuredTV": 530,
       "minuteVentilation": 8.5,
@@ -710,7 +710,7 @@ exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg))
   {
     "measured": {
       "dynamicCompliance": 24,
-      "meanPressure": 15.7,
+      "meanPressure": 16.2,
       "measuredRR": 16,
       "measuredTV": 530,
       "minuteVentilation": 8.5,
@@ -734,7 +734,7 @@ exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg))
   {
     "measured": {
       "dynamicCompliance": 19,
-      "meanPressure": 16.7,
+      "meanPressure": 8.4,
       "measuredRR": 16,
       "measuredTV": 420,
       "minuteVentilation": 6.7,
@@ -753,9 +753,9 @@ exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg))
   {
     "measured": {
       "dynamicCompliance": 19,
-      "meanPressure": 13.7,
+      "meanPressure": 14.1,
       "measuredRR": 16,
-      "measuredTV": 416,
+      "measuredTV": 420,
       "minuteVentilation": 6.7,
       "peakPressure": 31.7,
       "plateauPressure": 26.9,
@@ -764,7 +764,7 @@ exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg))
     "vitals": {
       "dbp": 90,
       "etco2": 41.7,
-      "hr": 88.2,
+      "hr": 88.1,
       "sbp": 145.1,
       "spo2": 94.8,
     },
@@ -772,9 +772,9 @@ exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg))
   {
     "measured": {
       "dynamicCompliance": 19,
-      "meanPressure": 13.7,
+      "meanPressure": 14,
       "measuredRR": 16,
-      "measuredTV": 416,
+      "measuredTV": 420,
       "minuteVentilation": 6.7,
       "peakPressure": 31.7,
       "plateauPressure": 26.9,
@@ -784,16 +784,16 @@ exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg))
       "dbp": 90,
       "etco2": 41.4,
       "hr": 88.1,
-      "sbp": 145.1,
+      "sbp": 145,
       "spo2": 95.5,
     },
   },
   {
     "measured": {
       "dynamicCompliance": 19,
-      "meanPressure": 13.7,
+      "meanPressure": 14.1,
       "measuredRR": 16,
-      "measuredTV": 416,
+      "measuredTV": 420,
       "minuteVentilation": 6.7,
       "peakPressure": 31.7,
       "plateauPressure": 26.9,
@@ -815,7 +815,7 @@ exports[`physiology trajectory — golden files > restrictive (Restrictive Lung 
   {
     "measured": {
       "dynamicCompliance": 19,
-      "meanPressure": 10.8,
+      "meanPressure": 5.4,
       "measuredRR": 20,
       "measuredTV": 350,
       "minuteVentilation": 7,
@@ -834,7 +834,7 @@ exports[`physiology trajectory — golden files > restrictive (Restrictive Lung 
   {
     "measured": {
       "dynamicCompliance": 19,
-      "meanPressure": 9.4,
+      "meanPressure": 9.7,
       "measuredRR": 20,
       "measuredTV": 350,
       "minuteVentilation": 7,
@@ -853,7 +853,7 @@ exports[`physiology trajectory — golden files > restrictive (Restrictive Lung 
   {
     "measured": {
       "dynamicCompliance": 19,
-      "meanPressure": 9.1,
+      "meanPressure": 9.7,
       "measuredRR": 20,
       "measuredTV": 350,
       "minuteVentilation": 7,
@@ -872,7 +872,7 @@ exports[`physiology trajectory — golden files > restrictive (Restrictive Lung 
   {
     "measured": {
       "dynamicCompliance": 19,
-      "meanPressure": 9.5,
+      "meanPressure": 9.7,
       "measuredRR": 20,
       "measuredTV": 350,
       "minuteVentilation": 7,
@@ -896,7 +896,7 @@ exports[`physiology trajectory — golden files > spontaneous (Spontaneously Bre
   {
     "measured": {
       "dynamicCompliance": 39,
-      "meanPressure": 7.9,
+      "meanPressure": 3.9,
       "measuredRR": 8,
       "measuredTV": 473,
       "minuteVentilation": 3.8,
@@ -914,58 +914,58 @@ exports[`physiology trajectory — golden files > spontaneous (Spontaneously Bre
   },
   {
     "measured": {
-      "dynamicCompliance": 40,
-      "meanPressure": 5,
+      "dynamicCompliance": 39,
+      "meanPressure": 6.5,
       "measuredRR": 8,
-      "measuredTV": 2,
-      "minuteVentilation": 0,
-      "peakPressure": 5,
-      "plateauPressure": 4.3,
+      "measuredTV": 473,
+      "minuteVentilation": 3.8,
+      "peakPressure": 17,
+      "plateauPressure": 14.5,
     },
     "t": 15,
     "vitals": {
-      "dbp": 65.6,
-      "etco2": 54.7,
-      "hr": 108.2,
-      "sbp": 111.3,
+      "dbp": 65.5,
+      "etco2": 54.1,
+      "hr": 107.5,
+      "sbp": 111,
       "spo2": 89.8,
     },
   },
   {
     "measured": {
-      "dynamicCompliance": 40,
-      "meanPressure": 5,
+      "dynamicCompliance": 39,
+      "meanPressure": 6.5,
       "measuredRR": 8,
-      "measuredTV": 1,
-      "minuteVentilation": 0,
-      "peakPressure": 5,
-      "plateauPressure": 4.3,
+      "measuredTV": 473,
+      "minuteVentilation": 3.8,
+      "peakPressure": 17,
+      "plateauPressure": 14.5,
     },
     "t": 30,
     "vitals": {
-      "dbp": 66.1,
-      "etco2": 54.4,
-      "hr": 110.7,
-      "sbp": 112.3,
+      "dbp": 65.9,
+      "etco2": 53.3,
+      "hr": 109.4,
+      "sbp": 111.8,
       "spo2": 90.5,
     },
   },
   {
     "measured": {
-      "dynamicCompliance": 40,
-      "meanPressure": 5,
+      "dynamicCompliance": 39,
+      "meanPressure": 6.5,
       "measuredRR": 8,
-      "measuredTV": 2,
-      "minuteVentilation": 0,
-      "peakPressure": 5,
-      "plateauPressure": 4.3,
+      "measuredTV": 473,
+      "minuteVentilation": 3.8,
+      "peakPressure": 17,
+      "plateauPressure": 14.5,
     },
     "t": 60,
     "vitals": {
-      "dbp": 66.8,
-      "etco2": 53.9,
-      "hr": 114,
-      "sbp": 113.6,
+      "dbp": 66.4,
+      "etco2": 51.8,
+      "hr": 111.8,
+      "sbp": 112.7,
       "spo2": 91.6,
     },
   },
@@ -977,7 +977,7 @@ exports[`physiology trajectory — golden files > spontaneous (Spontaneously Bre
   {
     "measured": {
       "dynamicCompliance": 33,
-      "meanPressure": 7.1,
+      "meanPressure": 3.6,
       "measuredRR": 14,
       "measuredTV": 450,
       "minuteVentilation": 6.3,
@@ -995,58 +995,58 @@ exports[`physiology trajectory — golden files > spontaneous (Spontaneously Bre
   },
   {
     "measured": {
-      "dynamicCompliance": 40,
-      "meanPressure": 5.2,
+      "dynamicCompliance": 34,
+      "meanPressure": 7.4,
       "measuredRR": 14,
-      "measuredTV": 147,
-      "minuteVentilation": 2.1,
-      "peakPressure": 8.7,
-      "plateauPressure": 7.4,
+      "measuredTV": 473,
+      "minuteVentilation": 6.6,
+      "peakPressure": 18.8,
+      "plateauPressure": 16,
     },
     "t": 15,
     "vitals": {
-      "dbp": 65.2,
-      "etco2": 54,
-      "hr": 105.9,
-      "sbp": 110.4,
+      "dbp": 65.1,
+      "etco2": 53.7,
+      "hr": 105.3,
+      "sbp": 110.1,
       "spo2": 89.8,
     },
   },
   {
     "measured": {
-      "dynamicCompliance": 32,
-      "meanPressure": 7.2,
+      "dynamicCompliance": 34,
+      "meanPressure": 7.6,
       "measuredRR": 14,
-      "measuredTV": 444,
-      "minuteVentilation": 6.2,
+      "measuredTV": 473,
+      "minuteVentilation": 6.6,
       "peakPressure": 18.8,
       "plateauPressure": 16,
     },
     "t": 30,
     "vitals": {
-      "dbp": 65.2,
-      "etco2": 52.7,
-      "hr": 106,
-      "sbp": 110.4,
+      "dbp": 65.1,
+      "etco2": 52.4,
+      "hr": 105.5,
+      "sbp": 110.2,
       "spo2": 90.5,
     },
   },
   {
     "measured": {
-      "dynamicCompliance": 40,
-      "meanPressure": 5,
+      "dynamicCompliance": 32,
+      "meanPressure": 6.1,
       "measuredRR": 14,
-      "measuredTV": 0,
-      "minuteVentilation": 0,
-      "peakPressure": 5,
-      "plateauPressure": 4.3,
+      "measuredTV": 446,
+      "minuteVentilation": 6.2,
+      "peakPressure": 18.9,
+      "plateauPressure": 16,
     },
     "t": 60,
     "vitals": {
-      "dbp": 65.6,
-      "etco2": 51.5,
-      "hr": 108.2,
-      "sbp": 111.3,
+      "dbp": 65.1,
+      "etco2": 50.1,
+      "hr": 105.5,
+      "sbp": 110.2,
       "spo2": 91.6,
     },
   },

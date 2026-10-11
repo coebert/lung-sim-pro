@@ -1,3 +1,4 @@
+import { computeIE } from './scoring';
 import { PatientPhysiology, VentSettings, CommonSettings, VCVSettings, PCVSettings, PRVCSettings, SIMVSettings, PSVSettings, APRVSettings } from './types';
 
 const SAMPLE_RATE = 50; // Hz — ECG beat phase is locked to this sample grid
@@ -12,10 +13,7 @@ function calcTrappedVolume(s: CommonSettings, p: PatientPhysiology, deliveredVol
   const R = p.resistance;
   const tau = R * C;
   const cycleTime = 60 / s.respiratoryRate;
-  const iTime = s.inspiratoryTime > 0 ? s.inspiratoryTime : cycleTime / (1 + s.ieRatio);
-  // Clamp like computeIE: at high RR with a fixed Ti, eTime can hit ≤ 0,
-  // which made retainedFraction = 1 and trapped volume Infinity.
-  const eTime = Math.max(0.1, cycleTime - iTime);
+  const eTime = Math.max(0.1, cycleTime - getITime(s));
 
   const retainedFraction = Math.exp(-eTime / tau);
   if (retainedFraction > 0.01) {
@@ -43,9 +41,7 @@ export function generateVentWaveformPoint(
 
 /** Resolve inspiratory time: prefer explicit Ti, fall back to I:E ratio */
 function getITime(s: CommonSettings): number {
-  if (s.inspiratoryTime > 0) return s.inspiratoryTime;
-  const cycleTime = 60 / s.respiratoryRate;
-  return cycleTime / (1 + s.ieRatio);
+  return computeIE(s).iTime; // single source of truth, capped to cycle − 0.1 s
 }
 
 /** Structural subtypes — a VCV breath just needs common timing + tidalVolume. */
@@ -88,14 +84,24 @@ function pcvWaveform(time: number, s: PCVLike, p: PatientPhysiology) {
   const R = p.resistance;
   const tau = R * C;
 
-  const deliveredVol = s.pInsp * C * (1 - Math.exp(-iTime / tau)) * 1000;
-  const trapped = calcTrappedVolume(s, p, deliveredVol);
-  const autoPEEP = (trapped / 1000) / C;
+  // The ventilator targets PEEP + Pinsp at the airway. Intrinsic PEEP
+  // reduces the effective driving pressure (and so VT) — it does NOT raise
+  // PIP. Solve delivered volume and trapped volume together (fixed point).
+  const fill = 1 - Math.exp(-iTime / tau);
+  let autoPEEP = 0;
+  let deliveredVol = 0;
+  let trapped = 0;
+  for (let k = 0; k < 12; k++) {
+    deliveredVol = Math.max(0, s.pInsp - autoPEEP) * C * fill * 1000;
+    trapped = calcTrappedVolume(s, p, deliveredVol);
+    autoPEEP = (trapped / 1000) / C;
+  }
+  const driving = Math.max(0, s.pInsp - autoPEEP);
 
   if (phase < iTime) {
-    const volume = trapped + s.pInsp * C * (1 - Math.exp(-phase / tau)) * 1000;
-    const flow = (s.pInsp / R) * Math.exp(-phase / tau);
-    const pressure = s.peep + autoPEEP + s.pInsp;
+    const volume = trapped + driving * C * (1 - Math.exp(-phase / tau)) * 1000;
+    const flow = (driving / R) * Math.exp(-phase / tau);
+    const pressure = s.peep + s.pInsp;
     return { pressure, flow: flow * 60, volume };
   } else {
     const ePhase = phase - iTime;
@@ -116,7 +122,7 @@ function prvcWaveform(time: number, s: PRVCSettings, p: PatientPhysiology) {
 
   const targetPressure = Math.min(
     (s.tidalVolume / 1000) / (C * (1 - Math.exp(-iTime / tau))),
-    s.pMax
+    Math.max(0, s.pMax - s.peep) // Pmax is an absolute airway-pressure ceiling
   );
 
   const pcvLike: PCVLike = { ...pickCommon(s), pInsp: targetPressure };
@@ -146,6 +152,8 @@ function simvWaveform(time: number, s: SIMVSettings, p: PatientPhysiology) {
 }
 
 function psvWaveform(time: number, s: PSVSettings, p: PatientPhysiology) {
+  // PSV needs patient effort: no respiratory drive ⇒ no breaths (apnoea).
+  if (p.spontaneousRate <= 0) return { pressure: s.peep, flow: 0, volume: 0 };
   const rate = p.spontaneousRate > 0 ? p.spontaneousRate : 12;
   const psLike: PCVLike = {
     ...pickCommon(s),
@@ -180,7 +188,7 @@ function aprvWaveform(time: number, s: APRVSettings, p: PatientPhysiology) {
   const volMax = (s.pHigh - s.pLow) * C * 1000; // ml above P Low equilibrium
   const kH = Math.exp(-s.tHigh / tau);
   const kL = Math.exp(-s.tLow / tau);
-  const vee = volMax * (1 - kH) * kL / (1 - kH * kL); // steady end-expiratory volume (auto-PEEP)
+  const vee = volMax * (1 - kH) * kL / Math.max(1e-6, 1 - kH * kL); // steady end-expiratory volume (auto-PEEP)
 
   if (phase < s.tHigh) {
     const volume = volMax * (1 - Math.exp(-phase / tau)) + vee * Math.exp(-phase / tau);
@@ -274,6 +282,7 @@ export function generateSpO2Pleth(time: number, hr: number): number {
 }
 
 export function generateCapnography(time: number, rr: number, etco2: number, spontaneousRate: number = 0): number {
+  if (!(rr > 0)) return 0; // apnoea — no exhaled CO₂
   const cycleTime = 60 / rr;
   const phase = (time % cycleTime) / cycleTime;
   const iRatio = 1 / 3;

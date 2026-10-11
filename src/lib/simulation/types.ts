@@ -79,7 +79,9 @@ export interface PatientPhysiology {
   id: PatientId;
   name: string;
   description: string;
-  weight: number;           // kg
+  weight: number;           // kg (actual)
+  /** Predicted body weight (kg) for mL/kg tidal-volume dosing; defaults to `weight`. */
+  predictedBodyWeight?: number;
   compliance: number;       // mL/cmH2O
   resistance: number;       // cmH2O/L/s
   frc: number;              // mL

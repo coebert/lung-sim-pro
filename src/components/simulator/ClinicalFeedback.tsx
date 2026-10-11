@@ -37,7 +37,8 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     if (settings.fio2 > 0.6 && vitals.spo2 > 94) {
       list.push({ text: `FiO₂ is high (${(settings.fio2 * 100).toFixed(0)}%). Consider weaning to avoid oxygen toxicity.`, severity: 'warn' });
     }
-    if (fio2Ratio < 0.7) {
+    // Titrate FiO₂ to SpO₂, not to a fixed number: only advise more O₂ if desaturated.
+    if (fio2Ratio < 0.7 && vitals.spo2 < 92) {
       list.push({ text: `FiO₂ may be insufficient for this patient's pathology. Target ~${(patient.optimalFiO2 * 100).toFixed(0)}%.`, severity: 'warn' });
     }
 
@@ -66,14 +67,23 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     }
 
     // ── Tidal volume ── (only meaningful for volume-configured modes)
-    if ('tidalVolume' in settings) {
-      const tvPerKg = settings.tidalVolume / patient.weight;
-      if (patient.id === 'ards' && tvPerKg > 7) {
-        list.push({ text: `Tidal volume is ${tvPerKg.toFixed(1)} mL/kg — exceeds lung-protective threshold (6 mL/kg) for ARDS. Risk of VILI.`, severity: 'danger' });
+    if (settings.mode === 'PSV' && patient.spontaneousRate <= 0) {
+      list.push({ text: 'APNOEA: this patient has no respiratory drive, so pressure support delivers no breaths. Use a mandatory mode (VCV/PCV/PRVC/SIMV).', severity: 'danger' });
+    }
+    {
+      // mL/kg is dosed on PREDICTED body weight. Volume-set modes grade the set
+      // VT; pressure-set modes grade the delivered (measured) VT.
+      const pbw = patient.predictedBodyWeight ?? patient.weight;
+      const vt = 'tidalVolume' in settings ? settings.tidalVolume : measured.measuredTV;
+      const tvPerKg = vt / pbw;
+      if (vt <= 0) {
+        // apnoea handled above
+      } else if (patient.id === 'ards' && tvPerKg > 6.5) {
+        list.push({ text: `Tidal volume is ${tvPerKg.toFixed(1)} mL/kg PBW — exceeds the lung-protective target (≤6 mL/kg PBW) for ARDS. Risk of VILI.`, severity: 'danger' });
       } else if (tvPerKg > 10) {
-        list.push({ text: `Tidal volume is high (${tvPerKg.toFixed(1)} mL/kg). Risk of volutrauma.`, severity: 'warn' });
-      } else if (tvPerKg >= 5 && tvPerKg <= 8) {
-        list.push({ text: `Tidal volume (${tvPerKg.toFixed(1)} mL/kg) is within protective range.`, severity: 'good' });
+        list.push({ text: `Tidal volume is high (${tvPerKg.toFixed(1)} mL/kg PBW). Risk of volutrauma.`, severity: 'warn' });
+      } else if (tvPerKg >= 4 && tvPerKg <= 8) {
+        list.push({ text: `Tidal volume (${tvPerKg.toFixed(1)} mL/kg PBW) is within protective range.`, severity: 'good' });
       }
     }
 
@@ -124,7 +134,7 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
 
     // ── Patient-specific guidance ──
     if (patient.id === 'ards' && settings.peep >= patient.optimalPEEP * 0.8
-        && 'tidalVolume' in settings && settings.tidalVolume / patient.weight <= 7) {
+        && 'tidalVolume' in settings && settings.tidalVolume / (patient.predictedBodyWeight ?? patient.weight) <= 6.5) {
       list.push({ text: `Lung-protective strategy in place: low VT + adequate PEEP for ARDS.`, severity: 'good' });
     }
     if (patient.id === 'bronchospasm' && settings.respiratoryRate <= 12 && eTime > 3) {

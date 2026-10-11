@@ -37,7 +37,13 @@ export function evaluateAlarms(
       id: 'tv-low',
       label: `Low VTe (<${limits.tvLow})`,
       severity: 'medium',
-      active: measured.measuredTV > 0 && measured.measuredTV < limits.tvLow,
+      active: measured.measuredTV >= 50 && measured.measuredTV < limits.tvLow,
+    },
+    {
+      id: 'apnoea',
+      label: 'Apnoea / no tidal volume',
+      severity: 'high',
+      active: measured.measuredTV < 50,
     },
     {
       id: 'spo2-low',
@@ -53,6 +59,7 @@ let audioCtx: AudioContext | null = null;
 
 function getAudioCtx(): AudioContext {
   if (!audioCtx) audioCtx = new AudioContext();
+  if (audioCtx.state === 'suspended') void audioCtx.resume().catch(() => {});
   return audioCtx;
 }
 
@@ -69,6 +76,7 @@ export function startAlarmSound(severity: AlarmSeverity) {
       gain.connect(ctx.destination);
       osc.frequency.value = severity === 'high' ? 880 : 660;
       gain.gain.value = 0.15;
+      osc.onended = () => { osc.disconnect(); gain.disconnect(); };
       osc.start();
       osc.stop(ctx.currentTime + 0.12);
     } catch { /* ignore audio errors */ }
@@ -76,6 +84,13 @@ export function startAlarmSound(severity: AlarmSeverity) {
   beep();
   const ms = severity === 'high' ? 800 : 1500;
   alarmInterval = window.setInterval(beep, ms);
+}
+
+// Browsers only allow audio after a user gesture — unlock on first interaction.
+if (typeof window !== 'undefined') {
+  const unlock = () => { try { getAudioCtx(); } catch { /* ignore */ } };
+  window.addEventListener('pointerdown', unlock, { once: true });
+  window.addEventListener('keydown', unlock, { once: true });
 }
 
 export function stopAlarmSound() {
