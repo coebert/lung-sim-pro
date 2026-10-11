@@ -25,6 +25,8 @@ interface StepperControlProps {
   bigStepMult?: number;
   /** Optional long-press acceleration tuning. Defaults: 350ms delay, 200→40ms ramp at −20ms/tick. */
   holdAccel?: HoldAccelerationConfig;
+  /** 'drager' renders a ventilator-style therapy tile (label top-left, big value). */
+  variant?: 'default' | 'drager';
 }
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
