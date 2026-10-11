@@ -199,6 +199,17 @@ const Index = () => {
       {/* ===== MOBILE LANDSCAPE ===== */}
       {isLandscape && (
         <div className="flex-1 flex flex-col min-h-0 relative">
+          {bedsideView ? (
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <BedsideView
+                buffers={buffers}
+                measured={measured}
+                settings={settings}
+                etco2KPa={vitals.etco2 / 7.501}
+                onUpdate={simulationStore.updateSettings}
+              />
+            </div>
+          ) : (
           <div className="flex-1 min-h-0 flex flex-row overflow-hidden">
             <div className="flex-1 min-h-0 min-w-0 p-0.5 border-r border-border">
               <VentilatorPanel buffers={buffers} measured={measured} settings={settings} compact />
@@ -215,6 +226,18 @@ const Index = () => {
       {/* ===== MOBILE PORTRAIT ===== */}
       {isPortrait && (
         <div className="flex-1 flex flex-col min-h-0 relative">
+          {bedsideView ? (
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <BedsideView
+                buffers={buffers}
+                measured={measured}
+                settings={settings}
+                etco2KPa={vitals.etco2 / 7.501}
+                onUpdate={simulationStore.updateSettings}
+              />
+            </div>
+          ) : (
+          <>
           <div className="flex-[3] min-h-0 p-1 border-b border-border">
             <MonitorPanel buffers={buffers} vitals={vitals} layout="grid" />
           </div>
