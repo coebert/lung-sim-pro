@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { WaveformCanvas } from './WaveformCanvas';
 import { VentilatorControls } from './VentilatorControls';
 import { WaveformBuffers, MeasuredValues, VentSettings, PatientPhysiology } from '@/lib/simulation/types';
@@ -24,21 +22,12 @@ const TRACE: Record<TraceKey, { label: string; unit: string; color: string }> = 
 };
 
 /**
- * Bedside view: one large, easy-to-read waveform and a live capnogram with the ventilator settings
+ * Bedside view: live pressure, flow and volume waveforms and a capnogram with the ventilator settings
  * beneath it and a small measured-values strip (Ppeak, Pplat, VTe, EtCO₂) —
  * like glancing at a single screen at the foot of the bed.
  */
 export function BedsideView({ buffers, measured, settings, etco2KPa, patient, onUpdate, fullVentilator = false }: BedsideViewProps) {
-  const [trace, setTrace] = useState<TraceKey>('pressure');
   const isAPRV = settings.mode === 'APRV';
-  const t = TRACE[trace];
-
-  const range: [number, number] =
-    trace === 'pressure'
-      ? [-5, Math.max(40, measured.peakPressure + 10)]
-      : trace === 'flow'
-        ? [-80, 80]
-        : [0, Math.max(600, measured.measuredTV + 200)];
 
   const fmt = (v: number) => (v < 10 ? v.toFixed(1) : String(Math.round(v)));
 
@@ -50,30 +39,10 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
   ];
 
   return (
-    <div className={`flex flex-col h-full min-h-0 gap-1 p-1 ${fullVentilator ? 'overflow-y-auto' : ''}`}>
-      {/* Trace selector */}
-      {!fullVentilator && <div className="flex items-center gap-1 shrink-0" role="tablist" aria-label="Waveform selection">
-        {(Object.keys(TRACE) as TraceKey[]).map((key) => (
-          <Button
-            variant="ghost"
-            key={key}
-            role="tab"
-            aria-selected={trace === key}
-            onClick={() => setTrace(key)}
-            className={`h-auto px-3 py-1 rounded text-xs font-bold monitor-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              trace === key
-                ? 'bg-vent-select text-vent-select-foreground'
-                : 'bg-vent-tile text-vent-label hover:bg-muted'
-            }`}
-          >
-            {TRACE[key].label}
-          </Button>
-        ))}
-      </div>}
-
-      {/* Single large waveform */}
-      <div className={`flex-1 flex flex-col rounded-md border border-vent-tile-border bg-vent-screen p-1 ${fullVentilator ? 'min-h-[240px] gap-1' : 'min-h-0'}`}>
-        {fullVentilator ? (Object.keys(TRACE) as TraceKey[]).map((key) => {
+    <div className="flex flex-col h-full min-h-0 gap-1 p-1 overflow-y-auto">
+      {/* All three traces share the simulator's live waveform buffers. */}
+      <div className={`flex-1 flex flex-col gap-1 rounded-md border border-vent-tile-border bg-vent-screen p-1 ${fullVentilator ? 'min-h-[240px]' : 'min-h-[180px]'}`}>
+        {(Object.keys(TRACE) as TraceKey[]).map((key) => {
           const data = buffers[key];
           const lower = key === 'pressure' ? -5 : key === 'flow' ? -80 : 0;
           const upper = key === 'pressure' ? Math.max(40, measured.peakPressure + 10) : key === 'flow' ? 80 : Math.max(600, measured.measuredTV + 200);
@@ -85,17 +54,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
               markers={key === 'flow' && isAPRV ? buffers.aprvCycleMarkers : undefined}
               markerLabel={key === 'flow' && isAPRV ? 'cycle back to P High' : undefined} />
           </section>;
-        }) : <WaveformCanvas
-          data={buffers[trace]}
-          color={t.color}
-          label={t.label}
-          unit={t.unit}
-          minValue={range[0]}
-          maxValue={range[1]}
-          autoHeight
-          markers={trace === 'flow' && isAPRV ? buffers.aprvCycleMarkers : undefined}
-          markerLabel={trace === 'flow' && isAPRV ? 'cycle back to P High' : undefined}
-        />}
+        })}
       </div>
 
       {!fullVentilator && (

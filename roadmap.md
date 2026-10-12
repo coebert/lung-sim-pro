@@ -25,3 +25,7 @@
 # Bedside capnogram
 - [x] Add a live CO₂ trace matching the simulator and EtCO₂ reading
 - [x] Verify live changes, freeze/resume and phone layout
+
+# Bedside live respiratory traces
+- [x] Show pressure, flow and volume together using shared live simulation data
+- [x] Verify motion, settings changes, freeze/resume and phone layout
