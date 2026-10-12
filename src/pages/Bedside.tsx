@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { BedsideView } from '@/components/simulator/BedsideView';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { PatientDropdown } from '@/components/simulator/PatientDropdown';
@@ -8,7 +9,7 @@ import {
   useVitalsSnapshot,
   useControls,
 } from '@/lib/simulation/simulationStore';
-import { Pause, Play, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Pause, Play, RotateCcw, ArrowLeft, Activity, BedSingle } from 'lucide-react';
 import { VITAL_COLOR, spo2Color } from '@/lib/theme';
 
 /**
@@ -16,7 +17,7 @@ import { VITAL_COLOR, spo2Color } from '@/lib/theme';
  * values and the full settings tiles — nothing else. Meant for walking
  * through scenarios at the bedside or on a projector.
  */
-const Bedside = () => {
+const Bedside = ({ fullVentilator = false }: { fullVentilator?: boolean }) => {
   const { settings, patient, prone, frozen } = useControls();
   const { vitals, measured, alarms } = useVitalsSnapshot();
   const buffers = useWaveforms();
@@ -24,8 +25,8 @@ const Bedside = () => {
   return (
     <div className="h-dvh flex flex-col bg-background overflow-hidden">
       <AlarmBanner alarms={alarms} />
-      <div className="flex items-center justify-between bg-secondary border-b border-border gap-2 shrink-0 px-3 py-1.5">
-        <div className="flex items-center gap-2 shrink-0">
+      <div className="flex flex-wrap items-center justify-between bg-secondary border-b border-border gap-2 shrink-0 px-3 py-1.5">
+        <div className="flex items-center gap-2 min-w-0">
           <Link
             to="/"
             aria-label="Back to full simulator"
@@ -34,27 +35,32 @@ const Bedside = () => {
           >
             <ArrowLeft className="w-3.5 h-3.5" />
           </Link>
-          <button
+          <Button variant="ghost" size="icon"
             onClick={simulationStore.toggleFrozen}
             aria-label={frozen ? 'Resume waveforms' : 'Freeze waveforms'}
             aria-pressed={frozen}
-            className={`p-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${frozen ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+            className={`h-7 w-7 p-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${frozen ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
             title={frozen ? 'Resume waveforms' : 'Freeze waveforms'}
           >
             {frozen ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-          </button>
-          <button
+          </Button>
+          <Button variant="ghost"
             onClick={simulationStore.toggleProne}
             aria-label={prone ? 'Return to supine position' : 'Prone positioning'}
             aria-pressed={prone}
-            className={`p-1 rounded transition-colors flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${prone ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+            className={`h-7 px-1 rounded transition-colors flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${prone ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
             title={prone ? 'Return to supine position' : 'Prone positioning'}
           >
             <RotateCcw className="w-3.5 h-3.5" />
             {prone && <span className="text-[9px] font-bold">PRONE</span>}
-          </button>
-          <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
-            Bedside View
+          </Button>
+          <Button asChild variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
+            <Link to={fullVentilator ? '/bedside' : '/ventilator'} aria-label={fullVentilator ? 'Open bedside view' : 'Open ventilator view'} title={fullVentilator ? 'Bedside view' : 'Ventilator view'}>
+              {fullVentilator ? <BedSingle /> : <Activity />}
+            </Link>
+          </Button>
+          <h1 className="text-xs sm:text-sm font-bold text-foreground whitespace-nowrap">
+            {fullVentilator ? 'Ventilator View' : 'Bedside View'}
             {frozen && <span className="ml-1.5 text-[10px] text-primary font-normal">FROZEN</span>}
           </h1>
         </div>
@@ -80,6 +86,7 @@ const Bedside = () => {
           etco2KPa={vitals.etco2 / 7.501}
           patient={patient}
           onUpdate={simulationStore.updateSettings}
+          fullVentilator={fullVentilator}
         />
       </div>
     </div>

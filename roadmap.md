@@ -17,3 +17,7 @@
 - [x] Clinical: PSV apnoea in paralysed patients, healthy-lung oxygenation, mL/kg on predicted body weight, PCV/PRVC pressure (auto-PEEP lowers VT not raises PIP), FiO₂ advice only when desaturated, 10 s measurement window
 - [x] Model-derived plateau pressure + auto-PEEP, airway pressure = PEEP in expiration, auto-PEEP lowers BP, SIMV full mandatory rate
 - [x] Shared cardiac phase (ECG/ABP/pleth sync)
+
+# Standalone ventilator view
+- [x] Add a full three-trace ventilator page matching the bedside screen, with shared settings and navigation
+- [x] Verify live traces, freeze/resume, mode changes and return navigation

@@ -13,7 +13,8 @@ import {
   useVitalsSnapshot,
   useControls,
 } from '@/lib/simulation/simulationStore';
-import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw, BedSingle } from 'lucide-react';
+import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw, BedSingle, Activity } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
@@ -110,6 +111,9 @@ const Index = () => {
             >
               <BedSingle className="w-3.5 h-3.5" />
             </button>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/ventilator')} aria-label="Open ventilator view" title="Ventilator view" className="h-6 w-6 p-1 text-muted-foreground">
+            <Activity className="w-3.5 h-3.5" />
+          </Button>
           <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" aria-hidden />
           {!isLandscape && (
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">

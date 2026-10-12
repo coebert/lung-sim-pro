@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { WaveformCanvas } from './WaveformCanvas';
 import { VentilatorControls } from './VentilatorControls';
 import { WaveformBuffers, MeasuredValues, VentSettings, PatientPhysiology } from '@/lib/simulation/types';
@@ -11,6 +12,7 @@ interface BedsideViewProps {
   etco2KPa: number;
   patient?: PatientPhysiology;
   onUpdate: (patch: Partial<VentSettings>) => void;
+  fullVentilator?: boolean;
 }
 
 type TraceKey = 'pressure' | 'flow' | 'volume';
@@ -26,7 +28,7 @@ const TRACE: Record<TraceKey, { label: string; unit: string; color: string }> = 
  * beneath it and a small measured-values strip (Ppeak, Pplat, VTe, EtCO₂) —
  * like glancing at a single screen at the foot of the bed.
  */
-export function BedsideView({ buffers, measured, settings, etco2KPa, patient, onUpdate }: BedsideViewProps) {
+export function BedsideView({ buffers, measured, settings, etco2KPa, patient, onUpdate, fullVentilator = false }: BedsideViewProps) {
   const [trace, setTrace] = useState<TraceKey>('pressure');
   const isAPRV = settings.mode === 'APRV';
   const t = TRACE[trace];
@@ -48,29 +50,42 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
   ];
 
   return (
-    <div className="flex flex-col h-full min-h-0 gap-1 p-1">
+    <div className={`flex flex-col h-full min-h-0 gap-1 p-1 ${fullVentilator ? 'overflow-y-auto' : ''}`}>
       {/* Trace selector */}
-      <div className="flex items-center gap-1 shrink-0" role="tablist" aria-label="Waveform selection">
+      {!fullVentilator && <div className="flex items-center gap-1 shrink-0" role="tablist" aria-label="Waveform selection">
         {(Object.keys(TRACE) as TraceKey[]).map((key) => (
-          <button
+          <Button
+            variant="ghost"
             key={key}
             role="tab"
             aria-selected={trace === key}
             onClick={() => setTrace(key)}
-            className={`px-3 py-1 rounded text-xs font-bold monitor-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+            className={`h-auto px-3 py-1 rounded text-xs font-bold monitor-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               trace === key
                 ? 'bg-vent-select text-vent-select-foreground'
                 : 'bg-vent-tile text-vent-label hover:bg-muted'
             }`}
           >
             {TRACE[key].label}
-          </button>
+          </Button>
         ))}
-      </div>
+      </div>}
 
       {/* Single large waveform */}
-      <div className="flex-1 min-h-0 flex flex-col rounded-md border border-vent-tile-border bg-vent-screen p-1">
-        <WaveformCanvas
+      <div className={`flex-1 flex flex-col rounded-md border border-vent-tile-border bg-vent-screen p-1 ${fullVentilator ? 'min-h-[240px] gap-1' : 'min-h-0'}`}>
+        {fullVentilator ? (Object.keys(TRACE) as TraceKey[]).map((key) => {
+          const data = buffers[key];
+          const lower = key === 'pressure' ? -5 : key === 'flow' ? -80 : 0;
+          const upper = key === 'pressure' ? Math.max(40, measured.peakPressure + 10) : key === 'flow' ? 80 : Math.max(600, measured.measuredTV + 200);
+          const minValue = Math.min(lower, ...data);
+          const maxValue = Math.max(upper, ...data.map((value) => value * 1.1));
+          return <section key={key} aria-label={`${TRACE[key].label} waveform`} className="flex flex-col flex-1 min-h-0">
+            <WaveformCanvas data={data} color={TRACE[key].color} label={TRACE[key].label} unit={TRACE[key].unit}
+              minValue={minValue} maxValue={maxValue} autoHeight
+              markers={key === 'flow' && isAPRV ? buffers.aprvCycleMarkers : undefined}
+              markerLabel={key === 'flow' && isAPRV ? 'cycle back to P High' : undefined} />
+          </section>;
+        }) : <WaveformCanvas
           data={buffers[trace]}
           color={t.color}
           label={t.label}
@@ -80,7 +95,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
           autoHeight
           markers={trace === 'flow' && isAPRV ? buffers.aprvCycleMarkers : undefined}
           markerLabel={trace === 'flow' && isAPRV ? 'cycle back to P High' : undefined}
-        />
+        />}
       </div>
 
       {/* Small measured-values strip */}
