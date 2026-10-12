@@ -21,3 +21,7 @@
 # Standalone ventilator view
 - [x] Add a full three-trace ventilator page matching the bedside screen, with shared settings and navigation
 - [x] Verify live traces, freeze/resume, mode changes and return navigation
+
+# Bedside capnogram
+- [x] Add a live CO₂ trace matching the simulator and EtCO₂ reading
+- [ ] Verify live changes, freeze/resume and phone layout
