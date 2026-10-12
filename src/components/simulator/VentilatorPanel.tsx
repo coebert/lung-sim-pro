@@ -37,7 +37,12 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false, 
   );
   const maxPressure = Math.max(40, measured.peakPressure + 10);
   const maxFlow = 80;
-  const maxVolume = Math.max(600, measured.measuredTV + 200);
+  // Scale the volume axis from the actual trace, not just the tidal swing:
+  // APRV and stacked breaths carry trapped volume on top of VTe, so a
+  // VTe-based scale clips the top of the loop off the chart.
+  let traceVolMax = 0;
+  for (const v of buffers.volume) if (v > traceVolMax) traceVolMax = v;
+  const maxVolume = Math.max(600, measured.measuredTV + 200, Math.ceil((traceVolMax * 1.1) / 50) * 50);
   const active = alarms.filter((a) => a.active)
     .sort((a, b) => (a.severity === 'high' ? -1 : 0) - (b.severity === 'high' ? -1 : 0));
   const isAPRV = settings.mode === 'APRV';

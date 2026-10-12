@@ -62,8 +62,10 @@ export function LoopCanvas({ x, y, xRange, yRange, color, label, xUnit, yUnit, s
 
     // Temporal smoothing, like the display filter on a real ventilator:
     // an exponential moving average rounds off the sharp corners that raw
-    // 50 Hz samples produce at breath transitions.
-    const alpha = 0.22;
+    // 50 Hz samples produce at breath transitions. Kept light (~2-sample
+    // time constant): anything heavier smears APRV's fast release into a
+    // diagonal and turns the box-shaped loop into a fake oval.
+    const alpha = 0.5;
     const xs: number[] = new Array(n - start);
     const ys: number[] = new Array(n - start);
     let fx = x[start - 1], fy = y[start - 1];
