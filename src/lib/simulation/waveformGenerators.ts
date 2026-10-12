@@ -405,39 +405,76 @@ export function generateSpO2Pleth(time: number, hr: number): number {
   return plethAtBeat(beatTimeAt(time, hr));
 }
 
-export function generateCapnography(time: number, rr: number, etco2: number, spontaneousRate: number = 0): number {
-  if (!(rr > 0)) return 0; // apnoea — no exhaled CO₂
-  const cycleTime = 60 / rr;
-  const phase = (time % cycleTime) / cycleTime;
-  const iRatio = 1 / 3;
-  const dropDuration = 0.04;
+/** Teaching model of mainstream capnography (mmHg), not recorded clinical data.
+ * Phase I is dead-space washout; II is mixed gas; III is an alveolar plateau.
+ * Washout uses the same exhaled-volume curve as the ventilator, so short APRV
+ * releases and small breaths need not reach a full plateau. No artificial
+ * curare cleft is added merely because a patient has spontaneous drive.
+ */
+export function generateCapnography(time: number, settings: VentSettings, patient: PatientPhysiology, etco2: number): number {
+  if (!Number.isFinite(time) || !Number.isFinite(etco2) || etco2 <= 0) return 0;
+  if (settings.mode === 'PSV' && patient.spontaneousRate <= 0) return 0;
 
-  if (phase < dropDuration) {
-    return etco2 * (1 - phase / dropDuration);
-  } else if (phase < iRatio) {
-    return 0;
-  } else {
-    const ePhase = (phase - iRatio) / (1 - iRatio);
-    let co2: number;
-    if (ePhase < 0.08) {
-      co2 = etco2 * 0.75 * (ePhase / 0.08);
-    } else if (ePhase < 0.9) {
-      co2 = etco2 * (0.75 + 0.25 * ((ePhase - 0.08) / 0.82));
-    } else {
-      co2 = etco2;
-    }
-
-    if (spontaneousRate > 0 && ePhase >= 0.3 && ePhase <= 0.65) {
-      const cleftCenter = 0.475;
-      const cleftWidth = 0.12;
-      const cleftPos = (ePhase - cleftCenter) / cleftWidth;
-      if (Math.abs(cleftPos) < 1) {
-        const cleftDepth = Math.min(0.25, spontaneousRate / 60) * etco2;
-        co2 -= cleftDepth * (0.5 + 0.5 * Math.cos(cleftPos * Math.PI));
-      }
-    }
-
-    return co2;
+  let cycle = 60 / settings.respiratoryRate;
+  let inspiration = getITime(settings);
+  let phase = time % cycle;
+  let start = time - phase;
+  if (settings.mode === 'APRV') {
+    cycle = Math.max(0.2, settings.tHigh + settings.tLow);
+    phase = time % cycle;
+    start = time - phase;
+    inspiration = settings.tHigh;
+  } else if (settings.mode === 'PSV') {
+    cycle = 60 / patient.spontaneousRate;
+    phase = time % cycle;
+    start = time - phase;
+    inspiration = 0.12 + psvInspTime(settings, patient);
+  } else if (settings.mode === 'SIMV') {
+    const schedule = simvSchedule(settings, patient);
+    const slot = Math.floor((time % schedule.cycleTime) / schedule.slotLen);
+    cycle = schedule.slotLen;
+    phase = time % schedule.cycleTime - slot * cycle;
+    start = time - phase;
+    inspiration = slot === 0
+      ? getITime({ ...settings, respiratoryRate: 60 / cycle })
+      : simvSupportInspTime(settings, patient);
   }
+  if (!(cycle > inspiration) || !Number.isFinite(cycle)) return 0;
+
+  const deadSpace = 2.2 * (patient.predictedBodyWeight ?? patient.weight); // mL, anatomical estimate
+  const obstruction = Math.min(1, Math.max(0, (patient.resistance - 5) / 25));
+  const mixingVolume = deadSpace * (0.3 + obstruction * 0.7);
+  const plateauStart = 0.92 - obstruction * 0.22;
+  const expirationShape = (breathStart: number, ti: number, breathCycle: number, elapsed: number): number => {
+    const release = breathStart + ti;
+    const vStart = generateVentWaveformPoint(release, settings, patient).volume;
+    const vEnd = generateVentWaveformPoint(breathStart + breathCycle - 1e-6, settings, patient).volume;
+    const vNow = generateVentWaveformPoint(release + elapsed, settings, patient).volume;
+    const expired = Math.max(0, vStart - vNow);
+    if (expired <= deadSpace) return 0;
+    if (expired < deadSpace + mixingVolume) {
+      const fraction = (expired - deadSpace) / mixingVolume;
+      return etco2 * plateauStart * fraction;
+    }
+    const available = Math.max(1, vStart - vEnd - deadSpace - mixingVolume);
+    const progress = Math.min(1, (expired - deadSpace - mixingVolume) / available);
+    return etco2 * (plateauStart + (1 - plateauStart) * progress);
+  };
+
+  if (phase >= inspiration) return expirationShape(start, inspiration, cycle, phase - inspiration);
+  // Phase 0: fresh inspired gas clears the sensor. At initial startup there
+  // is no preceding exhalation, so never invent an end-tidal spike.
+  const dropTime = Math.min(0.10, inspiration * 0.25);
+  if (start <= 0 || phase >= dropTime) return 0;
+  let previousTi = inspiration;
+  if (settings.mode === 'SIMV') {
+    const schedule = simvSchedule(settings, patient);
+    const previousSlot = Math.floor(((start - 1e-6) % schedule.cycleTime) / cycle);
+    previousTi = previousSlot === 0
+      ? getITime({ ...settings, respiratoryRate: 60 / cycle })
+      : simvSupportInspTime(settings, patient);
+  }
+  const endTidal = expirationShape(start - cycle, previousTi, cycle, cycle - previousTi - 1e-6);
+  return endTidal * Math.max(0, 1 - phase / dropTime);
 }
 

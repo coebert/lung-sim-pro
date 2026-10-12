@@ -29,3 +29,7 @@
 # Bedside live respiratory traces
 - [x] Show pressure, flow and volume together using shared live simulation data
 - [x] Verify motion, settings changes, freeze/resume and phone layout
+
+# Breath-synchronized capnography
+- [x] Model dead-space washout, expiratory upstroke, alveolar plateau and inspiratory downstroke
+- [x] Test mode timing, obstructive shape and absent ventilation; verify the live phone display
