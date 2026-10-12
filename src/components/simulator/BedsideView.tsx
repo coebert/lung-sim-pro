@@ -41,7 +41,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
   return (
     <div className="flex flex-col h-full min-h-0 gap-1 p-1 overflow-y-auto">
       {/* All three traces share the simulator's live waveform buffers. */}
-      <div className={`flex-1 flex flex-col gap-1 rounded-md border border-vent-tile-border bg-vent-screen p-1 ${fullVentilator ? 'min-h-[240px]' : 'min-h-[180px]'}`}>
+      <div className={`flex-1 flex flex-col gap-1 rounded-md border border-vent-tile-border bg-vent-screen p-1 ${fullVentilator ? 'min-h-[240px]' : 'min-h-[234px]'}`}>
         {(Object.keys(TRACE) as TraceKey[]).map((key) => {
           const data = buffers[key];
           const lower = key === 'pressure' ? -5 : key === 'flow' ? -80 : 0;
@@ -58,7 +58,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
       </div>
 
       {!fullVentilator && (
-        <section aria-label="CO₂ capnogram" className="flex flex-col flex-[0.4] min-h-[64px] max-h-[140px] rounded-md border border-vent-tile-border bg-vent-screen p-1">
+        <section aria-label="CO₂ capnogram" className="flex flex-col flex-[0.4] min-h-[76px] max-h-[140px] rounded-md border border-vent-tile-border bg-vent-screen p-1">
           <WaveformCanvas
             data={buffers.capno.map((value) => value / 7.501)}
             color={WAVE_COLOR.capno}
@@ -87,7 +87,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
       </div>
 
       {/* Settings */}
-      <div className="shrink-0 border-t border-border pt-1 bg-vent-screen rounded-md max-h-[38vh] overflow-y-auto">
+      <div className={`shrink-0 border-t border-border pt-1 bg-vent-screen rounded-md overflow-y-auto ${fullVentilator ? 'max-h-[38vh]' : 'max-h-[32vh]'}`}>
         <VentilatorControls settings={settings} patient={patient} onUpdate={onUpdate} />
       </div>
     </div>
