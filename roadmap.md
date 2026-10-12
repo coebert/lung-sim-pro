@@ -19,5 +19,5 @@
 - [x] Shared cardiac phase (ECG/ABP/pleth sync)
 
 # Standalone ventilator view
-- [ ] Add a full three-trace ventilator page matching the bedside screen, with shared settings and navigation
-- [ ] Verify live traces, freeze/resume, mode changes and return navigation
+- [x] Add a full three-trace ventilator page matching the bedside screen, with shared settings and navigation
+- [x] Verify live traces, freeze/resume, mode changes and return navigation
