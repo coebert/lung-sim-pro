@@ -338,7 +338,7 @@ class SimulationStore {
       // would read ~0 mL and fake an apnoea / EtCO₂ crash, so keep the
       // previous readings until a full breath has been recorded.
       if (this.warmup) {
-        if (samplesSinceChange < breathSamples) { this.emitVitals(); return; }
+        if (samplesSinceChange < Math.min(breathSamples, 6 * SAMPLE_RATE)) { this.emitVitals(); return; }
         this.warmup = false;
       }
       const measureWindow = Math.min(
