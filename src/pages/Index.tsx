@@ -115,7 +115,7 @@ const Index = () => {
             <Activity className="w-3.5 h-3.5" />
           </Button>
           <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" aria-hidden />
-          {!isLandscape && (
+          {isDesktop && (
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
               ICU Vent Sim
               {frozen && <span className="ml-1.5 text-[10px] text-primary font-normal">FROZEN</span>}
@@ -200,7 +200,7 @@ const Index = () => {
             </div>
           </div>
           <MobileBottomNav variant="landscape" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
-          <MobileOverlayPanel {...overlayProps} bottomOffset={24} maxHeight="55vh" />
+          <MobileOverlayPanel {...overlayProps} bottomOffset={44} maxHeight="calc(100dvh - 90px)" />
         </div>
       )}
 
