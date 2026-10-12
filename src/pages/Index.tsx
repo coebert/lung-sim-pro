@@ -115,7 +115,7 @@ const Index = () => {
             <Activity className="w-3.5 h-3.5" />
           </Button>
           <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" aria-hidden />
-          {!isLandscape && (
+          {isDesktop && (
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
               ICU Vent Sim
               {frozen && <span className="ml-1.5 text-[10px] text-primary font-normal">FROZEN</span>}
@@ -125,11 +125,13 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-2 min-w-0">
           {!isPortrait && <VitalsBar />}
-          <PatientDropdown
-            selectedPatient={patient}
-            onSelectPatient={simulationStore.setPatient}
-            compact={!isDesktop}
-          />
+          {!isPortrait && (
+            <PatientDropdown
+              selectedPatient={patient}
+              onSelectPatient={simulationStore.setPatient}
+              compact={!isDesktop}
+            />
+          )}
           <AboutButton />
         </div>
       </div>
@@ -200,7 +202,7 @@ const Index = () => {
             </div>
           </div>
           <MobileBottomNav variant="landscape" overlay={mobileOverlay} onOverlayChange={setMobileOverlay} />
-          <MobileOverlayPanel {...overlayProps} bottomOffset={24} maxHeight="55vh" />
+          <MobileOverlayPanel {...overlayProps} bottomOffset={44} maxHeight="calc(100dvh - 90px)" />
         </div>
       )}
 
@@ -212,10 +214,10 @@ const Index = () => {
             <MonitorPanel buffers={buffers} vitals={vitals} layout="grid" />
           </div>
           <div className="flex-[2] min-h-0 flex flex-row border-b border-border">
-            <div className="flex-1 min-h-0 p-1">
+            <div className="flex-1 min-h-0 min-w-0 overflow-hidden p-1">
               <VentilatorPanel buffers={buffers} measured={measured} settings={settings} alarms={alarms} patient={patient} />
             </div>
-            <div className="w-[120px] shrink-0 border-l border-border p-0.5">
+            <div className="w-[120px] overflow-hidden shrink-0 border-l border-border p-0.5">
               <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} compact prone={prone} />
             </div>
           </div>

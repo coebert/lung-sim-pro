@@ -93,7 +93,7 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false, 
         </div>
 
         {!compact && (
-          <div className="flex flex-col gap-1 w-[200px] shrink-0 min-h-0">
+          <div className="hidden min-[480px]:flex flex-col gap-1 w-[200px] shrink-0 min-h-0">
             <div className="flex-1 min-h-0 border border-vent-tile-border rounded">
               <LoopCanvas x={pvX} y={buffers.volume} label="P–V loop"
                 xRange={[0, loopPRange]} yRange={[0, loopVRange]}
