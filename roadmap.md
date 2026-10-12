@@ -31,5 +31,5 @@
 - [x] Verify motion, settings changes, freeze/resume and phone layout
 
 # Breath-synchronized capnography
-- [ ] Model dead-space washout, expiratory upstroke, alveolar plateau and inspiratory downstroke
-- [ ] Test mode timing, obstructive shape and absent ventilation; verify the live phone display
+- [x] Model dead-space washout, expiratory upstroke, alveolar plateau and inspiratory downstroke
+- [x] Test mode timing, obstructive shape and absent ventilation; verify the live phone display
