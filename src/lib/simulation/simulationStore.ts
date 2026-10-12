@@ -323,15 +323,22 @@ class SimulationStore {
     this.msSinceVitalsNotify += TICK_INTERVAL_MS;
     if (this.msSinceVitalsNotify >= VITALS_NOTIFY_INTERVAL_MS) {
       this.msSinceVitalsNotify = 0;
-      // Measure only over samples since the last settings change (min 1 s so
-      // there is something to measure right after a change), so measured
-      // values track new settings within a breath rather than after 10 s.
+      // Measure only over samples since the last settings change, so measured
+      // values track new settings quickly. The window never drops below one
+      // full breath cycle (+10%) so it always contains an inspiration — a
+      // shorter window landing in late expiration would read ~0 mL and trip
+      // a false apnoea alarm / EtCO₂ collapse.
+      const rate = effectiveRate(this.settings, this.patient);
+      const breathSamples = Math.ceil((60 / Math.max(1, rate)) * 1.1 * SAMPLE_RATE);
       const samplesSinceChange = Math.round((this.time - this.measureStartTime) * SAMPLE_RATE);
-      const measureWindow = Math.min(RECENT_WINDOW, Math.max(SAMPLE_RATE, samplesSinceChange));
+      const measureWindow = Math.min(
+        RECENT_WINDOW,
+        Math.max(SAMPLE_RATE, breathSamples, samplesSinceChange),
+      );
       this.measured = computeMeasured(
         this.rings.pressure.recent(measureWindow),
         this.rings.volume.recent(measureWindow),
-        effectiveRate(this.settings, this.patient),
+        rate,
         baselinePressure(this.settings),
         this.patient.compliance,
       );
