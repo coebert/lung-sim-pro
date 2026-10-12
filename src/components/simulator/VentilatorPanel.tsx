@@ -36,7 +36,10 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false, 
     [buffers.pressure, buffers.flow, settings, patient],
   );
   const maxPressure = Math.max(40, measured.peakPressure + 10);
-  const maxFlow = 80;
+  // Fit fast APRV releases / high peak flows instead of clipping them.
+  let flowAbsMax = 0;
+  for (const f of buffers.flow) if (Math.abs(f) > flowAbsMax) flowAbsMax = Math.abs(f);
+  const maxFlow = Math.max(80, Math.ceil((flowAbsMax * 1.1) / 20) * 20);
   // Scale the volume axis from the actual trace, not just the tidal swing:
   // APRV and stacked breaths carry trapped volume on top of VTe, so a
   // VTe-based scale clips the top of the loop off the chart.
