@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { VentSettings, VentMode, AllModeParams, PatientPhysiology } from '@/lib/simulation/types';
-import { prvcInspPressure, psvInspTime } from '@/lib/simulation/waveformGenerators';
+import { prvcInspPressure, psvInspTime, simvSupportInspTime } from '@/lib/simulation/waveformGenerators';
 import { StepperControl } from '@/components/simulator/StepperControl';
 import type { ComponentProps } from 'react';
 
@@ -202,13 +202,38 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
         )}
 
         {settings.mode === 'SIMV' && (
-          <SettingControl
-            label="PS"
-            value={settings.pressureSupport}
-            unit="cmH₂O"
-            min={0} max={30} step={1}
-            onChange={(v) => onUpdate({ pressureSupport: v })}
-          />
+          <>
+            <SettingControl
+              label="PS"
+              value={settings.pressureSupport}
+              unit="cmH₂O"
+              min={0} max={30} step={1}
+              onChange={(v) => onUpdate({ pressureSupport: v })}
+            />
+            <SettingControl
+              label="Rise"
+              value={settings.riseTime}
+              unit="sec"
+              min={0} max={0.6} step={0.05}
+              onChange={(v) => onUpdate({ riseTime: Math.round(v * 100) / 100 })}
+            />
+            <SettingControl
+              label="ETS"
+              value={settings.ets}
+              unit="% pk"
+              min={5} max={80} step={5}
+              onChange={(v) => onUpdate({ ets: v })}
+            />
+            {patient && patient.spontaneousRate > 0 && settings.pressureSupport > 0 && (
+              <ReadoutTile
+                label="Ti (PS)"
+                value={simvSupportInspTime(settings, patient).toFixed(2)}
+                unit="sec"
+                warn={simvSupportInspTime(settings, patient) >= 1.5}
+                note="support breaths"
+              />
+            )}
+          </>
         )}
 
         {settings.mode === 'PSV' && (

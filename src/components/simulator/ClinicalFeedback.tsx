@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues } from '@/lib/simulation/types';
 import { computeAPRV, computeInverseRatio, computeShunt } from '@/lib/simulation/scoring';
-import { prvcInspPressure, psvInspTime } from '@/lib/simulation/waveformGenerators';
+import { prvcInspPressure, psvInspTime, simvSupportInspTime } from '@/lib/simulation/waveformGenerators';
 import { AlertTriangle, ChevronDown, ChevronUp, CircleAlert, CircleCheck, Zap } from 'lucide-react';
 
 interface ClinicalFeedbackProps {
@@ -88,6 +88,15 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       const r = prvcInspPressure(settings, patient);
       if (r.limited) {
         list.push({ text: `PRVC pressure limited: needs ${Math.round(r.needed + settings.peep)} cmH₂O but the ceiling is Pmax − 5 (${settings.pMax - 5}). Target VT is not being reached ("Volume not reached" alarm).`, severity: 'danger' });
+      }
+    }
+    if (settings.mode === 'SIMV' && patient.spontaneousRate > 0 && settings.pressureSupport > 0) {
+      const ti = simvSupportInspTime(settings, patient);
+      if (ti >= 1.5) {
+        list.push({ text: `Long SIMV support breaths (Ti ${ti.toFixed(1)} s): slow flow decay from high resistance. Raise ETS so support breaths cycle off earlier and air-trapping falls.`, severity: 'warn' });
+      }
+      if (settings.riseTime >= 0.3) {
+        list.push({ text: 'Slow SIMV support rise time may leave spontaneous breaths flow-starved — increased work of breathing. Shorten rise time.', severity: 'warn' });
       }
     }
     if (settings.mode === 'PSV' && patient.spontaneousRate > 0) {
