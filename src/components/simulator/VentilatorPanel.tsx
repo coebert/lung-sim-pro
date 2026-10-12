@@ -43,6 +43,12 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false, 
   let traceVolMax = 0;
   for (const v of buffers.volume) if (v > traceVolMax) traceVolMax = v;
   const maxVolume = Math.max(600, measured.measuredTV + 200, Math.ceil((traceVolMax * 1.1) / 50) * 50);
+  // P–V loop axes fit the loop's own data (incl. any beak shaping beyond
+  // measured Ppeak) with headroom, so loops never clip and bends aren't squashed.
+  let loopPMax = 0;
+  for (const p of pvX) if (p > loopPMax) loopPMax = p;
+  const loopPRange = Math.max(20, Math.ceil((loopPMax * 1.15) / 5) * 5);
+  const loopVRange = Math.max(300, Math.ceil((traceVolMax * 1.15) / 50) * 50);
   const active = alarms.filter((a) => a.active)
     .sort((a, b) => (a.severity === 'high' ? -1 : 0) - (b.severity === 'high' ? -1 : 0));
   const isAPRV = settings.mode === 'APRV';
@@ -87,15 +93,15 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false, 
         </div>
 
         {!compact && (
-          <div className="flex flex-col gap-1 w-[150px] shrink-0 min-h-0">
+          <div className="flex flex-col gap-1 w-[200px] shrink-0 min-h-0">
             <div className="flex-1 min-h-0 border border-vent-tile-border rounded">
               <LoopCanvas x={pvX} y={buffers.volume} label="P–V loop"
-                xRange={[0, maxPressure]} yRange={[0, maxVolume]}
+                xRange={[0, loopPRange]} yRange={[0, loopVRange]}
                 color={WAVE_COLOR.pressure} xUnit="cmH₂O" yUnit="mL" />
             </div>
             <div className="flex-1 min-h-0 border border-vent-tile-border rounded">
               <LoopCanvas x={buffers.volume} y={buffers.flow} label="F–V loop"
-                xRange={[0, maxVolume]} yRange={[-maxFlow, maxFlow]}
+                xRange={[0, loopVRange]} yRange={[-maxFlow, maxFlow]}
                 color={WAVE_COLOR.flow} xUnit="mL" yUnit="L/min" />
             </div>
           </div>
