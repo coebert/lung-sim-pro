@@ -86,7 +86,6 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
               markerLabel={key === 'flow' && isAPRV ? 'cycle back to P High' : undefined} />
           </section>;
         }) : <WaveformCanvas
-        <WaveformCanvas
           data={buffers[trace]}
           color={t.color}
           label={t.label}
