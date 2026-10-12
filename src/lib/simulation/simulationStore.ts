@@ -406,8 +406,6 @@ class SimulationStore {
 
 const defaultPatient = patients[0];
 export const simulationStore = new SimulationStore(defaultPatient);
-// TEMP DEBUG: expose for loop inspection
-(window as unknown as { __simStore?: unknown }).__simStore = simulationStore;
 
 export function useWaveforms(): WaveformBuffers {
   return useSyncExternalStore(
