@@ -24,7 +24,7 @@ const TRACE: Record<TraceKey, { label: string; unit: string; color: string }> = 
 };
 
 /**
- * Bedside view: one large, easy-to-read waveform with the ventilator settings
+ * Bedside view: one large, easy-to-read waveform and a live capnogram with the ventilator settings
  * beneath it and a small measured-values strip (Ppeak, Pplat, VTe, EtCO₂) —
  * like glancing at a single screen at the foot of the bed.
  */
@@ -46,7 +46,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
     { label: 'Ppeak', value: fmt(measured.peakPressure), unit: 'cmH₂O', color: WAVE_COLOR.pressure },
     { label: 'Pplat', value: isAPRV ? '—' : fmt(measured.plateauPressure), unit: 'cmH₂O', color: WAVE_COLOR.pressure },
     { label: 'VTe', value: String(Math.round(measured.measuredTV)), unit: 'mL', color: WAVE_COLOR.volume },
-    { label: 'EtCO₂', value: etco2KPa.toFixed(1), unit: 'kPa', color: WAVE_COLOR.flow },
+    { label: 'EtCO₂', value: etco2KPa.toFixed(1), unit: 'kPa', color: WAVE_COLOR.capno },
   ];
 
   return (
@@ -97,6 +97,20 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
           markerLabel={trace === 'flow' && isAPRV ? 'cycle back to P High' : undefined}
         />}
       </div>
+
+      {!fullVentilator && (
+        <section aria-label="CO₂ capnogram" className="flex flex-col flex-[0.4] min-h-[64px] max-h-[140px] rounded-md border border-vent-tile-border bg-vent-screen p-1">
+          <WaveformCanvas
+            data={buffers.capno.map((value) => value / 7.501)}
+            color={WAVE_COLOR.capno}
+            label="CO₂"
+            unit="kPa"
+            minValue={-0.5}
+            maxValue={Math.max(8, etco2KPa * 1.2, ...buffers.capno.map((value) => value / 7.501 * 1.1))}
+            autoHeight
+          />
+        </section>
+      )}
 
       {/* Small measured-values strip */}
       <div className="grid grid-cols-4 gap-1 shrink-0">
