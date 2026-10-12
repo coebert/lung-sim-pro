@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { patients, defaultSettings } from '../patients';
+import { patients, getDefaultAllParams } from '../patients';
 import { generateCapnography, generateVentWaveformPoint, psvInspTime, simvSupportInspTime } from '../waveformGenerators';
 import { buildVentSettings, type AllModeParams } from '../types';
 
 const healthy = patients[0];
-const params: AllModeParams = { ...defaultSettings, respiratoryRate: 12, inspiratoryTime: 1, tidalVolume: 500 };
+const params: AllModeParams = { ...getDefaultAllParams(healthy), respiratoryRate: 12, inspiratoryTime: 1, tidalVolume: 500 };
 const vcv = buildVentSettings({ ...params, mode: 'VCV' });
 
 describe('breath-synchronized capnography', () => {
