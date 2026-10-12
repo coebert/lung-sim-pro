@@ -193,9 +193,22 @@ class SimulationStore {
   updateSettings = (patch: Partial<AllModeParams>) => {
     // I:E and Ti are alternative ways to set timing — whichever was set last wins.
     if ('ieRatio' in patch && !('inspiratoryTime' in patch)) patch = { ...patch, inspiratoryTime: 0 };
+    const modeChanged = 'mode' in patch && patch.mode !== this.allSettings.mode;
     this.allSettings = { ...this.allSettings, ...patch };
     this.settings = buildVentSettings(this.allSettings);
     this.measureStartTime = this.time;
+    if (modeChanged) {
+      // A mode switch starts the traces fresh: the loop window spans ~8 s,
+      // so leftover breaths from the previous mode would otherwise draw a
+      // hybrid loop (e.g. VCV ramps mixed into the APRV box) for several
+      // seconds — much longer on throttled/slow timers.
+      Object.values(this.rings).forEach(r => r.reset());
+      this.time = 0;
+      this.measureStartTime = 0;
+      this.prevAprvPhase = 0;
+      this.prevAprvCycle = 0;
+      this.emitWaveforms();
+    }
     this.emitControls();
   };
 
