@@ -64,7 +64,6 @@ export function generateWaveformSample(
 ): WaveformSample {
   const vent = generateVentWaveformPoint(time, settings, patient);
   const bt = beat ?? beatTimeAt(time, vitals.hr);
-  const actualRR = effectiveRate(settings, patient);
   return {
     pressure: vent.pressure,
     flow: vent.flow,
@@ -74,7 +73,7 @@ export function generateWaveformSample(
     ecg: ecgAtBeat(bt),
     abp: abpAtBeat(bt, vitals.sbp, vitals.dbp),
     spo2Pleth: plethAtBeat(bt),
-    capno: generateCapnography(time, actualRR, vitals.etco2, patient.spontaneousRate),
+    capno: generateCapnography(time, settings, patient, vitals.etco2),
   };
 }
 
