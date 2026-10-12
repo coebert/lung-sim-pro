@@ -24,4 +24,4 @@
 
 # Bedside capnogram
 - [x] Add a live CO₂ trace matching the simulator and EtCO₂ reading
-- [ ] Verify live changes, freeze/resume and phone layout
+- [x] Verify live changes, freeze/resume and phone layout
