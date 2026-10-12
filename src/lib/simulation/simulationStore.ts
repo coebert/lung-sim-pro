@@ -139,6 +139,8 @@ class SimulationStore {
    * are computed only over samples since then, so they track changes within
    * one breath instead of averaging 10 s of stale waveform. */
   private measureStartTime = 0;
+  /** After traces are cleared (mode switch), hold vitals until a full breath is recorded. */
+  private warmup = false;
   /** Last APRV cycle phase seen, for detecting the T Low → P High wrap. */
   private prevAprvPhase = 0;
   /** Last APRV cycle length; a change resets phase tracking. */
@@ -207,6 +209,7 @@ class SimulationStore {
       this.measureStartTime = 0;
       this.prevAprvPhase = 0;
       this.prevAprvCycle = 0;
+      this.warmup = true;
       this.emitWaveforms();
     }
     this.emitControls();
@@ -331,6 +334,13 @@ class SimulationStore {
       const rate = effectiveRate(this.settings, this.patient);
       const breathSamples = Math.ceil((60 / Math.max(1, rate)) * 1.1 * SAMPLE_RATE);
       const samplesSinceChange = Math.round((this.time - this.measureStartTime) * SAMPLE_RATE);
+      // Fresh (just-cleared) traces hold less than a breath: measuring them
+      // would read ~0 mL and fake an apnoea / EtCO₂ crash, so keep the
+      // previous readings until a full breath has been recorded.
+      if (this.warmup) {
+        if (samplesSinceChange < Math.min(breathSamples, 6 * SAMPLE_RATE)) { this.emitVitals(); return; }
+        this.warmup = false;
+      }
       const measureWindow = Math.min(
         RECENT_WINDOW,
         Math.max(SAMPLE_RATE, breathSamples, samplesSinceChange),
