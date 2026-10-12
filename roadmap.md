@@ -28,4 +28,4 @@
 
 # Bedside live respiratory traces
 - [x] Show pressure, flow and volume together using shared live simulation data
-- [ ] Verify motion, settings changes, freeze/resume and phone layout
+- [x] Verify motion, settings changes, freeze/resume and phone layout
