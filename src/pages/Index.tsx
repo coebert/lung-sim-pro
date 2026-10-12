@@ -125,11 +125,13 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-2 min-w-0">
           {!isPortrait && <VitalsBar />}
-          <PatientDropdown
-            selectedPatient={patient}
-            onSelectPatient={simulationStore.setPatient}
-            compact={!isDesktop}
-          />
+          {!isPortrait && (
+            <PatientDropdown
+              selectedPatient={patient}
+              onSelectPatient={simulationStore.setPatient}
+              compact={!isDesktop}
+            />
+          )}
           <AboutButton />
         </div>
       </div>
@@ -212,10 +214,10 @@ const Index = () => {
             <MonitorPanel buffers={buffers} vitals={vitals} layout="grid" />
           </div>
           <div className="flex-[2] min-h-0 flex flex-row border-b border-border">
-            <div className="flex-1 min-h-0 p-1">
+            <div className="flex-1 min-h-0 min-w-0 overflow-hidden p-1">
               <VentilatorPanel buffers={buffers} measured={measured} settings={settings} alarms={alarms} patient={patient} />
             </div>
-            <div className="w-[120px] shrink-0 border-l border-border p-0.5">
+            <div className="w-[120px] overflow-hidden shrink-0 border-l border-border p-0.5">
               <LungAnimation patient={patient} settings={settings} buffers={buffers} vitals={vitals} compact prone={prone} />
             </div>
           </div>
