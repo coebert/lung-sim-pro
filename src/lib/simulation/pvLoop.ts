@@ -21,7 +21,8 @@ import type { PatientPhysiology, VentSettings } from './types';
  * time and the R·C time constant — high resistance delays filling, so more
  * of the pressure rise happens before volume arrives and the loop widens.
  * The recruitment knee / overdistension beak only belong to flow-controlled
- * (VCV / SIMV mandatory) breaths.
+ * (VCV / SIMV mandatory) breaths. In SIMV each inspiration is classified by
+ * its flow shape: square flow = mandatory, decelerating flow = support.
  */
 const UPPER_KNEE = 25;      // cmH₂O alveolar pressure where overdistension starts
 const UPPER_GAIN = 0.04;    // cmH₂O per cmH₂O² above the knee
@@ -44,9 +45,22 @@ export function pvLoopPressures(
   const v0 = 3 * C; // mL over which recruitment completes
 
   const volumeControlled = settings.mode === 'VCV' || settings.mode === 'SIMV';
+  // SIMV: mark inspiratory segments whose flow decelerates (support breaths).
+  const supportBreath = new Uint8Array(n);
+  if (settings.mode === 'SIMV') {
+    let i = 0;
+    while (i < n) {
+      if (flow[i] <= 0) { i++; continue; }
+      let j = i, peak = 0;
+      while (j < n && flow[j] > 0) { peak = Math.max(peak, flow[j]); j++; }
+      const last = flow[j - 1];
+      if (j - i > 2 && last < peak * 0.8) supportBreath.fill(1, i, j);
+      i = j;
+    }
+  }
   for (let i = 0; i < n; i++) {
     const p = pressure[i];
-    if (!volumeControlled) {
+    if (!volumeControlled || supportBreath[i]) {
       out[i] = p;
       continue;
     }

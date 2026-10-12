@@ -50,7 +50,7 @@ describe('buildVentSettings — discriminated-union narrowing', () => {
     VCV:  ['tidalVolume', 'flowRate'],
     PCV:  ['pInsp', 'riseTime'],
     PRVC: ['tidalVolume', 'pMax', 'riseTime'],
-    SIMV: ['tidalVolume', 'pressureSupport'],
+    SIMV: ['tidalVolume', 'pressureSupport', 'riseTime', 'ets'],
     PSV:  ['pressureSupport', 'riseTime', 'ets'],
     APRV: ['pHigh', 'pLow', 'tHigh', 'tLow'],
   };

@@ -172,11 +172,19 @@ function prvcWaveform(time: number, s: PRVCSettings, p: PatientPhysiology) {
  * High resistance (long τ) ⇒ long Ti; ventilators cap Ti for safety.
  */
 export function psvInspTime(s: PSVSettings, p: PatientPhysiology): number {
+  return flowCycledTi(s.riseTime, s.ets, p, 60 / Math.max(1, p.spontaneousRate));
+}
+
+/** Shared flow-cycling rule for any pressure-support breath. */
+function flowCycledTi(riseTime: number, ets: number, p: PatientPhysiology, cycleTime: number): number {
   const tau = p.resistance * (p.compliance / 1000);
-  const rate = Math.max(1, p.spontaneousRate);
-  const cycleTime = 60 / rate;
-  const ti = s.riseTime + tau * Math.log(100 / Math.min(90, Math.max(5, s.ets)));
+  const ti = riseTime + tau * Math.log(100 / Math.min(90, Math.max(5, ets)));
   return Math.max(0.3, Math.min(ti, 2.5, cycleTime - 0.3));
+}
+
+/** Ti of SIMV's spontaneous pressure-support breaths (flow-cycled at ETS). */
+export function simvSupportInspTime(s: SIMVSettings, p: PatientPhysiology): number {
+  return flowCycledTi(s.riseTime, s.ets, p, simvSchedule(s, p).slotLen);
 }
 
 /**
@@ -205,9 +213,10 @@ function simvWaveform(time: number, s: SIMVSettings, p: PatientPhysiology) {
     const vcvLike: VCVLike = { ...pickCommon(s), respiratoryRate: slotRate, tidalVolume: s.tidalVolume };
     return vcvWaveform(slotPhase, vcvLike, p);
   }
-  // Spontaneous pressure-supported breath between mandatory breaths.
-  const psLike: PCVLike = { ...pickCommon(s), respiratoryRate: slotRate, ieRatio: 2, inspiratoryTime: 0, pInsp: s.pressureSupport };
-  return pcvWaveform(slotPhase, psLike, p);
+  // Spontaneous pressure-supported breath between mandatory breaths:
+  // ramps over the rise time and cycles off at ETS % of peak flow (as PSV).
+  const ti = simvSupportInspTime(s, p);
+  return pressureBreath(slotPhase, slotLen, ti, s.pressureSupport, s.riseTime, s.peep, p);
 }
 
 function psvWaveform(time: number, s: PSVSettings, p: PatientPhysiology) {
