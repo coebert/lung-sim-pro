@@ -1,19 +1,21 @@
-import { Settings, Users, Stethoscope, GraduationCap, LucideIcon } from 'lucide-react';
+import { Settings, Users, Stethoscope, GraduationCap, LineChart, LucideIcon } from 'lucide-react';
 import { ReactNode } from 'react';
 import { VentilatorControls } from './VentilatorControls';
 import { PatientSelector } from './PatientSelector';
 import { ClinicalFeedback } from './ClinicalFeedback';
 import { TutorialPanel } from './TutorialPanel';
+import { LoopsOverlay } from './LoopsOverlay';
 import {
   AllModeParams,
   MeasuredValues,
   PatientPhysiology,
   VentSettings,
   Vitals,
+  WaveformBuffers,
 } from '@/lib/simulation/types';
 import { simulationStore } from '@/lib/simulation/simulationStore';
 
-export type MobileOverlay = 'none' | 'controls' | 'patients' | 'feedback' | 'tutorial';
+export type MobileOverlay = 'none' | 'controls' | 'patients' | 'feedback' | 'tutorial' | 'loops';
 
 interface MobileBottomNavProps {
   overlay: MobileOverlay;
@@ -25,6 +27,7 @@ interface MobileBottomNavProps {
 const NAV_ITEMS: { id: Exclude<MobileOverlay, 'none'>; label: string; icon: LucideIcon }[] = [
   { id: 'controls', label: 'Settings', icon: Settings },
   { id: 'patients', label: 'Patient',  icon: Users },
+  { id: 'loops', label: 'Loops', icon: LineChart },
   { id: 'feedback', label: 'Clinical', icon: Stethoscope },
   { id: 'tutorial', label: 'Tutorial', icon: GraduationCap },
 ];
