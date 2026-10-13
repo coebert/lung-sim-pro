@@ -74,11 +74,12 @@ interface MobileOverlayPanelProps {
   vitals: Vitals;
   measured: MeasuredValues;
   prone: boolean;
+  buffers: WaveformBuffers;
 }
 
 export function MobileOverlayPanel({
   overlay, onClose, bottomOffset, maxHeight,
-  settings, allSettings, patient, vitals, measured, prone,
+  settings, allSettings, patient, vitals, measured, prone, buffers,
 }: MobileOverlayPanelProps) {
   if (overlay === 'none') return null;
 
@@ -92,6 +93,8 @@ export function MobileOverlayPanel({
         onSelectPatient={(p) => { simulationStore.setPatient(p); onClose(); }}
       />
     );
+  } else if (overlay === 'loops') {
+    content = <LoopsOverlay buffers={buffers} measured={measured} settings={settings} patient={patient} />;
   } else if (overlay === 'feedback') {
     content = <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />;
   } else if (overlay === 'tutorial') {
