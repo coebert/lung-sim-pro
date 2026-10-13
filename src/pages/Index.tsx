@@ -65,7 +65,7 @@ const Index = () => {
   const overlayProps = {
     overlay: mobileOverlay,
     onClose: () => setMobileOverlay('none'),
-    settings, allSettings, patient, vitals, measured, prone,
+    settings, allSettings, patient, vitals, measured, prone, buffers,
   };
 
   return (
