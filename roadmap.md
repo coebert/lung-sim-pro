@@ -38,7 +38,7 @@
 - [x] Add Capacitor native wrapper config
 - [x] Offline fonts, onboarding touch tips, "education only" notice
 - [x] iPad layout check (upright iPad uses stacked touch layout)
-- [ ] Physiology review of all six patients
+- [x] Physiology review of all six patients
 - [ ] More patient cases (COPD, asthma, obesity, sepsis, paediatric)
 - [ ] Guided scenarios with scoring and debrief
 - [ ] Learning content for each mode, waveform and alarm
