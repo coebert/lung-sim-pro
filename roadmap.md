@@ -39,7 +39,7 @@
 - [x] Offline fonts, onboarding touch tips, "education only" notice
 - [x] iPad layout check (upright iPad uses stacked touch layout)
 - [x] Physiology review of all six patients
-- [ ] More patient cases (COPD, asthma, obesity, sepsis, paediatric)
+- [x] More patient cases (COPD, asthma, sepsis, paediatric; obesity existed)
 - [ ] Guided scenarios with scoring and debrief
 - [ ] Learning content for each mode, waveform and alarm
 - [ ] Store assets: icon set, screenshots, privacy policy, description (blocked: needs Rob's input/approval)
