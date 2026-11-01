@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Keyboard, Users, Sliders, GraduationCap } from 'lucide-react';
 
-const STORAGE_KEY = 'lungsim.onboarded.v1';
+const STORAGE_KEY = 'lungsim.onboarded.v2';
 
 /** First-visit onboarding sheet. Persists dismissal in localStorage. */
 export function OnboardingDialog() {
@@ -34,7 +34,7 @@ export function OnboardingDialog() {
             Six scenarios — healthy through ARDS — with distinct compliance, resistance and gas-exchange defects.
           </Item>
           <Item icon={<Sliders className="w-4 h-4" />} title="Adjust ventilator settings">
-            Long-press ± for fast changes, use keyboard arrows for fine control, Page Up/Down for big jumps.
+            Tap ± to adjust, press and hold for fast changes. On a keyboard, arrows give fine control.
           </Item>
           <Item icon={<GraduationCap className="w-4 h-4" />} title="Open the tutorial">
             Guided teaching cases with targets to hit and instant feedback on your choices.
@@ -44,6 +44,11 @@ export function OnboardingDialog() {
             <span className="font-mono text-xs">T</span> tutorial · <span className="font-mono text-xs">1–6</span> patient
           </Item>
         </ul>
+
+        <p className="text-xs text-muted-foreground border-t border-border pt-3">
+          For education only. This is a teaching model, not a medical device — never use it to guide
+          real patient care.
+        </p>
 
         <DialogFooter>
           <button
