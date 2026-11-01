@@ -39,6 +39,9 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ].filter(Boolean),
+  optimizeDeps: {
+    include: ["react", "react-dom", "react/jsx-runtime", "@radix-ui/react-accordion"],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
