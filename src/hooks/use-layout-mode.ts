@@ -35,6 +35,9 @@ function computeMode(w: number, h: number): LayoutMode {
   if (w > h && h < 500) return 'mobile-landscape';
   // Phone in portrait: narrow
   if (w < 768) return 'mobile-portrait';
+  // Tablet held upright (e.g. iPad portrait): the three-column desktop grid is too
+  // cramped, so use the stacked touch layout.
+  if (h > w && w < 1100) return 'mobile-portrait';
   // Everything else: desktop/tablet
   return 'desktop';
 }
