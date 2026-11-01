@@ -37,7 +37,8 @@
 # Apple App Store release (paid download, iPhone + iPad)
 - [x] Add Capacitor native wrapper config
 - [x] Offline fonts, onboarding touch tips, "education only" notice
-- [ ] Physiology review + iPad layout check
+- [x] iPad layout check (upright iPad uses stacked touch layout)
+- [ ] Physiology review of all six patients
 - [ ] More patient cases (COPD, asthma, obesity, sepsis, paediatric)
 - [ ] Guided scenarios with scoring and debrief
 - [ ] Learning content for each mode, waveform and alarm
