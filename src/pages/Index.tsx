@@ -13,7 +13,7 @@ import {
   useVitalsSnapshot,
   useControls,
 } from '@/lib/simulation/simulationStore';
-import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw, BedSingle, Activity } from 'lucide-react';
+import { Pause, Play, GraduationCap, ChevronLeft, RotateCcw, BedSingle, Activity, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AlarmBanner } from '@/components/simulator/AlarmBanner';
 import { LungAnimation } from '@/components/simulator/LungAnimation';
@@ -132,6 +132,9 @@ const Index = () => {
               compact={!isDesktop}
             />
           )}
+          <Button variant="ghost" size="icon" onClick={() => navigate('/learn')} aria-label="Open learning guide" title="Learn" className="h-6 w-6 p-1 text-muted-foreground">
+            <BookOpen className="w-3.5 h-3.5" />
+          </Button>
           <AboutButton />
         </div>
       </div>
