@@ -41,6 +41,6 @@
 - [x] Physiology review of all six patients
 - [x] More patient cases (COPD, asthma, sepsis, paediatric; obesity existed)
 - [x] Guided scenarios with scoring and debrief (tutorials for all patients)
-- [ ] Learning content for each mode, waveform and alarm
+- [x] Learning content for each mode, waveform and alarm (/learn)
 - [ ] Store assets: icon set, screenshots, privacy policy, description (blocked: needs Rob's input/approval)
 - [ ] Build & submit via Xcode (blocked: done by Rob on his Mac)
