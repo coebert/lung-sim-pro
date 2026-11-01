@@ -77,7 +77,11 @@ export type PatientId =
   | 'ards'
   | 'bronchospasm'
   | 'restrictive'
-  | 'spontaneous';
+  | 'spontaneous'
+  | 'copd'
+  | 'asthma'
+  | 'sepsis'
+  | 'paediatric';
 
 export interface PatientPhysiology {
   id: PatientId;

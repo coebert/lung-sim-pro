@@ -61,7 +61,7 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     const optimalMV = (patient.optimalTV * patient.optimalRR) / 1000;
     const ventRatio = minuteVent / optimalMV;
 
-    const permissive = patient.id === 'bronchospasm' || patient.id === 'ards' || measured.autoPEEP > 1;
+    const permissive = patient.id === 'bronchospasm' || patient.id === 'copd' || patient.id === 'asthma' || patient.id === 'ards' || measured.autoPEEP > 1;
     if (vitals.etco2 > 45 && permissive) {
       list.push({ text: patient.id === 'bronchospasm' || measured.autoPEEP > 1
         ? `Hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Permissive hypercapnia is acceptable if pH > 7.20. Do NOT raise RR or shorten expiratory time — this worsens air trapping.`
