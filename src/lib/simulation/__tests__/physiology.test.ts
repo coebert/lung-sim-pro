@@ -149,6 +149,10 @@ const scenarios: Scenario[] = [
   { id: 'bronchospasm', label: 'VCV — low rate long e-time',       settingsPatch: { ieRatio: 4 } },
   { id: 'restrictive',  label: 'VCV — small VT higher rate',       settingsPatch: {} },
   { id: 'spontaneous',  label: 'PSV — pressure support',           settingsPatch: { mode: 'PSV' } },
+  { id: 'copd',         label: 'VCV — long expiration COPD',       settingsPatch: { ieRatio: 4 } },
+  { id: 'asthma',       label: 'VCV — slow rate asthma',           settingsPatch: { ieRatio: 4 } },
+  { id: 'sepsis',       label: 'VCV — septic shock',               settingsPatch: {} },
+  { id: 'paediatric',   label: 'PCV — child pInsp 15',             settingsPatch: { mode: 'PCV', pInsp: 15 } },
 
   // ── Mode-specific: PCV (pressure-controlled) ──
   // ARDS drives PCV clinically — low compliance means volume varies with the

@@ -425,6 +425,91 @@ exports[`physiology trajectory — golden files > ards (ARDS Patient) > 'VCV —
 ]
 `;
 
+exports[`physiology trajectory — golden files > asthma (Acute Asthma (60kg)) > 'VCV — slow rate asthma' 1`] = `
+[
+  {
+    "measured": {
+      "autoPEEP": 0,
+      "dynamicCompliance": 23,
+      "meanPressure": 3.8,
+      "measuredRR": 10,
+      "measuredTV": 400,
+      "minuteVentilation": 4,
+      "peakPressure": 22.5,
+      "plateauPressure": 13.9,
+    },
+    "t": 5,
+    "vitals": {
+      "dbp": 80,
+      "etco2": 45.8,
+      "hr": 120.2,
+      "sbp": 130.1,
+      "spo2": 92.3,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0,
+      "dynamicCompliance": 23,
+      "meanPressure": 7.6,
+      "measuredRR": 10,
+      "measuredTV": 400,
+      "minuteVentilation": 4,
+      "peakPressure": 22.5,
+      "plateauPressure": 13.9,
+    },
+    "t": 15,
+    "vitals": {
+      "dbp": 80,
+      "etco2": 45.4,
+      "hr": 120.1,
+      "sbp": 130.1,
+      "spo2": 92.8,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0,
+      "dynamicCompliance": 23,
+      "meanPressure": 6.3,
+      "measuredRR": 10,
+      "measuredTV": 400,
+      "minuteVentilation": 4,
+      "peakPressure": 22.5,
+      "plateauPressure": 13.9,
+    },
+    "t": 30,
+    "vitals": {
+      "dbp": 80,
+      "etco2": 44.8,
+      "hr": 120.1,
+      "sbp": 130,
+      "spo2": 93.5,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0,
+      "dynamicCompliance": 23,
+      "meanPressure": 6.3,
+      "measuredRR": 10,
+      "measuredTV": 400,
+      "minuteVentilation": 4,
+      "peakPressure": 22.5,
+      "plateauPressure": 13.9,
+    },
+    "t": 60,
+    "vitals": {
+      "dbp": 80,
+      "etco2": 43.7,
+      "hr": 120.1,
+      "sbp": 130,
+      "spo2": 94.6,
+    },
+  },
+]
+`;
+
 exports[`physiology trajectory — golden files > bronchospasm (Severe Bronchospasm) > 'VCV — low rate long e-time' 1`] = `
 [
   {
@@ -505,6 +590,91 @@ exports[`physiology trajectory — golden files > bronchospasm (Severe Bronchosp
       "hr": 115.1,
       "sbp": 135,
       "spo2": 93.6,
+    },
+  },
+]
+`;
+
+exports[`physiology trajectory — golden files > copd (COPD Exacerbation (75kg)) > 'VCV — long expiration COPD' 1`] = `
+[
+  {
+    "measured": {
+      "autoPEEP": 0,
+      "dynamicCompliance": 30,
+      "meanPressure": 3.6,
+      "measuredRR": 12,
+      "measuredTV": 446,
+      "minuteVentilation": 5.3,
+      "peakPressure": 19.6,
+      "plateauPressure": 11.4,
+    },
+    "t": 5,
+    "vitals": {
+      "dbp": 82.1,
+      "etco2": 54.6,
+      "hr": 102.3,
+      "sbp": 140.1,
+      "spo2": 88.3,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0.4,
+      "dynamicCompliance": 29,
+      "meanPressure": 7.3,
+      "measuredRR": 12,
+      "measuredTV": 420,
+      "minuteVentilation": 5,
+      "peakPressure": 19.6,
+      "plateauPressure": 11.4,
+    },
+    "t": 15,
+    "vitals": {
+      "dbp": 82.1,
+      "etco2": 53.6,
+      "hr": 102.3,
+      "sbp": 140.1,
+      "spo2": 88.8,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0.4,
+      "dynamicCompliance": 29,
+      "meanPressure": 7.3,
+      "measuredRR": 12,
+      "measuredTV": 420,
+      "minuteVentilation": 5,
+      "peakPressure": 19.6,
+      "plateauPressure": 11.4,
+    },
+    "t": 30,
+    "vitals": {
+      "dbp": 82.1,
+      "etco2": 52.3,
+      "hr": 102.3,
+      "sbp": 140.1,
+      "spo2": 89.5,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0.4,
+      "dynamicCompliance": 29,
+      "meanPressure": 7.3,
+      "measuredRR": 12,
+      "measuredTV": 420,
+      "minuteVentilation": 5,
+      "peakPressure": 19.6,
+      "plateauPressure": 11.4,
+    },
+    "t": 60,
+    "vitals": {
+      "dbp": 82,
+      "etco2": 50.1,
+      "hr": 102.1,
+      "sbp": 140.1,
+      "spo2": 90.6,
     },
   },
 ]
@@ -850,6 +1020,91 @@ exports[`physiology trajectory — golden files > obese (Morbidly Obese (140kg))
 ]
 `;
 
+exports[`physiology trajectory — golden files > paediatric (Child with Bronchiolitis (20kg)) > 'PCV — child pInsp 15' 1`] = `
+[
+  {
+    "measured": {
+      "autoPEEP": 0,
+      "dynamicCompliance": 14,
+      "meanPressure": 5.9,
+      "measuredRR": 24,
+      "measuredTV": 210,
+      "minuteVentilation": 5,
+      "peakPressure": 21,
+      "plateauPressure": 20,
+    },
+    "t": 5,
+    "vitals": {
+      "dbp": 60.2,
+      "etco2": 47.7,
+      "hr": 131.1,
+      "sbp": 100.4,
+      "spo2": 91.3,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0.3,
+      "dynamicCompliance": 14,
+      "meanPressure": 12,
+      "measuredRR": 24,
+      "measuredTV": 206,
+      "minuteVentilation": 4.9,
+      "peakPressure": 21,
+      "plateauPressure": 20,
+    },
+    "t": 15,
+    "vitals": {
+      "dbp": 60.6,
+      "etco2": 47.2,
+      "hr": 133,
+      "sbp": 101.2,
+      "spo2": 91.8,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0.3,
+      "dynamicCompliance": 14,
+      "meanPressure": 12,
+      "measuredRR": 24,
+      "measuredTV": 206,
+      "minuteVentilation": 4.9,
+      "peakPressure": 21,
+      "plateauPressure": 20,
+    },
+    "t": 30,
+    "vitals": {
+      "dbp": 61,
+      "etco2": 46.4,
+      "hr": 135.2,
+      "sbp": 102.1,
+      "spo2": 92.5,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0.3,
+      "dynamicCompliance": 14,
+      "meanPressure": 12,
+      "measuredRR": 24,
+      "measuredTV": 206,
+      "minuteVentilation": 4.9,
+      "peakPressure": 21,
+      "plateauPressure": 20,
+    },
+    "t": 60,
+    "vitals": {
+      "dbp": 61.6,
+      "etco2": 45.1,
+      "hr": 138.1,
+      "sbp": 103.2,
+      "spo2": 93.6,
+    },
+  },
+]
+`;
+
 exports[`physiology trajectory — golden files > restrictive (Restrictive Lung Disease) > 'VCV — small VT higher rate' 1`] = `
 [
   {
@@ -930,6 +1185,91 @@ exports[`physiology trajectory — golden files > restrictive (Restrictive Lung 
       "hr": 92.1,
       "sbp": 125,
       "spo2": 95.6,
+    },
+  },
+]
+`;
+
+exports[`physiology trajectory — golden files > sepsis (Septic Shock with Pneumonia (80kg)) > 'VCV — septic shock' 1`] = `
+[
+  {
+    "measured": {
+      "autoPEEP": 0,
+      "dynamicCompliance": 27,
+      "meanPressure": 6,
+      "measuredRR": 22,
+      "measuredTV": 440,
+      "minuteVentilation": 9.7,
+      "peakPressure": 24.4,
+      "plateauPressure": 20.6,
+    },
+    "t": 5,
+    "vitals": {
+      "dbp": 48,
+      "etco2": 45.8,
+      "hr": 125.2,
+      "sbp": 85.1,
+      "spo2": 90.3,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0,
+      "dynamicCompliance": 27,
+      "meanPressure": 12.1,
+      "measuredRR": 22,
+      "measuredTV": 438,
+      "minuteVentilation": 9.6,
+      "peakPressure": 24.5,
+      "plateauPressure": 20.5,
+    },
+    "t": 15,
+    "vitals": {
+      "dbp": 48,
+      "etco2": 45.4,
+      "hr": 125.1,
+      "sbp": 85.1,
+      "spo2": 90.8,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0,
+      "dynamicCompliance": 27,
+      "meanPressure": 11.3,
+      "measuredRR": 22,
+      "measuredTV": 437,
+      "minuteVentilation": 9.6,
+      "peakPressure": 24.5,
+      "plateauPressure": 20.5,
+    },
+    "t": 30,
+    "vitals": {
+      "dbp": 48,
+      "etco2": 44.8,
+      "hr": 125.1,
+      "sbp": 85.1,
+      "spo2": 91.5,
+    },
+  },
+  {
+    "measured": {
+      "autoPEEP": 0,
+      "dynamicCompliance": 27,
+      "meanPressure": 11.5,
+      "measuredRR": 22,
+      "measuredTV": 437,
+      "minuteVentilation": 9.6,
+      "peakPressure": 24.5,
+      "plateauPressure": 20.5,
+    },
+    "t": 60,
+    "vitals": {
+      "dbp": 48,
+      "etco2": 43.7,
+      "hr": 125.1,
+      "sbp": 85.1,
+      "spo2": 92.6,
     },
   },
 ]
