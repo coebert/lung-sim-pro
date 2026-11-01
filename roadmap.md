@@ -33,3 +33,12 @@
 # Breath-synchronized capnography
 - [x] Model dead-space washout, expiratory upstroke, alveolar plateau and inspiratory downstroke
 - [x] Test mode timing, obstructive shape and absent ventilation; verify the live phone display
+
+# Apple App Store release (paid download, iPhone + iPad)
+- [x] Add Capacitor native wrapper config
+- [ ] Polish & accuracy: physiology review, onboarding, iPad layout, offline bundle, "education only" disclaimer
+- [ ] More patient cases (COPD, asthma, obesity, sepsis, paediatric)
+- [ ] Guided scenarios with scoring and debrief
+- [ ] Learning content for each mode, waveform and alarm
+- [ ] Store assets: icon set, screenshots, privacy policy, description (blocked: needs Rob's input/approval)
+- [ ] Build & submit via Xcode (blocked: done by Rob on his Mac)
