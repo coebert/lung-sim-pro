@@ -40,7 +40,7 @@
 - [x] iPad layout check (upright iPad uses stacked touch layout)
 - [x] Physiology review of all six patients
 - [x] More patient cases (COPD, asthma, sepsis, paediatric; obesity existed)
-- [ ] Guided scenarios with scoring and debrief
+- [x] Guided scenarios with scoring and debrief (tutorials for all patients)
 - [ ] Learning content for each mode, waveform and alarm
 - [ ] Store assets: icon set, screenshots, privacy policy, description (blocked: needs Rob's input/approval)
 - [ ] Build & submit via Xcode (blocked: done by Rob on his Mac)

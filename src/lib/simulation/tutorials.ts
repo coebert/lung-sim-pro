@@ -370,6 +370,126 @@ export const tutorials: TutorialScenario[] = [
     summary:
       'ARDSNet in brief: VCV, tidal volume 6 mL/kg PBW (4–8), rate up to 35, PEEP paired with FiO₂ from the table, SpO₂ 88–95%, plateau ≤ 30 cmH₂O. Plateau ≈ PEEP + VT ÷ compliance, so when PEEP rises, tidal volume must sometimes fall. Protect the lung first; accept a higher CO₂.',
   },
+  {
+    patientId: 'copd',
+    title: 'COPD: Beating Air Trapping',
+    introduction:
+      'Emphysema makes the lungs floppy and the airways narrow, so breathing out takes a long time. If the next breath arrives too soon, air is trapped (auto-PEEP), which lowers blood pressure and raises the risk of barotrauma.',
+    steps: [
+      {
+        title: 'Use a moderate tidal volume',
+        instruction: 'Use 6–8 mL/kg PBW. For a predicted weight of 70 kg, that is 420–560 mL.',
+        hint: 'Set TV to about 420–480 mL.',
+        check: (s) => s.tidalVolume >= 400 && s.tidalVolume <= 560,
+        successMessage: 'A moderate volume limits hyperinflation.',
+      },
+      {
+        title: 'Lengthen expiration',
+        instruction: 'Lower the rate to 10–14 and lengthen the I:E ratio to 1:3 or longer. Watch the expiratory flow trace reach zero before the next breath.',
+        hint: 'Try RR 12 with I:E 1:4.',
+        check: (s) => s.respiratoryRate <= 14 && s.ieRatio >= 3,
+        successMessage: 'More time to exhale lets the lungs empty.',
+      },
+      {
+        title: 'Clear the auto-PEEP',
+        instruction: 'Bring the auto-PEEP below 2 cmH₂O while keeping SpO₂ 88–92%. A raised CO₂ is acceptable.',
+        hint: 'If auto-PEEP persists, lower the rate further. Keep FiO₂ modest, as this patient may retain CO₂.',
+        check: (_s, v, m) => m.autoPEEP < 2 && v.spo2 >= 88,
+        successMessage: 'The trapped air is gone and oxygenation is adequate.',
+      },
+    ],
+    summary: 'COPD: moderate volume, slow rate, long expiration, target SpO₂ 88–92% and accept a higher CO₂. Always check that expiratory flow returns to zero.',
+  },
+  {
+    patientId: 'asthma',
+    title: 'Acute Asthma: Avoiding Breath Stacking',
+    introduction:
+      'In severe asthma, the narrowed airways cause a big gap between peak and plateau pressure, and the breath out is slow. The main danger is breath stacking, which causes hyperinflation and a fall in blood pressure.',
+    steps: [
+      {
+        title: 'Set a slow rate',
+        instruction: 'Reduce the rate to 8–12 breaths/min.',
+        hint: 'Set RR 10.',
+        check: (s) => s.respiratoryRate >= 8 && s.respiratoryRate <= 12,
+        successMessage: 'Fewer breaths leave more time to breathe out.',
+      },
+      {
+        title: 'Extend expiratory time',
+        instruction: 'Set I:E to 1:4 or longer. You can also raise the inspiratory flow to shorten inspiration.',
+        hint: 'Set I:E 1:4.',
+        check: (s) => s.ieRatio >= 4,
+        successMessage: 'A long expiration lets the lungs empty fully.',
+      },
+      {
+        title: 'Keep plateau safe',
+        instruction: 'Keep the plateau below 30 cmH₂O and the auto-PEEP below 3 cmH₂O. Accept a raised CO₂ (permissive hypercapnia).',
+        hint: 'Lower TV towards 6 mL/kg (360 mL) if plateau is high.',
+        check: (_s, _v, m) => m.plateauPressure < 30 && m.autoPEEP < 3,
+        successMessage: 'Hyperinflation is controlled.',
+      },
+    ],
+    summary: 'Asthma: slow rate, long expiration, modest volume and accept a raised CO₂. A high peak pressure with a normal plateau reflects airway resistance, not stiff lungs.',
+  },
+  {
+    patientId: 'sepsis',
+    title: 'Septic Shock: Ventilating Without Crashing the BP',
+    introduction:
+      'This patient has pneumonia and septic shock. Positive pressure reduces venous return, so high PEEP or air trapping will drop an already low blood pressure. Sepsis also produces a lot of CO₂, so a higher minute ventilation is needed.',
+    steps: [
+      {
+        title: 'Protective tidal volume',
+        instruction: 'Set 6 mL/kg PBW. For a predicted weight of 73 kg, that is about 440 mL (range 400–480).',
+        hint: 'Set TV 440 mL.',
+        check: (s) => s.tidalVolume >= 400 && s.tidalVolume <= 480,
+        successMessage: 'Lung-protective volume is set.',
+      },
+      {
+        title: 'Raise minute ventilation',
+        instruction: 'Increase the rate to 20–26 so that minute ventilation is at least 9 L/min.',
+        hint: 'Try RR 22.',
+        check: (s, _v, m) => s.respiratoryRate >= 20 && s.respiratoryRate <= 26 && m.minuteVentilation >= 9,
+        successMessage: 'The extra CO₂ load is cleared.',
+      },
+      {
+        title: 'Moderate PEEP, adequate oxygen',
+        instruction: 'Use PEEP 6–10 with enough FiO₂ to keep SpO₂ ≥ 92%, while keeping systolic BP above 80. Avoid high PEEP in shock.',
+        hint: 'PEEP 8 with FiO₂ 0.6.',
+        check: (s, v) => s.peep >= 6 && s.peep <= 10 && v.spo2 >= 92 && v.sbp >= 80,
+        successMessage: 'Oxygenation is adequate without worsening the shock.',
+      },
+    ],
+    summary: 'In shock, the ventilator affects the circulation: use moderate PEEP, avoid auto-PEEP and match minute ventilation to the high CO₂ production.',
+  },
+  {
+    patientId: 'paediatric',
+    title: 'Paediatrics: Small Lungs, Small Breaths',
+    introduction:
+      'A 20 kg child with bronchiolitis has small, stiff lungs and narrow airways. Adult settings would cause serious volutrauma. Pressure control is common in children.',
+    steps: [
+      {
+        title: 'Switch to pressure control',
+        instruction: 'Select PCV mode.',
+        hint: 'Tap the PCV mode tile.',
+        check: (s) => s.mode === 'PCV',
+        successMessage: 'PCV limits peak pressure in small airways.',
+      },
+      {
+        title: 'Target 6–8 mL/kg',
+        instruction: 'Adjust Pinsp so that the delivered tidal volume is 120–160 mL.',
+        hint: 'Lower Pinsp to about 10–12 cmH₂O.',
+        check: (s, _v, m) => s.mode === 'PCV' && m.measuredTV >= 120 && m.measuredTV <= 160,
+        successMessage: 'The tidal volume is appropriate for the child’s size.',
+      },
+      {
+        title: 'Age-appropriate rate and PEEP',
+        instruction: 'Set the rate to 20–30 and PEEP to 5–8, keeping SpO₂ ≥ 92%.',
+        hint: 'RR 24, PEEP 6, FiO₂ 0.4.',
+        check: (s, v) => s.respiratoryRate >= 20 && s.respiratoryRate <= 30 && s.peep >= 5 && s.peep <= 8 && v.spo2 >= 92,
+        successMessage: 'The child is ventilated safely.',
+      },
+    ],
+    summary: 'Children: scale everything by weight. Use 6–8 mL/kg, a faster rate and pressure control, and watch the actual delivered volume rather than the set pressure.',
+  },
 ];
 
 export function getTutorialForPatient(patientId: string): TutorialScenario | undefined {
