@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Info } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const AUTHOR = 'Dr Rob Coe BA MA (OXON) MBBS FRCA FFICM';
@@ -36,6 +37,10 @@ export function AboutButton({ compact }: Props) {
               Intended for clinical education only — not for use in patient care or as a substitute for
               formal ventilator training.
             </p>
+            <nav aria-label="Support and privacy" className="flex gap-4 pt-2 border-t border-border">
+              <Link to="/support" className="text-primary underline underline-offset-2 py-1">Support</Link>
+              <Link to="/privacy" className="text-primary underline underline-offset-2 py-1">Privacy Policy</Link>
+            </nav>
             <p className="pt-2 border-t border-border">
               Keyboard: <span className="font-mono">Space</span> freeze · <span className="font-mono">P</span> prone ·
               <span className="font-mono"> T</span> tutorial · <span className="font-mono">1–6</span> patient
