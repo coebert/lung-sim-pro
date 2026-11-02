@@ -43,5 +43,6 @@
 - [x] Guided scenarios with scoring and debrief (tutorials for all patients)
 - [x] Learning content for each mode, waveform and alarm (/learn)
 - [x] Release packaging: offline bundled config, ios:prepare workflow, iOS project generated, safe-area insets, docs/IOS_RELEASE.md
+- [x] Brand name fix, split preflight/strict iOS checks with regression tests
 - [ ] Store assets: icon set, screenshots, privacy policy, description (blocked: needs Rob's input/approval)
 - [ ] Build & submit via Xcode (blocked: done by Rob on his Mac)
