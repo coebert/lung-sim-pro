@@ -83,9 +83,11 @@ export function MobileOverlayPanel({
 }: MobileOverlayPanelProps) {
   // Keep the tutorial mounted once opened so its selection, step and scores survive
   // switching to other overlays. TutorialPanel itself still resets on patient change.
-  const [tutorialMounted, setTutorialMounted] = useState(false);
-  useEffect(() => { if (overlay === 'tutorial') setTutorialMounted(true); }, [overlay]);
+  // Only for the patient whose tutorial was explicitly opened; a new patient needs Tutorial selected again.
+  const [tutorialPatientId, setTutorialPatientId] = useState<string | null>(null);
   const showTutorial = overlay === 'tutorial';
+  useEffect(() => { if (showTutorial) setTutorialPatientId(patient.id); }, [showTutorial, patient.id]);
+  const tutorialMounted = showTutorial || tutorialPatientId === patient.id;
   const panelClass = "absolute left-0 right-0 bg-background border-t border-border overflow-y-auto z-50 p-2 shadow-lg";
 
   let content: ReactNode = null;
@@ -111,10 +113,11 @@ export function MobileOverlayPanel({
           {content}
         </div>
       )}
-      {(tutorialMounted || showTutorial) && (
+      {tutorialMounted && (
         // `hidden` (display:none) removes the parked tutorial from layout, focus order and the accessibility tree.
         <div className={panelClass} style={{ bottom: bottomOffset, maxHeight }} hidden={!showTutorial} data-testid="mobile-tutorial-panel">
           <TutorialPanel
+            key={patient.id}
             patient={patient}
             settings={settings}
             allSettings={allSettings}
