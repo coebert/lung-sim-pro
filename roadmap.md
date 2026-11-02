@@ -46,5 +46,7 @@
 - [x] Brand name fix, split preflight/strict iOS checks with regression tests
 - [x] App icon in iOS asset catalog (master: resources/app-icon-1024.png); signing team set
 - [x] Mobile tutorial keeps progress across panel switches
-- [ ] Store assets: screenshots, privacy policy, description (blocked: needs Rob's input/approval)
+- [x] Support and privacy pages (/support, /privacy) linked from About
+- [ ] Owner review of support/privacy text, then publish for public URLs
+- [ ] Store assets: screenshots, description (blocked: needs Rob's input/approval)
 - [ ] Build & submit via Xcode (blocked: done by Rob on his Mac)
