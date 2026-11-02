@@ -7,7 +7,7 @@ import { learnSections } from '@/lib/learning';
 const Learn = () => {
   const navigate = useNavigate();
   return (
-    <div className="h-dvh flex flex-col bg-background">
+    <div className="app-safe-area h-dvh flex flex-col bg-background">
       <div className="flex items-center gap-2 px-3 py-2 bg-secondary border-b border-border shrink-0">
         <Button variant="ghost" size="sm" onClick={() => navigate('/')} aria-label="Back to simulator">
           <ChevronLeft className="w-4 h-4" /> Back

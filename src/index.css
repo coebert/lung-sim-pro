@@ -112,3 +112,14 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Keep content clear of the iPhone notch / home indicator (viewport-fit=cover).
+   env() resolves to 0 on devices without insets, so layout is unchanged elsewhere. */
+@layer utilities {
+  .app-safe-area {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+}
