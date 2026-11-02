@@ -31,7 +31,8 @@ describe('mobile tutorial overlay', () => {
     rerender(<MobileOverlayPanel {...props('controls')} />);
     // Parked tutorial is hidden from the accessibility tree; only settings are exposed.
     expect(tutorialRegion()).not.toBeVisible();
-    expect(screen.queryByRole('tab', { name: 'APRV' })).toBeNull();
+    expect(within(tutorialRegion()).queryByRole('tablist')).toBeNull();
+    expect(screen.queryByRole('tablist', { name: 'Choose tutorial' })).toBeNull();
 
     rerender(<MobileOverlayPanel {...props('tutorial')} />);
     expect(tutorialRegion()).toBeVisible();
