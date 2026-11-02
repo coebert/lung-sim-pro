@@ -26,6 +26,40 @@ function serverProblems(cfg, label) {
   return out;
 }
 
+/** AppIcon set: every Contents.json entry must point to an existing 1024×1024 PNG with no alpha. */
+function checkAppIcon(dir) {
+  const label = 'AppIcon.appiconset';
+  const contents = resolve(dir, 'Contents.json');
+  if (!existsSync(contents)) return [`${label}/Contents.json missing`];
+  const images = JSON.parse(readFileSync(contents, 'utf8')).images ?? [];
+  if (!images.length) return [`${label} has no images`];
+  const out = [];
+  for (const img of images) {
+    if (!img.filename) { out.push(`${label}: entry ${img.size} has no file`); continue; }
+    const f = resolve(dir, img.filename);
+    if (!existsSync(f)) { out.push(`${label}/${img.filename} missing`); continue; }
+    out.push(...pngProblems(readFileSync(f), `${label}/${img.filename}`, img.size));
+  }
+  return out;
+}
+
+export function pngProblems(buf, label, expectedSize = '1024x1024') {
+  if (buf.length < 33 || buf.readUInt32BE(0) !== 0x89504e47) return [`${label} is not a PNG`];
+  const out = [];
+  const w = buf.readUInt32BE(16), h = buf.readUInt32BE(20), colorType = buf[25];
+  if (`${w}x${h}` !== expectedSize) out.push(`${label} is ${w}x${h}, expected ${expectedSize}`);
+  if (colorType === 4 || colorType === 6) out.push(`${label} has an alpha channel (App Store icons must be opaque)`);
+  // tRNS chunk = transparency on palette/RGB images
+  let o = 8;
+  while (o + 8 <= buf.length) {
+    const len = buf.readUInt32BE(o), type = buf.toString('ascii', o + 4, o + 8);
+    if (type === 'tRNS') { out.push(`${label} has a transparency (tRNS) chunk`); break; }
+    if (type === 'IDAT' || type === 'IEND') break;
+    o += 12 + len;
+  }
+  return out;
+}
+
 const errors = [];
 
 // Source config: evaluate the real exported object (Node >= 22.18 strips TS types).
@@ -50,6 +84,7 @@ if (mode === 'release') {
     catch (e) { errors.push(`ios/App/App/capacitor.config.json unreadable: ${e.message}`); }
   }
   if (!existsSync(nativeIndex)) errors.push('ios/App/App/public/index.html missing — bundled web assets not synced');
+  errors.push(...checkAppIcon(resolve(root, 'ios/App/App/Assets.xcassets/AppIcon.appiconset')));
 }
 
 if (errors.length) {
