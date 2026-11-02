@@ -40,7 +40,7 @@ export function Section({ title, children }: { title: string; children: ReactNod
 
 export function EmailLink() {
   return (
-    <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary font-medium underline underline-offset-2 break-all">
+    <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary font-medium underline underline-offset-2 whitespace-nowrap">
       {SUPPORT_EMAIL}
     </a>
   );
