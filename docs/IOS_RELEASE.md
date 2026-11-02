@@ -3,14 +3,20 @@
 ## Identity
 - Display name: **Lung Sim Pro** (`appName` in `capacitor.config.ts`, `CFBundleDisplayName` in `ios/App/App/Info.plist`)
 - Bundle ID: `app.lovable.a148f60eaf3c442b9a0271a7e258d43a` (existing; reconcile with the App ID registered in App Store Connect before first upload — if different, change `appId` and `PRODUCT_BUNDLE_IDENTIFIER` together)
-- Web assets: bundled from `dist/` — no remote server, no cleartext. The app runs offline.
+- Web assets: **configured for bundled offline use** — loaded from `dist/` copied into the app, no remote server, no cleartext. Real-device offline behaviour has **not yet been verified** (see Remaining).
+
+## Minimum setup
+- Node.js **22.18 or newer** (the release check loads `capacitor.config.ts` directly using Node's built-in TypeScript type stripping). Verified here with Node 22.23.4.
+- Capacitor **8.x** (`@capacitor/core`, `@capacitor/ios`, `@capacitor/cli` 8.6.0 installed via `npm install`).
+- macOS with Xcode (for signing/archive) and an Apple Developer account. iOS project uses Swift Package Manager — no CocoaPods required.
 
 ## Commands (run from repo root)
 ```bash
 npm install
 npm test                 # unit tests
-npm run ios:check        # rejects any server.url / cleartext / remote URL in config
-npm run ios:prepare      # check → vite build → check dist → `cap add ios` if ios/ absent → `cap sync ios` → re-check synced config
+npm run ios:check        # source preflight: capacitor.config.ts must have webDir 'dist' and no server.url / cleartext
+npm run ios:prepare      # preflight → vite build → `cap add ios` if ios/ absent → `cap sync ios` → strict release check
+npm run ios:check:release  # strict check: requires ios/App/App/capacitor.config.json and public/index.html, rejects remote/cleartext
 npm run ios:open         # opens ios/App in Xcode (macOS only)
 ```
 
@@ -28,12 +34,12 @@ npm run ios:open         # opens ios/App in Xcode (macOS only)
 5. In App Store Connect, add the build to TestFlight.
 
 ## Live-reload for device testing (never ship)
-Temporarily add `server: { url: '<preview URL>' }` locally, `npx cap sync ios`, and revert before release. `ios:check` / `ios:prepare` will fail while it is present.
+Temporarily add `server: { url: '<preview URL>' }` locally and `npx cap sync ios`. To return to release: revert `capacitor.config.ts`, then `npm run ios:prepare`. The preflight checks only the source, so the stale native config does not block it; sync overwrites it and the strict check confirms it is clean. Both checks fail while a remote server is active in the source.
 
 ## Remaining before submission
 - [ ] Apple Developer team/account selected in Xcode; bundle ID registered and reconciled
 - [ ] Real-device testing on iPhone and iPad, including **airplane mode** (offline) and notch/home-indicator layout
 - [ ] App icon set (1024×1024 + Assets.xcassets) and App Store screenshots (iPhone and iPad sizes)
-- [ ] Support URL and privacy policy URL (to be provided by the owner)
+- [ ] Support URL / support email (owner's support email pending) and privacy policy URL
 - [ ] App Store metadata: description, keywords, category, age rating, price tier, App Privacy answers (to be decided by the owner)
 - [ ] Education-only positioning in listing; no medical-device or clinical-validation claims
