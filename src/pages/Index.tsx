@@ -117,7 +117,7 @@ const Index = () => {
           <div className="w-2 h-2 rounded-full bg-wave-ecg animate-pulse" aria-hidden />
           {isDesktop && (
             <h1 className="text-xs sm:text-sm font-bold text-foreground tracking-wide whitespace-nowrap">
-              ICU Vent Sim
+              Lung Sim Pro
               {frozen && <span className="ml-1.5 text-[10px] text-primary font-normal">FROZEN</span>}
               {tutorialActive && <span className="ml-1.5 text-[10px] text-primary font-normal">TUTORIAL</span>}
             </h1>

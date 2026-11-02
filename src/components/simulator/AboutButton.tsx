@@ -24,7 +24,7 @@ export function AboutButton({ compact }: Props) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>About ICU Vent Sim</DialogTitle>
+            <DialogTitle>About Lung Sim Pro</DialogTitle>
             <DialogDescription>
               A teaching simulator that models patient physiology and ventilator waveforms across six
               modes (VCV, PCV, PRVC, SIMV, PSV, APRV) with real-time alarms and scoring.

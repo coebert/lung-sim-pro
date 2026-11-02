@@ -1,28 +1,61 @@
 #!/usr/bin/env node
-// Validates that the iOS release build loads bundled assets only.
-// Fails on any remote server URL or cleartext setting in capacitor.config.ts
-// or in the synced native config (ios/App/App/capacitor.config.json).
+// iOS release configuration checks.
+//   --source   (preflight) validates capacitor.config.ts only. Ignores any stale
+//              native config, so a reverted live-reload setup can be re-synced.
+//   --release  (strict, post-sync) additionally REQUIRES
+//              ios/App/App/capacitor.config.json and ios/App/App/public/index.html
+//              and rejects remote/cleartext server settings in the native config.
+//   --root DIR project root (default: cwd).
 import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const args = process.argv.slice(2);
+const mode = args.includes('--release') ? 'release' : 'source';
+const rootIdx = args.indexOf('--root');
+const root = resolve(rootIdx >= 0 ? args[rootIdx + 1] : process.cwd());
+
+function serverProblems(cfg, label) {
+  const out = [];
+  if (!cfg || typeof cfg !== 'object') return [`${label}: config is not an object`];
+  if (cfg.server !== undefined) {
+    const s = cfg.server ?? {};
+    if (s.url) out.push(`${label}: server.url is set (${s.url}) — release builds must load bundled assets`);
+    if (s.cleartext) out.push(`${label}: server.cleartext is enabled`);
+    if (s.hostname && !s.url) { /* hostname alone is local-only and allowed */ }
+  }
+  if (cfg.ios?.allowsLinkPreview === undefined) { /* no-op */ }
+  return out;
+}
 
 const errors = [];
-const src = readFileSync('capacitor.config.ts', 'utf8').replace(/\/\/.*$/gm, '');
-if (/\bserver\s*:/.test(src)) errors.push('capacitor.config.ts contains a `server` block');
-if (/\bcleartext\b/.test(src)) errors.push('capacitor.config.ts enables cleartext');
-if (/https?:\/\//.test(src)) errors.push('capacitor.config.ts references a remote URL');
-if (!/webDir:\s*['"]dist['"]/.test(src)) errors.push("webDir must be 'dist'");
 
-const requireDist = process.argv.includes('--require-dist');
-if (requireDist && !existsSync('dist/index.html')) errors.push('dist/index.html missing — run the production build');
+// Source config: evaluate the real exported object (Node >= 22.18 strips TS types).
+const srcPath = resolve(root, 'capacitor.config.ts');
+let source;
+try {
+  source = (await import(pathToFileURL(srcPath).href + `?t=${Date.now()}`)).default;
+} catch (e) {
+  errors.push(`capacitor.config.ts could not be loaded: ${e.message}`);
+}
+if (source) {
+  errors.push(...serverProblems(source, 'capacitor.config.ts'));
+  if (source.webDir !== 'dist') errors.push(`capacitor.config.ts: webDir must be 'dist' (got ${source.webDir})`);
+}
 
-const nativeCfg = 'ios/App/App/capacitor.config.json';
-if (existsSync(nativeCfg)) {
-  const j = JSON.parse(readFileSync(nativeCfg, 'utf8'));
-  if (j.server?.url) errors.push(`${nativeCfg} has server.url=${j.server.url}`);
-  if (j.server?.cleartext) errors.push(`${nativeCfg} enables cleartext`);
+if (mode === 'release') {
+  const nativeCfg = resolve(root, 'ios/App/App/capacitor.config.json');
+  const nativeIndex = resolve(root, 'ios/App/App/public/index.html');
+  if (!existsSync(nativeCfg)) errors.push('ios/App/App/capacitor.config.json missing — run cap sync ios');
+  else {
+    try { errors.push(...serverProblems(JSON.parse(readFileSync(nativeCfg, 'utf8')), 'ios/App/App/capacitor.config.json')); }
+    catch (e) { errors.push(`ios/App/App/capacitor.config.json unreadable: ${e.message}`); }
+  }
+  if (!existsSync(nativeIndex)) errors.push('ios/App/App/public/index.html missing — bundled web assets not synced');
 }
 
 if (errors.length) {
-  console.error('iOS release check FAILED:\n - ' + errors.join('\n - '));
+  console.error(`iOS ${mode} check FAILED:\n - ` + errors.join('\n - '));
   process.exit(1);
 }
-console.log('iOS release check passed: bundled assets only, no remote/cleartext server.');
+console.log(`iOS ${mode} check passed.`);

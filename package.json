@@ -11,9 +11,10 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "ios:check": "node scripts/check-ios-release.mjs",
-    "ios:prepare": "node scripts/check-ios-release.mjs && vite build && node scripts/check-ios-release.mjs --require-dist && (test -d ios || npx cap add ios) && npx cap sync ios && node scripts/check-ios-release.mjs --require-dist",
-    "ios:open": "npx cap open ios"
+    "ios:check": "node scripts/check-ios-release.mjs --source",
+    "ios:prepare": "node scripts/ios-prepare.mjs",
+    "ios:open": "npx cap open ios",
+    "ios:check:release": "node scripts/check-ios-release.mjs --release"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",
