@@ -24,7 +24,10 @@ npm run ios:open         # opens ios/App in Xcode (macOS only)
 - Apple Developer account: Robert Coe — Team ID `4K57F7FHUL` (verified by owner).
 - Xcode target **App** (Debug + Release): `CODE_SIGN_STYLE = Automatic`, `DEVELOPMENT_TEAM = 4K57F7FHUL` in `ios/App/App.xcodeproj/project.pbxproj`.
 - No certificates, provisioning profiles or signed builds have been created here; Xcode generates them on first build on your Mac.
-- Bundle ID `app.lovable.a148f60eaf3c442b9a0271a7e258d43a` is registered in the Apple Developer portal (verified by owner). App Store Connect app record creation is in progress.
+- Bundle ID `app.lovable.a148f60eaf3c442b9a0271a7e258d43a` is registered in the Apple Developer portal (verified by owner).
+- App Store Connect record (verified by owner): Apple ID `6829721030`, SKU `lungsimpro-ios`, primary language English (UK), team `4K57F7FHUL`.
+- Price: owner selected UK £9.99; pricing entry in App Store Connect still pending.
+- Xcode installation on the owner's Mac is in progress.
 
 ## App icon
 - Master (source-controlled): `resources/app-icon-1024.png` — 1024×1024 opaque RGB PNG.
@@ -68,7 +71,9 @@ No accounts, ads, analytics SDKs, health/patient data APIs, or app-initiated net
 ## Remaining before submission
 - [x] Apple team set in the Xcode target (4K57F7FHUL)
 - [x] Bundle ID registered (verified)
-- [ ] App Store Connect app record created (in progress)
+- [x] App Store Connect app record created (verified)
+- [ ] Enter price (UK £9.99) in App Store Connect
+- [ ] Finish Xcode install
 - [ ] First signed build and archive in Xcode (not yet performed)
 - [ ] Real-device testing on iPhone and iPad, including **airplane mode** (offline) and notch/home-indicator layout
 - [x] App icon in asset catalog

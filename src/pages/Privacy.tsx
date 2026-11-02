@@ -57,7 +57,7 @@ const Privacy = () => (
 
     <Section title="Clearing data on your device">
       <p>
-        Simulator and tutorial state is cleared when the app is closed. To remove the stored onboarding
+        Simulator and tutorial state is cleared when the app is fully restarted (or the browser page is reloaded); it can remain in memory while the app is in the background. To remove the stored onboarding
         preference, delete the app from your iPhone or iPad (iOS removes an app’s local data when it is deleted)
         or, on the website, clear the site’s data in your browser settings.
       </p>

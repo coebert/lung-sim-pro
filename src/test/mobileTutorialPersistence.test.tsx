@@ -79,4 +79,20 @@ describe('mobile tutorial overlay', () => {
     rerender(<MobileOverlayPanel {...props('tutorial', obese)} />);
     expect(screen.getByText(/Step 1 of/)).toBeInTheDocument();
   });
+
+  it('A → B → A without opening B forgets A: reopening A after 65 s starts clean', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-02T12:00:00Z'));
+    const { rerender } = render(<MobileOverlayPanel {...props('tutorial', sepsis)} />);
+    rerender(<MobileOverlayPanel {...props('patients', healthy)} />);
+    rerender(<MobileOverlayPanel {...props('patients', sepsis)} />);
+    expect(screen.queryByTestId('mobile-tutorial-panel')).toBeNull(); // no hidden A revived
+    rerender(<MobileOverlayPanel {...props('controls', sepsis)} />);
+    expect(screen.queryByTestId('mobile-tutorial-panel')).toBeNull();
+    vi.setSystemTime(new Date('2026-11-02T12:01:05Z'));
+    rerender(<MobileOverlayPanel {...props('controls', sepsis, { tidalVolume: 440 })} />);
+    rerender(<MobileOverlayPanel {...props('tutorial', sepsis, { tidalVolume: 440 })} />);
+    expect(within(tutorialRegion()).getByText('S (100%)')).toBeInTheDocument();
+  });
 });
+
