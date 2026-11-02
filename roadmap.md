@@ -40,9 +40,11 @@
 - [x] iPad layout check (upright iPad uses stacked touch layout)
 - [x] Physiology review of all six patients
 - [x] More patient cases (COPD, asthma, sepsis, paediatric; obesity existed)
-- [x] Guided scenarios with scoring and debrief (tutorials for all patients)
+- [x] Guided scenarios with scoring and debrief (tutorials for every patient except healthy self-ventilating)
 - [x] Learning content for each mode, waveform and alarm (/learn)
 - [x] Release packaging: offline bundled config, ios:prepare workflow, iOS project generated, safe-area insets, docs/IOS_RELEASE.md
 - [x] Brand name fix, split preflight/strict iOS checks with regression tests
-- [ ] Store assets: icon set, screenshots, privacy policy, description (blocked: needs Rob's input/approval)
+- [x] App icon in iOS asset catalog (master: resources/app-icon-1024.png); signing team set
+- [x] Mobile tutorial keeps progress across panel switches
+- [ ] Store assets: screenshots, privacy policy, description (blocked: needs Rob's input/approval)
 - [ ] Build & submit via Xcode (blocked: done by Rob on his Mac)

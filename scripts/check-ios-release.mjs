@@ -9,6 +9,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { pngProblems } from './png-check.mjs';
 
 const args = process.argv.slice(2);
 const mode = args.includes('--release') ? 'release' : 'source';
@@ -22,6 +23,23 @@ function serverProblems(cfg, label) {
     const s = cfg.server ?? {};
     if (s.url) out.push(`${label}: server.url is set (${s.url}) — release builds must load bundled assets`);
     if (s.cleartext) out.push(`${label}: server.cleartext is enabled`);
+  }
+  return out;
+}
+
+/** AppIcon set: every Contents.json entry must point to an existing 1024×1024 PNG with no alpha. */
+function checkAppIcon(dir) {
+  const label = 'AppIcon.appiconset';
+  const contents = resolve(dir, 'Contents.json');
+  if (!existsSync(contents)) return [`${label}/Contents.json missing`];
+  const images = JSON.parse(readFileSync(contents, 'utf8')).images ?? [];
+  if (!images.length) return [`${label} has no images`];
+  const out = [];
+  for (const img of images) {
+    if (!img.filename) { out.push(`${label}: entry ${img.size} has no file`); continue; }
+    const f = resolve(dir, img.filename);
+    if (!existsSync(f)) { out.push(`${label}/${img.filename} missing`); continue; }
+    out.push(...pngProblems(readFileSync(f), `${label}/${img.filename}`, img.size));
   }
   return out;
 }
@@ -50,6 +68,7 @@ if (mode === 'release') {
     catch (e) { errors.push(`ios/App/App/capacitor.config.json unreadable: ${e.message}`); }
   }
   if (!existsSync(nativeIndex)) errors.push('ios/App/App/public/index.html missing — bundled web assets not synced');
+  errors.push(...checkAppIcon(resolve(root, 'ios/App/App/Assets.xcassets/AppIcon.appiconset')));
 }
 
 if (errors.length) {

@@ -1,5 +1,5 @@
 import { Settings, Users, Stethoscope, GraduationCap, LineChart, LucideIcon } from 'lucide-react';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { VentilatorControls } from './VentilatorControls';
 import { PatientSelector } from './PatientSelector';
 import { ClinicalFeedback } from './ClinicalFeedback';
@@ -81,7 +81,12 @@ export function MobileOverlayPanel({
   overlay, onClose, bottomOffset, maxHeight,
   settings, allSettings, patient, vitals, measured, prone, buffers,
 }: MobileOverlayPanelProps) {
-  if (overlay === 'none') return null;
+  // Keep the tutorial mounted once opened so its selection, step and scores survive
+  // switching to other overlays. TutorialPanel itself still resets on patient change.
+  const [tutorialMounted, setTutorialMounted] = useState(false);
+  useEffect(() => { if (overlay === 'tutorial') setTutorialMounted(true); }, [overlay]);
+  const showTutorial = overlay === 'tutorial';
+  const panelClass = "absolute left-0 right-0 bg-background border-t border-border overflow-y-auto z-50 p-2 shadow-lg";
 
   let content: ReactNode = null;
   if (overlay === 'controls') {
@@ -97,25 +102,28 @@ export function MobileOverlayPanel({
     content = <LoopsOverlay buffers={buffers} measured={measured} settings={settings} patient={patient} />;
   } else if (overlay === 'feedback') {
     content = <ClinicalFeedback settings={settings} patient={patient} vitals={vitals} measured={measured} prone={prone} />;
-  } else if (overlay === 'tutorial') {
-    content = (
-      <TutorialPanel
-        patient={patient}
-        settings={settings}
-        allSettings={allSettings}
-        vitals={vitals}
-        measured={measured}
-        onClose={onClose}
-      />
-    );
   }
 
   return (
-    <div
-      className="absolute left-0 right-0 bg-background border-t border-border overflow-y-auto z-50 p-2 shadow-lg"
-      style={{ bottom: bottomOffset, maxHeight }}
-    >
-      {content}
-    </div>
+    <>
+      {content && (
+        <div className={panelClass} style={{ bottom: bottomOffset, maxHeight }}>
+          {content}
+        </div>
+      )}
+      {(tutorialMounted || showTutorial) && (
+        // `hidden` (display:none) removes the parked tutorial from layout, focus order and the accessibility tree.
+        <div className={panelClass} style={{ bottom: bottomOffset, maxHeight }} hidden={!showTutorial} data-testid="mobile-tutorial-panel">
+          <TutorialPanel
+            patient={patient}
+            settings={settings}
+            allSettings={allSettings}
+            vitals={vitals}
+            measured={measured}
+            onClose={onClose}
+          />
+        </div>
+      )}
+    </>
   );
 }

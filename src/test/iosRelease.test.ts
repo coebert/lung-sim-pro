@@ -53,6 +53,29 @@ describe('iOS release workflow', () => {
     expect(JSON.parse(readFileSync(nativeCfg(), 'utf8')).server).toBeUndefined();
   }, 60_000);
 
+  it('strict check rejects an app icon with alpha or wrong size', () => {
+    expect(prepare().status).toBe(0);
+    const set = join(dir, 'ios/App/App/Assets.xcassets/AppIcon.appiconset');
+    const icon = join(set, JSON.parse(readFileSync(join(set, 'Contents.json'), 'utf8')).images[0].filename);
+    copyFileSync(join(repo, 'resources/app-icon-1024.png'), icon);
+    expect(check('--release').status).toBe(0);
+    const buf = readFileSync(icon);
+    buf[25] = 6; // mark as RGBA
+    writeFileSync(icon, buf);
+    expect(check('--release').stderr).toMatch(/alpha channel/);
+    buf[25] = 2; buf.writeUInt32BE(512, 16);
+    writeFileSync(icon, buf);
+    expect(check('--release').stderr).toMatch(/is 512x1024, expected 1024x1024/);
+  }, 60_000);
+
+  it('project icon master and native icon are 1024x1024 opaque and identical', async () => {
+    const { pngProblems } = await import(join(repo, 'scripts/png-check.mjs')) as { pngProblems: (b: Buffer, l: string) => string[] };
+    const master = readFileSync(join(repo, 'resources/app-icon-1024.png'));
+    const native = readFileSync(join(repo, 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png'));
+    expect(pngProblems(master, 'master')).toEqual([]);
+    expect(native.equals(master)).toBe(true);
+  });
+
   it('strict check rejects missing native config', () => {
     mkdirSync(join(dir, 'ios/App/App/public'), { recursive: true });
     writeFileSync(join(dir, 'ios/App/App/public/index.html'), 'x');
