@@ -2,7 +2,7 @@
 
 ## Identity
 - Display name: **Lung Sim Pro** (`appName` in `capacitor.config.ts`, `CFBundleDisplayName` in `ios/App/App/Info.plist`)
-- Bundle ID: `app.lovable.a148f60eaf3c442b9a0271a7e258d43a` (existing; reconcile with the App ID registered in App Store Connect before first upload — if different, change `appId` and `PRODUCT_BUNDLE_IDENTIFIER` together)
+- Bundle ID: `app.lovable.a148f60eaf3c442b9a0271a7e258d43a` (registered in the Apple Developer portal — keep `appId` and `PRODUCT_BUNDLE_IDENTIFIER` unchanged)
 - Web assets: **configured for bundled offline use** — loaded from `dist/` copied into the app, no remote server, no cleartext. Real-device offline behaviour has **not yet been verified** (see Remaining).
 
 ## Minimum setup
