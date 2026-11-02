@@ -12,7 +12,7 @@
 
 ## Commands (run from repo root)
 ```bash
-npm install
+npm ci                   # installs exactly the tested versions from package-lock.json
 npm test                 # unit tests
 npm run ios:check        # source preflight: capacitor.config.ts must have webDir 'dist' and no server.url / cleartext
 npm run ios:prepare      # preflight → vite build → `cap add ios` if ios/ absent → `cap sync ios` → strict release check
@@ -24,7 +24,7 @@ npm run ios:open         # opens ios/App in Xcode (macOS only)
 - Apple Developer account: Robert Coe — Team ID `4K57F7FHUL` (verified by owner).
 - Xcode target **App** (Debug + Release): `CODE_SIGN_STYLE = Automatic`, `DEVELOPMENT_TEAM = 4K57F7FHUL` in `ios/App/App.xcodeproj/project.pbxproj`.
 - No certificates, provisioning profiles or signed builds have been created here; Xcode generates them on first build on your Mac.
-- Bundle ID registration for `app.lovable.a148f60eaf3c442b9a0271a7e258d43a` is being completed in the Apple Developer portal.
+- Bundle ID `app.lovable.a148f60eaf3c442b9a0271a7e258d43a` is registered in the Apple Developer portal (verified by owner). App Store Connect app record creation is in progress.
 
 ## App icon
 - Master (source-controlled): `resources/app-icon-1024.png` — 1024×1024 opaque RGB PNG.
@@ -67,7 +67,8 @@ No accounts, ads, analytics SDKs, health/patient data APIs, or app-initiated net
 
 ## Remaining before submission
 - [x] Apple team set in the Xcode target (4K57F7FHUL)
-- [ ] Bundle ID registration completed and matching App Store Connect app record created
+- [x] Bundle ID registered (verified)
+- [ ] App Store Connect app record created (in progress)
 - [ ] First signed build and archive in Xcode (not yet performed)
 - [ ] Real-device testing on iPhone and iPad, including **airplane mode** (offline) and notch/home-indicator layout
 - [x] App icon in asset catalog
