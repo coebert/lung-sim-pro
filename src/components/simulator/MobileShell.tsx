@@ -86,6 +86,13 @@ export function MobileOverlayPanel({
   // Only for the patient whose tutorial was explicitly opened; a new patient needs Tutorial selected again.
   const [tutorialPatientId, setTutorialPatientId] = useState<string | null>(null);
   const showTutorial = overlay === 'tutorial';
+  // Render-time reset: any patient change (including back to an earlier patient) forgets the
+  // previously opened tutorial unless Tutorial is visibly open now.
+  const [prevPatientId, setPrevPatientId] = useState(patient.id);
+  if (prevPatientId !== patient.id) {
+    setPrevPatientId(patient.id);
+    setTutorialPatientId(showTutorial ? patient.id : null);
+  }
   useEffect(() => { if (showTutorial) setTutorialPatientId(patient.id); }, [showTutorial, patient.id]);
   const tutorialMounted = showTutorial || tutorialPatientId === patient.id;
   const panelClass = "absolute left-0 right-0 bg-background border-t border-border overflow-y-auto z-50 p-2 shadow-lg";
