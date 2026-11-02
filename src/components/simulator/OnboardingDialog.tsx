@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Keyboard, Users, Sliders, GraduationCap } from 'lucide-react';
+import { patients } from '@/lib/simulation/patients';
 
 const STORAGE_KEY = 'lungsim.onboarded.v2';
 
@@ -23,7 +24,7 @@ export function OnboardingDialog() {
     <Dialog open={open} onOpenChange={(o) => { if (!o) dismiss(); }}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Welcome to ICU Vent Sim</DialogTitle>
+          <DialogTitle>Welcome to Lung Sim Pro</DialogTitle>
           <DialogDescription>
             Interactive ventilator simulator with realistic waveforms, alarms and patient physiology.
           </DialogDescription>
@@ -31,7 +32,7 @@ export function OnboardingDialog() {
 
         <ul className="flex flex-col gap-3 py-2 text-sm">
           <Item icon={<Users className="w-4 h-4" />} title="Pick a patient scenario">
-            Six scenarios — healthy through ARDS — with distinct compliance, resistance and gas-exchange defects.
+            {patients.length} patient profiles — healthy adults through ARDS, airway obstruction, sepsis and a child — each with its own compliance, resistance and gas-exchange defects.
           </Item>
           <Item icon={<Sliders className="w-4 h-4" />} title="Adjust ventilator settings">
             Tap ± to adjust, press and hold for fast changes. On a keyboard, arrows give fine control.
