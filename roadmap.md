@@ -42,5 +42,6 @@
 - [x] More patient cases (COPD, asthma, sepsis, paediatric; obesity existed)
 - [x] Guided scenarios with scoring and debrief (tutorials for all patients)
 - [x] Learning content for each mode, waveform and alarm (/learn)
+- [x] Release packaging: offline bundled config, ios:prepare workflow, iOS project generated, safe-area insets, docs/IOS_RELEASE.md
 - [ ] Store assets: icon set, screenshots, privacy policy, description (blocked: needs Rob's input/approval)
 - [ ] Build & submit via Xcode (blocked: done by Rob on his Mac)
