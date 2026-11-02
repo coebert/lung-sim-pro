@@ -63,10 +63,6 @@ const Privacy = () => (
       </p>
     </Section>
 
-    <Section title="Children">
-      <p>The app is intended for clinical education and does not knowingly collect information from anyone.</p>
-    </Section>
-
     <Section title="Changes and contact">
       <p>
         If this policy changes, the date above will be updated. For privacy questions, email <EmailLink />.

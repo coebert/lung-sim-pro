@@ -47,6 +47,24 @@ npm run ios:open         # opens ios/App in Xcode (macOS only)
 ## Live-reload for device testing (never ship)
 Temporarily add `server: { url: '<preview URL>' }` locally and `npx cap sync ios`. To return to release: revert `capacitor.config.ts`, then `npm run ios:prepare`. The preflight checks only the source, so the stale native config does not block it; sync overwrites it and the strict check confirms it is clean. Both checks fail while a remote server is active in the source.
 
+## Support & privacy pages
+- In-app routes `/support` and `/privacy` (linked from the About dialog), bundled with the app so they work offline in the native build.
+- Public URLs for App Store Connect (live only after the next publish): `https://lung-sim-pro.lovable.app/support` and `https://lung-sim-pro.lovable.app/privacy`.
+- Support contact: support@anaesthesiacore.app.
+
+## Data inventory (source audit, 2 Nov 2026)
+| Data | Where | Leaves device? |
+|---|---|---|
+| Simulated patients/physiology | Bundled code, generated in memory | No |
+| Simulator settings, tutorial step/scores | In-memory only (lost on close) | No |
+| Onboarding dismissed flag (`lungsim.onboarded.v2`) | localStorage | No |
+| Web only: service-worker file cache | Browser cache | No |
+| Web only: connection data (IP, user agent, requests) | Hosting provider logs | Yes, to host (not controlled by app code) |
+| Support email (optional, user-initiated) | User's mail app → support inbox | Yes, by user choice |
+
+No accounts, ads, analytics SDKs, health/patient data APIs, or app-initiated network requests were found in source. Fonts are bundled.
+**Still to verify:** final App Store Connect App Privacy declaration against the built native binary and observed network traffic on a real device.
+
 ## Remaining before submission
 - [x] Apple team set in the Xcode target (4K57F7FHUL)
 - [ ] Bundle ID registration completed and matching App Store Connect app record created
@@ -54,6 +72,8 @@ Temporarily add `server: { url: '<preview URL>' }` locally and `npx cap sync ios
 - [ ] Real-device testing on iPhone and iPad, including **airplane mode** (offline) and notch/home-indicator layout
 - [x] App icon in asset catalog
 - [ ] App Store screenshots (iPhone and iPad sizes)
-- [ ] Support URL / support email (owner's support email pending) and privacy policy URL
+- [x] Support / privacy pages written (support@anaesthesiacore.app)
+- [ ] Owner content review, then publish so the public support/privacy URLs go live
+- [ ] App Privacy declaration verified against native binary + device network behaviour
 - [ ] App Store metadata: description, keywords, category, age rating, price tier, App Privacy answers (to be decided by the owner)
 - [ ] Education-only positioning in listing; no medical-device or clinical-validation claims
