@@ -20,6 +20,17 @@ npm run ios:check:release  # strict check: requires ios/App/App/capacitor.config
 npm run ios:open         # opens ios/App in Xcode (macOS only)
 ```
 
+## Apple account & signing configuration
+- Apple Developer account: Robert Coe — Team ID `4K57F7FHUL` (verified by owner).
+- Xcode target **App** (Debug + Release): `CODE_SIGN_STYLE = Automatic`, `DEVELOPMENT_TEAM = 4K57F7FHUL` in `ios/App/App.xcodeproj/project.pbxproj`.
+- No certificates, provisioning profiles or signed builds have been created here; Xcode generates them on first build on your Mac.
+- Bundle ID registration for `app.lovable.a148f60eaf3c442b9a0271a7e258d43a` is being completed in the Apple Developer portal.
+
+## App icon
+- Master (source-controlled): `resources/app-icon-1024.png` — 1024×1024 opaque RGB PNG.
+- Native: `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` (the single universal 1024×1024 entry in `Contents.json`, which is all the generated Xcode target requires). Byte-identical to the master.
+- `npm run ios:check:release` verifies every AppIcon entry exists, matches its size and has no alpha/transparency. To replace the icon, overwrite both files.
+
 ## Generated project paths
 - `ios/App/App.xcodeproj` — Xcode project (Swift Package Manager, no CocoaPods)
 - `ios/App/App/Info.plist`, `AppDelegate.swift`, `Assets.xcassets` (app icon goes here)
@@ -28,7 +39,7 @@ npm run ios:open         # opens ios/App in Xcode (macOS only)
 
 ## Signing & archive (macOS + Xcode; not performed or verified here)
 1. `npm run ios:prepare`, then `npm run ios:open`.
-2. Target **App** → Signing & Capabilities → select your Apple Developer Team, keep “Automatically manage signing”.
+2. Target **App** → Signing & Capabilities → confirm Team is Robert Coe (4K57F7FHUL) and “Automatically manage signing” is on.
 3. Set Version / Build number (General tab); increment build for each upload.
 4. Destination “Any iOS Device (arm64)” → Product → Archive → Distribute App → App Store Connect → Upload.
 5. In App Store Connect, add the build to TestFlight.
@@ -37,9 +48,12 @@ npm run ios:open         # opens ios/App in Xcode (macOS only)
 Temporarily add `server: { url: '<preview URL>' }` locally and `npx cap sync ios`. To return to release: revert `capacitor.config.ts`, then `npm run ios:prepare`. The preflight checks only the source, so the stale native config does not block it; sync overwrites it and the strict check confirms it is clean. Both checks fail while a remote server is active in the source.
 
 ## Remaining before submission
-- [ ] Apple Developer team/account selected in Xcode; bundle ID registered and reconciled
+- [x] Apple team set in the Xcode target (4K57F7FHUL)
+- [ ] Bundle ID registration completed and matching App Store Connect app record created
+- [ ] First signed build and archive in Xcode (not yet performed)
 - [ ] Real-device testing on iPhone and iPad, including **airplane mode** (offline) and notch/home-indicator layout
-- [ ] App icon set (1024×1024 + Assets.xcassets) and App Store screenshots (iPhone and iPad sizes)
+- [x] App icon in asset catalog
+- [ ] App Store screenshots (iPhone and iPad sizes)
 - [ ] Support URL / support email (owner's support email pending) and privacy policy URL
 - [ ] App Store metadata: description, keywords, category, age rating, price tier, App Privacy answers (to be decided by the owner)
 - [ ] Education-only positioning in listing; no medical-device or clinical-validation claims
