@@ -1,5 +1,5 @@
 import { Settings, Users, Stethoscope, GraduationCap, LineChart, LucideIcon } from 'lucide-react';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { VentilatorControls } from './VentilatorControls';
 import { PatientSelector } from './PatientSelector';
 import { ClinicalFeedback } from './ClinicalFeedback';
