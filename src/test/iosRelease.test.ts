@@ -69,7 +69,7 @@ describe('iOS release workflow', () => {
   }, 60_000);
 
   it('project icon master and native icon are 1024x1024 opaque and identical', async () => {
-    const { pngProblems } = await import(join(repo, 'scripts/check-ios-release.mjs') + '?lib') as { pngProblems: (b: Buffer, l: string) => string[] };
+    const { pngProblems } = await import(join(repo, 'scripts/png-check.mjs')) as { pngProblems: (b: Buffer, l: string) => string[] };
     const master = readFileSync(join(repo, 'resources/app-icon-1024.png'));
     const native = readFileSync(join(repo, 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png'));
     expect(pngProblems(master, 'master')).toEqual([]);
