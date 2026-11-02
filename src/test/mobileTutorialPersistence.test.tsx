@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { gradeStep, overallGrade } from '@/lib/simulation/scoring';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { MobileOverlayPanel, type MobileOverlay } from '@/components/simulator/MobileShell';
 import { simulationStore } from '@/lib/simulation/simulationStore';
@@ -68,10 +67,9 @@ describe('mobile tutorial overlay', () => {
     expect(screen.queryByTestId('mobile-tutorial-panel')).toBeNull();
 
     rerender(<MobileOverlayPanel {...props('tutorial', sepsis, { tidalVolume: 440 })} />);
-    const expected = overallGrade([gradeStep(0, 0)]);
-    const stale = overallGrade([gradeStep(65, 1)]);
-    expect(expected.grade).not.toBe(stale.grade);
-    expect(within(tutorialRegion()).getByText(`${expected.grade} (${expected.pct}%)`)).toBeInTheDocument();
+    // Step 1 is met on opening with 0 s / 0 adjustments → S (100%); the stale 65 s timer would give C.
+    expect(within(tutorialRegion()).getByText('S (100%)')).toBeInTheDocument();
+    expect(within(tutorialRegion()).queryByText(/^C \(/)).toBeNull();
   });
 
   it('switching patient while the tutorial is open resets it', () => {
