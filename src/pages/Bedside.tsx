@@ -23,7 +23,7 @@ const Bedside = ({ fullVentilator = false }: { fullVentilator?: boolean }) => {
   const buffers = useWaveforms();
 
   return (
-    <div className="h-dvh flex flex-col bg-background overflow-hidden">
+    <div className="app-safe-area h-dvh flex flex-col bg-background overflow-hidden">
       <AlarmBanner alarms={alarms} />
       <div className="flex flex-wrap items-center justify-between bg-secondary border-b border-border gap-2 shrink-0 px-3 py-1.5">
         <div className="flex items-center gap-2 min-w-0">

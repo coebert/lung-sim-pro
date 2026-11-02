@@ -69,7 +69,7 @@ const Index = () => {
   };
 
   return (
-    <div className="h-dvh flex flex-col bg-background overflow-hidden">
+    <div className="app-safe-area h-dvh flex flex-col bg-background overflow-hidden">
       {/* Alarm banner */}
       <AlarmBanner alarms={alarms} />
       {/* Header — always visible; compacts in mobile landscape */}
