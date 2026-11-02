@@ -22,9 +22,7 @@ function serverProblems(cfg, label) {
     const s = cfg.server ?? {};
     if (s.url) out.push(`${label}: server.url is set (${s.url}) — release builds must load bundled assets`);
     if (s.cleartext) out.push(`${label}: server.cleartext is enabled`);
-    if (s.hostname && !s.url) { /* hostname alone is local-only and allowed */ }
   }
-  if (cfg.ios?.allowsLinkPreview === undefined) { /* no-op */ }
   return out;
 }
 
