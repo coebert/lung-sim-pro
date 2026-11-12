@@ -273,17 +273,24 @@ function updateVitalsAPRV(
     targetSpO2 -= (pHigh - 35) * 2;
   }
 
+  // Obstructive lungs: incomplete release → breath stacking, hyperinflation,
+  // dead space and impaired venous return.
+  const trap = aprv.gasTrapping;
+  targetSpO2 -= trap * 18;
+
   const co2Clearance = clamp(settings.tLow / 0.5, 0.2, 1.5)
-    * clamp(aprv.drivingPressure / 20, 0.3, 1.5);
+    * clamp(aprv.drivingPressure / 20, 0.3, 1.5)
+    * (1 - clamp((aprv.tau - 0.5) / 0.7, 0, 1) * (1 - clamp(aprv.releaseFraction / 0.85, 0.2, 1)));
   let targetEtCO2 = 38;
   if (co2Clearance < 0.7) targetEtCO2 = 38 + (0.7 - co2Clearance) * 40;
   else if (co2Clearance > 1.3) targetEtCO2 = Math.max(18, 38 - (co2Clearance - 1.3) * 25);
+  targetEtCO2 += trap * 30;
 
   const mapExcess = Math.max(0, aprv.meanAirwayPressure - 20);
   const distress = Math.max(0, 1 - aprv.recruitmentScore) + Math.max(0, 1 - oxygenation);
-  const targetHR = patient.baseHR + distress * 20 + mapExcess * 0.5;
-  const targetSBP = patient.baseSBP - mapExcess * 1.5 + distress * 8;
-  const targetDBP = patient.baseDBP - mapExcess * 0.8 + distress * 4;
+  const targetHR = patient.baseHR + distress * 20 + mapExcess * 0.5 + trap * 30;
+  const targetSBP = patient.baseSBP - mapExcess * 1.5 + distress * 8 - trap * 45;
+  const targetDBP = patient.baseDBP - mapExcess * 0.8 + distress * 4 - trap * 25;
 
   return {
     hr: clamp(vitals.hr + (targetHR - vitals.hr) * rate, 30, 200),
