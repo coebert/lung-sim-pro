@@ -280,7 +280,7 @@ function updateVitalsAPRV(
 
   const co2Clearance = clamp(settings.tLow / 0.5, 0.2, 1.5)
     * clamp(aprv.drivingPressure / 20, 0.3, 1.5)
-    * clamp(aprv.releaseFraction / 0.85, 0.2, 1);
+    * (1 - clamp((aprv.tau - 0.5) / 0.7, 0, 1) * (1 - clamp(aprv.releaseFraction / 0.85, 0.2, 1)));
   let targetEtCO2 = 38;
   if (co2Clearance < 0.7) targetEtCO2 = 38 + (0.7 - co2Clearance) * 40;
   else if (co2Clearance > 1.3) targetEtCO2 = Math.max(18, 38 - (co2Clearance - 1.3) * 25);
