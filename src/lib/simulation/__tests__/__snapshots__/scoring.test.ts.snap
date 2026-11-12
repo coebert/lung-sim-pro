@@ -3,91 +3,112 @@
 exports[`computeAPRV — recruitment score for ARDS > P-High excessive — barotrauma risk 1`] = `
 {
   "drivingPressure": 40,
+  "gasTrapping": 0,
   "meanAirwayPressure": 36,
   "openingPressure": 21,
   "pHighScore": 1,
   "pLowPenalty": 0,
   "recruitmentScore": 1,
+  "releaseFraction": 0.7904,
   "tHighScore": 1,
   "tLowScore": 1,
+  "tau": 0.32,
 }
 `;
 
 exports[`computeAPRV — recruitment score for ARDS > P-High too low — no driving pressure 1`] = `
 {
   "drivingPressure": 15,
+  "gasTrapping": 0,
   "meanAirwayPressure": 13.5,
   "openingPressure": 21,
   "pHighScore": 0.2143,
   "pLowPenalty": 0,
   "recruitmentScore": 0.2143,
+  "releaseFraction": 0.7904,
   "tHighScore": 1,
   "tLowScore": 1,
+  "tau": 0.32,
 }
 `;
 
 exports[`computeAPRV — recruitment score for ARDS > P-Low elevated — narrow differential 1`] = `
 {
   "drivingPressure": 20,
+  "gasTrapping": 0,
   "meanAirwayPressure": 26,
   "openingPressure": 21,
   "pHighScore": 0.4524,
   "pLowPenalty": 0.5,
   "recruitmentScore": 0.2262,
+  "releaseFraction": 0.7904,
   "tHighScore": 1,
   "tLowScore": 1,
+  "tau": 0.32,
 }
 `;
 
 exports[`computeAPRV — recruitment score for ARDS > T-High too short — partial recruitment 1`] = `
 {
   "drivingPressure": 28,
+  "gasTrapping": 0,
   "meanAirwayPressure": 18.6667,
   "openingPressure": 21,
   "pHighScore": 0.8333,
   "pLowPenalty": 0,
   "recruitmentScore": 0,
+  "releaseFraction": 0.7904,
   "tHighScore": 0,
   "tLowScore": 1,
+  "tau": 0.32,
 }
 `;
 
 exports[`computeAPRV — recruitment score for ARDS > T-Low too long — de-recruitment 1`] = `
 {
   "drivingPressure": 28,
+  "gasTrapping": 0,
   "meanAirwayPressure": 21,
   "openingPressure": 21,
   "pHighScore": 0.8333,
   "pLowPenalty": 0,
   "recruitmentScore": 0,
+  "releaseFraction": 0.9908,
   "tHighScore": 1,
   "tLowScore": 0,
+  "tau": 0.32,
 }
 `;
 
 exports[`computeAPRV — recruitment score for ARDS > T-Low too short — no CO2 clearance 1`] = `
 {
   "drivingPressure": 28,
+  "gasTrapping": 0,
   "meanAirwayPressure": 27.6923,
   "openingPressure": 21,
   "pHighScore": 0.8333,
   "pLowPenalty": 0,
   "recruitmentScore": 0.0833,
+  "releaseFraction": 0.1447,
   "tHighScore": 1,
   "tLowScore": 0.1,
+  "tau": 0.32,
 }
 `;
 
 exports[`computeAPRV — recruitment score for ARDS > optimal 1`] = `
 {
   "drivingPressure": 28,
+  "gasTrapping": 0,
   "meanAirwayPressure": 25.2,
   "openingPressure": 21,
   "pHighScore": 0.8333,
   "pLowPenalty": 0,
   "recruitmentScore": 0.8333,
+  "releaseFraction": 0.7904,
   "tHighScore": 1,
   "tLowScore": 1,
+  "tau": 0.32,
 }
 `;
 
