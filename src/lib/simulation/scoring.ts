@@ -138,14 +138,29 @@ export function computeAPRV(s: APRVSettings, p: PatientPhysiology): APRVMetrics 
   // P Low penalty: ideally 0; higher P Low reduces pressure differential
   const pLowPenalty = clamp(pLow / 10, 0, 0.5);
 
+  const tauR = Math.max(0.05, (p.resistance * p.compliance) / 1000);
+  const obstructive = clamp((tauR - 0.5) / 0.7, 0, 1);
+  // Obstructed lungs are not a recruitment problem: APRV offers no benefit.
   const recruitmentScore = clamp(
-    pHighScore * tHighScore * tLowScore * (1 - pLowPenalty),
+    pHighScore * tHighScore * tLowScore * (1 - pLowPenalty) * (1 - obstructive),
     0, 1
   );
 
   const meanAirwayPressure = (pHigh * tHigh + pLow * tLow) / Math.max(0.2, tHigh + tLow);
 
+  // Gas trapping: the release only empties a fraction 1−e^(−T Low/τ) of
+  // the lung (τ = R·C). Obstructed lungs (long τ) cannot empty in a short
+  // release, so APRV stacks gas → dynamic hyperinflation, rising CO₂ and
+  // falling venous return. Only clinically relevant once τ is long.
+  const tau = Math.max(0.05, (p.resistance * p.compliance) / 1000);
+  const releaseFraction = 1 - Math.exp(-tLow / tau);
+  const obstruction = clamp((tau - 0.5) / 0.7, 0, 1);
+  const gasTrapping = clamp(obstruction * (1 - releaseFraction) * clamp(drivingPressure / 20, 0.3, 1.5), 0, 1);
+
   return {
+    tau,
+    releaseFraction,
+    gasTrapping,
     drivingPressure,
     openingPressure,
     meanAirwayPressure,
