@@ -201,6 +201,9 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       const { pHigh, pLow, tHigh, tLow } = settings;
       const aprv = computeAPRV(settings, patient);
       const { drivingPressure, openingPressure, recruitmentScore, meanAirwayPressure: meanAP } = aprv;
+      if (aprv.gasTrapping > 0.15) {
+        list.push({ text: `Severe gas trapping: with τ ≈ ${aprv.tau.toFixed(1)} s, a ${settings.tLow.toFixed(1)} s release empties only ${Math.round(aprv.releaseFraction * 100)}% of the lung. Expect hyperinflation, rising CO₂ (respiratory acidosis) and hypotension. APRV is generally avoided in obstructive disease — use VCV/PCV with a slow rate and long expiratory time.`, severity: 'danger' });
+      }
 
       // P High assessment
       if (drivingPressure < openingPressure * 0.5) {

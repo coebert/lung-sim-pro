@@ -101,6 +101,12 @@ export function computeInverseRatio(s: CommonSettings, p: PatientPhysiology): In
 // ─── APRV recruitment ────────────────────────────────────────────────
 
 export interface APRVMetrics {
+  /** Expiratory time constant R·C (s). */
+  tau: number;
+  /** Fraction of lung volume emptied during T Low. */
+  releaseFraction: number;
+  /** 0–1 severity of dynamic hyperinflation from incomplete release. */
+  gasTrapping: number;
   drivingPressure: number;
   openingPressure: number;
   meanAirwayPressure: number;
