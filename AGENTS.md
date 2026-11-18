@@ -13,3 +13,4 @@
 - EtCO₂ is shown everywhere via etco2Display (dash when unavailable/measuring; trends store NaN gaps); tutorial steps stay complete only while still met unless marked `transitional` — why: no invalid CO₂ number or stale success is ever shown.
 - PRVC calibrates Pinsp from the trough-to-peak excursion of the generator's own unit pressure breath (pressureBreathGain) — why: the target must equal what the monitor measures as exhaled VT.
 - Scenario SpO₂ targets live in targets.ts and are used by both ClinicalFeedback and tutorial copy — why: feedback must never contradict a lesson's oxygen target.
+- Lung View motion comes only from the live buffers via src/lib/presentation/lungMotion.ts (end-expiratory volume = trapped baseline, tidal = excursion, heart phases from ECG R peaks) with ≤100 ms bounded easing; regional atelectasis is illustrative from existing scenario scores — why: the picture must never run its own breathing/heart clock or contradict the traces.

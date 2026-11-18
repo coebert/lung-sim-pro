@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { breathDrive, cardiacDrive, lungShape, smoothStep } from '@/lib/presentation/lungMotion';
 import { PatientPhysiology, VentSettings, Vitals, WaveformBuffers } from '@/lib/simulation/types';
 import { computeAPRV } from '@/lib/simulation/scoring';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -23,10 +24,13 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
     else setInternalCollapsed(next);
   };
 
-  const recentVolume = buffers.volume;
-  const currentVol = recentVolume[recentVolume.length - 1] || 0;
-  const maxVol = Math.max(...recentVolume.slice(-250), 1);
-  const breathPhase = Math.min(currentVol / maxVol, 1);
+  // Live drive: latest volume sample, smoothed over ≤ one 50 Hz step (bounded
+  // presentation interpolation). Frozen buffers stop changing, so motion stops.
+  const rate = 'respiratoryRate' in settings && settings.respiratoryRate > 0 ? settings.respiratoryRate : (patient.spontaneousRate || 12);
+  const breathWindow = Math.max(50, Math.min(buffers.volume.length, Math.ceil((60 / rate) * 50 * 1.15)));
+  const latestVol = buffers.volume[buffers.volume.length - 1] ?? 0;
+  const vNow = useSmoothedLatest(latestVol, `${patient.id}|${settings.mode}`);
+  const drive = breathDrive(buffers.volume, patient.optimalTV, breathWindow, vNow);
 
   const pathology = patient.id;
 
@@ -55,74 +59,46 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
     return Math.max(0, 1 - peepBenefit) * 0.9;
   }, [pathology, settings.peep, patient.optimalPEEP]);
 
-  // Bronchospasm hyperinflation
-  const hyperinflation = useMemo(() => {
-    if (pathology !== 'bronchospasm') return 1;
-    const tau = patient.resistance * (patient.compliance / 1000);
-    const cycleTime = 60 / settings.respiratoryRate;
-    const iTime = settings.inspiratoryTime > 0 ? settings.inspiratoryTime : cycleTime / (1 + settings.ieRatio);
-    const eTime = cycleTime - iTime;
-    const retainedFraction = Math.exp(-eTime / tau);
-    return 1 + retainedFraction * 1.5;
-  }, [pathology, settings.respiratoryRate, settings.ieRatio, settings.inspiratoryTime, patient.resistance, patient.compliance]);
+  // Hyperinflation index from the trace's actual end-expiratory (trapped) volume.
+  const hyperinflation = 1 + Math.min(1.4, drive.trapFrac) * 0.7;
 
   const baseExpansion = pathology === 'ards' ? 0.6 + ardsRecruitment * 0.4
     : pathology === 'obese' ? 0.85 - obeseAtelScore * 0.15
     : 1;
-  const inflationBase = pathology === 'bronchospasm' ? hyperinflation : 1;
-  const expansion = inflationBase * (baseExpansion * 0.75 + breathPhase * 0.25);
+  // Regional atelectasis severity (existing scenario scores): lower/dependent zones.
+  // Prone ventilation makes ARDS collapse less dependent in this frontal view.
+  const atel = pathology === 'ards' ? (1 - ardsRecruitment) * (prone ? 0.5 : 1) : pathology === 'obese' ? obeseAtelScore : 0;
+  const shape = lungShape(drive, baseExpansion, atel);
+  const expansion = shape.expansion;
+  const basal = shape.basalLoss;
 
-  // Scaling helpers: transform coordinates relative to each lung's hilum
+  // Scaling helpers relative to each hilum; lower zones lose volume/excursion
+  // regionally (atelectasis) instead of all airways stretching uniformly.
   const e = expansion;
-  // Left lung hilum at (75, 68)
+  const eAt = (y: number, hilum: number) => {
+    const f = Math.max(0, Math.min(1, (y - hilum) / 85));
+    return e * (1 - basal * 0.5 * f);
+  };
   const lx = (x: number) => 75 + (x - 75) * e;
-  const ly = (y: number) => 68 + (y - 68) * e;
-  // Right lung hilum at (125, 62)
+  const ly = (y: number) => 68 + (y - 68) * eAt(y, 68);
   const rx = (x: number) => 125 + (x - 125) * e;
-  const ry = (y: number) => 62 + (y - 62) * e;
-  // General mediastinal scaling from trachea base (100, 50)
+  const ry = (y: number) => 62 + (y - 62) * eAt(y, 62);
   const mx = (x: number) => 100 + (x - 100) * e;
   const my = (y: number) => 50 + (y - 50) * e;
+  void ry; void my;
 
-  // Heart compression from hyperinflation
-  const heartCompression = pathology === 'bronchospasm'
-    ? Math.max(0.55, 1 - (hyperinflation - 1) * 0.6)
-    : 1;
+  // Only marked persistent hyperinflation displaces the heart, and subtly.
+  const heartCompression = 1 - 0.08 * Math.max(0, Math.min(1, drive.trapFrac - 0.6));
 
-  // Cardiac cycle phases from ECG buffer
-  const cardiacPhase = useMemo(() => {
-    const ecg = buffers.ecg;
-    if (!ecg || ecg.length < 30) return { atrial: 0, ventricular: 0 };
-    const window = ecg.slice(-30);
-    const max = Math.max(...window);
-    const min = Math.min(...window);
-    const range = max - min || 1;
-    const norm = window.map(v => (v - min) / range);
-    let rPeakIdx = 0;
-    let rPeakVal = 0;
-    for (let i = 0; i < norm.length; i++) {
-      if (norm[i] > rPeakVal) { rPeakVal = norm[i]; rPeakIdx = i; }
-    }
-    const distFromPeak = norm.length - 1 - rPeakIdx;
-    const atrialDist = Math.abs(distFromPeak - 0) < 3 ? 0 :
-      distFromPeak >= 5 && distFromPeak <= 12 ?
-        Math.exp(-Math.pow((distFromPeak - 8) / 2.5, 2)) : 0;
-    const ventricularPhase = distFromPeak <= 6 ?
-      Math.exp(-Math.pow(distFromPeak / 3, 2)) : 0;
-    const bradyScale = vitals.hr < 50 ? Math.max(0.4, vitals.hr / 50) : 1;
-    const tachyScale = vitals.hr > 100 ? 1 + (Math.min(vitals.hr, 180) - 100) / 200 : 1;
-    const hrScale = bradyScale * tachyScale;
-    return {
-      atrial: atrialDist * hrScale,
-      ventricular: ventricularPhase * hrScale,
-    };
-  }, [buffers.ecg, vitals.hr]);
+  // Atrial/ventricular contraction from the shared ECG beat timing (R peaks on the trace).
+  const cardiacPhase = cardiacDrive(buffers.ecg);
 
-  const heartBeat = 1 + cardiacPhase.ventricular * 0.10;
+  // Systole makes chambers smaller (contraction), not larger.
+  const heartBeat = 1 - cardiacPhase.ventricular * 0.06;
   const tachyIntensity = Math.max(0, Math.min(1, (vitals.hr - 100) / 60));
   const bradyIntensity = Math.max(0, Math.min(1, (50 - vitals.hr) / 20));
-  const heartTransition = bradyIntensity > 0 ? `transform ${0.08 + bradyIntensity * 0.3}s ease-out` : 'transform 0.08s ease-out';
-  const chamberTransitionSlow = bradyIntensity > 0 ? `transform ${0.06 + bradyIntensity * 0.2}s ease-out` : undefined;
+  const heartTransition = 'transform 0.04s linear';
+  const chamberTransitionSlow: string | undefined = 'transform 0.04s linear';
 
   const lungFill = getLungGradientId(pathology);
   const lungOpacity = pathology === 'ards' ? 0.5 + ardsRecruitment * 0.45 : 0.92;
@@ -137,16 +113,13 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
     ? getObeseBasalPatches(obeseAtelScore, expansion)
     : [];
 
-  // Diaphragm position — varies by pathology
-  const diaphragmY = pathology === 'obese'
-    ? 158 - obeseAtelScore * 12
-    : pathology === 'bronchospasm'
-    ? 162 + (hyperinflation - 1) * 8 // flattened by hyperinflation
-    : 160;
+  // Diaphragm follows the lung base; trapped gas lowers and flattens it.
+  const diaphragmY = shape.diaphragmY;
+  const dome = shape.domeHeight / 11;
 
   let statusText = '';
   let statusColor = '';
-  if (pathology === 'bronchospasm' && hyperinflation > 1.3) {
+  if (drive.trapFrac > 0.35) {
     statusText = 'Air Trapping';
     statusColor = '#e8c840';
   } else if (pathology === 'ards' && ardsRecruitment < 0.5) {
@@ -301,8 +274,8 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
 
               {/* Clip paths for lung outlines */}
               <clipPath id="clip-lungs">
-                <path d={leftLungPath(expansion)} />
-                <path d={rightLungPath(expansion)} />
+                <path d={leftLungPath(expansion, basal)} />
+                <path d={rightLungPath(expansion, basal)} />
               </clipPath>
             </defs>
 
@@ -352,20 +325,20 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             <g>
               {/* Diaphragm domes — muscular sheet, scales with expansion */}
               <path
-                d={`M${lx(20)},${my(diaphragmY + 4)} Q${lx(48)},${my(diaphragmY - 10)} ${mx(80)},${my(diaphragmY - 4)}
-                   Q${mx(100)},${my(diaphragmY + 2)} ${mx(120)},${my(diaphragmY - 6)}
-                   Q${rx(152)},${my(diaphragmY - 12)} ${rx(180)},${my(diaphragmY + 4)}`}
+                d={`M${lx(20)},${diaphragmY + 4} Q${lx(48)},${diaphragmY - 10 * dome} ${mx(80)},${diaphragmY - 4 * dome}
+                   Q${mx(100)},${diaphragmY + 2} ${mx(120)},${diaphragmY - 6 * dome}
+                   Q${rx(152)},${diaphragmY - 12 * dome} ${rx(180)},${diaphragmY + 4}`}
                 fill="none" stroke="url(#diaph-grad)" strokeWidth="2" opacity="0.4"
               />
               {/* Central tendon */}
               <path
-                d={`M${mx(80)},${my(diaphragmY - 4)} Q${mx(100)},${my(diaphragmY - 8)} ${mx(120)},${my(diaphragmY - 6)}`}
+                d={`M${mx(80)},${diaphragmY - 4 * dome} Q${mx(100)},${diaphragmY - 8 * dome} ${mx(120)},${diaphragmY - 6 * dome}`}
                 fill="none" stroke="#c0a080" strokeWidth="1.2" opacity="0.25"
               />
               {/* Muscle fibre striations */}
               {[-25, -12, 12, 25].map((offset, i) => (
                 <path key={`df-${i}`}
-                  d={`M${mx(100 + offset)},${my(diaphragmY)} Q${mx(100 + offset * 0.8)},${my(diaphragmY - 6)} ${mx(100 + offset * 0.5)},${my(diaphragmY - 4)}`}
+                  d={`M${mx(100 + offset)},${diaphragmY} Q${mx(100 + offset * 0.8)},${diaphragmY - 6 * dome} ${mx(100 + offset * 0.5)},${diaphragmY - 4 * dome}`}
                   fill="none" stroke="#a08060" strokeWidth="0.4" opacity="0.2" />
               ))}
             </g>
@@ -410,16 +383,15 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               fill="none" stroke="#1a0a12" strokeWidth={airwayWidth * 0.35} strokeLinecap="round" opacity="0.2"
             />
             {/* Cartilage rings on main bronchi */}
-            {[0.25, 0.5, 0.75].map((t, i) => {
-              const lbx = 100 + (75 - 100) * t + (mx(82) - 100) * 0.3;
-              const lby = 50 + (68 - 50) * t;
-              return <circle key={`lbr-${i}`} cx={lbx} cy={lby} r="0.5" fill="#c49898" opacity="0.3" />;
-            })}
-            {[0.3, 0.6].map((t, i) => {
-              const rbx = 100 + (125 - 100) * t;
-              const rby = 50 + (62 - 50) * t;
-              return <circle key={`rbr-${i}`} cx={rbx} cy={rby} r="0.5" fill="#c49898" opacity="0.3" />;
-            })}
+            {/* Fixed hilar landmarks: rings drawn across each main bronchus (not stretched by breathing). */}
+            {([[100, 50, 75, 68, [0.22, 0.42, 0.62, 0.82]], [100, 50, 125, 62, [0.25, 0.5, 0.75]]] as const).map(([x0, y0, x1, y1, ts], b) =>
+              ts.map((t, i) => {
+                const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
+                const nx = -dy / L, ny = dx / L, hw = airwayWidth * 0.55;
+                const cx = x0 + dx * t, cy = y0 + dy * t;
+                return <path key={`ring-${b}-${i}`} d={`M${cx - nx * hw},${cy - ny * hw} Q${cx + dx / L * 0.6},${cy + dy / L * 0.6} ${cx + nx * hw},${cy + ny * hw}`}
+                  fill="none" stroke="#e0c0b8" strokeWidth="0.45" opacity="0.55" />;
+              }))}
 
             {/* ═══ LEFT LOBAR BRONCHI ═══ */}
             <path d={`M75,68 C${lx(67)},${ly(72)} ${lx(59)},${ly(70)} ${lx(51.5)},${ly(74)}`} fill="none" stroke="#c09090" strokeWidth={subAirwayWidth} strokeLinecap="round" />
@@ -493,21 +465,21 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
             </g>
 
             {/* ═══ LEFT LUNG PARENCHYMA ═══ */}
-            <path d={leftLungPath(expansion)} fill={`url(#${lungFill})`} opacity={lungOpacity} stroke="#8a5560" strokeWidth="1.2" />
+            <path d={leftLungPath(expansion, basal)} fill={`url(#${lungFill})`} opacity={lungOpacity} stroke="#8a5560" strokeWidth="1.2" />
             {/* Visceral pleura — thin glistening membrane */}
-            <path d={leftLungPath(expansion)} fill="url(#pl-l)" opacity="0.45" />
-            <path d={leftLungPath(expansion)} fill="none" stroke="rgba(255,220,220,0.08)" strokeWidth="0.4" />
+            <path d={leftLungPath(expansion, basal)} fill="url(#pl-l)" opacity="0.45" />
+            <path d={leftLungPath(expansion, basal)} fill="none" stroke="rgba(255,220,220,0.08)" strokeWidth="0.4" />
             {/* Left oblique fissure */}
-            <path d={leftFissure(expansion)} fill="none" stroke="#7a4a55" strokeWidth="0.7" strokeDasharray="4,2" opacity="0.45" />
+            <path d={leftFissure(expansion, basal)} fill="none" stroke="#7a4a55" strokeWidth="0.7" strokeDasharray="4,2" opacity="0.45" />
 
             {/* ═══ RIGHT LUNG PARENCHYMA ═══ */}
-            <path d={rightLungPath(expansion)} fill={`url(#${lungFill})`} opacity={lungOpacity} stroke="#8a5560" strokeWidth="1.2" />
-            <path d={rightLungPath(expansion)} fill="url(#pl-r)" opacity="0.45" />
-            <path d={rightLungPath(expansion)} fill="none" stroke="rgba(255,220,220,0.08)" strokeWidth="0.4" />
+            <path d={rightLungPath(expansion, basal)} fill={`url(#${lungFill})`} opacity={lungOpacity} stroke="#8a5560" strokeWidth="1.2" />
+            <path d={rightLungPath(expansion, basal)} fill="url(#pl-r)" opacity="0.45" />
+            <path d={rightLungPath(expansion, basal)} fill="none" stroke="rgba(255,220,220,0.08)" strokeWidth="0.4" />
             {/* Right oblique fissure */}
-            <path d={rightObliqueFissure(expansion)} fill="none" stroke="#7a4a55" strokeWidth="0.7" strokeDasharray="4,2" opacity="0.45" />
+            <path d={rightObliqueFissure(expansion, basal)} fill="none" stroke="#7a4a55" strokeWidth="0.7" strokeDasharray="4,2" opacity="0.45" />
             {/* Right horizontal fissure */}
-            <path d={rightHorizontalFissure(expansion)} fill="none" stroke="#7a4a55" strokeWidth="0.7" strokeDasharray="4,2" opacity="0.45" />
+            <path d={rightHorizontalFissure(expansion, basal)} fill="none" stroke="#7a4a55" strokeWidth="0.7" strokeDasharray="4,2" opacity="0.45" />
 
             {/* ═══ PULMONARY VASCULATURE ═══ */}
             {/* Left pulmonary artery branches */}
@@ -583,7 +555,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 fill="none" stroke={bradyIntensity > 0 ? `rgba(${100 - bradyIntensity * 20}, ${80 - bradyIntensity * 20}, ${100 + bradyIntensity * 40}, 0.5)` : '#a06060'} strokeWidth="0.6" opacity="0.4" />
 
               {/* Right atrium */}
-              <g transform={`scale(${1 + cardiacPhase.atrial * 0.08}, ${1 + cardiacPhase.atrial * 0.06})`} style={{ transformOrigin: '34px 30px', transition: chamberTransitionSlow || 'transform 0.06s ease-out' }}>
+              <g transform={`scale(${1 - cardiacPhase.atrial * 0.07}, ${1 - cardiacPhase.atrial * 0.05})`} style={{ transformOrigin: '34px 30px', transition: chamberTransitionSlow || 'transform 0.06s ease-out' }}>
                 <path d="M30,12 C36,16 40,24 39,34 C38,42 34,48 28,50 C26,42 28,28 30,12Z"
                   fill="url(#heart-ra)" opacity={0.85 + cardiacPhase.atrial * 0.1} stroke="#5a2868" strokeWidth="0.5" />
                 {/* Tricuspid valve annulus hint */}
@@ -593,7 +565,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               <path d="M35,50 C37,54 37,58 36,62" fill="none" stroke="url(#vein-grad)" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
 
               {/* Right ventricle */}
-              <g transform={`scale(${1 + cardiacPhase.ventricular * 0.10}, ${1 + cardiacPhase.ventricular * 0.06})`} style={{ transformOrigin: '22px 38px', transition: chamberTransitionSlow || 'transform 0.05s ease-out' }}>
+              <g transform={`scale(${1 - cardiacPhase.ventricular * 0.08}, ${1 - cardiacPhase.ventricular * 0.05})`} style={{ transformOrigin: '22px 38px', transition: chamberTransitionSlow || 'transform 0.05s ease-out' }}>
                 <path d="M18,18 C22,16 28,18 30,24 C32,32 30,44 26,52 C22,58 16,56 14,48 C12,38 14,26 18,18Z"
                   fill="url(#heart-myo)" opacity={0.75 + cardiacPhase.ventricular * 0.15} stroke="#802020" strokeWidth="0.5" />
                 {/* RV trabeculations */}
@@ -602,7 +574,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               </g>
 
               {/* Left atrium */}
-              <g transform={`scale(${1 + cardiacPhase.atrial * 0.08}, ${1 + cardiacPhase.atrial * 0.06})`} style={{ transformOrigin: '10px 28px', transition: chamberTransitionSlow || 'transform 0.06s ease-out' }}>
+              <g transform={`scale(${1 - cardiacPhase.atrial * 0.07}, ${1 - cardiacPhase.atrial * 0.05})`} style={{ transformOrigin: '10px 28px', transition: chamberTransitionSlow || 'transform 0.06s ease-out' }}>
                 <path d="M10,14 C6,18 4,26 6,34 C8,40 12,44 16,42 C14,34 12,24 10,14Z"
                   fill="url(#heart-la)" opacity={0.8 + cardiacPhase.atrial * 0.1} stroke="#802020" strokeWidth="0.4" />
                 {/* Mitral valve annulus hint */}
@@ -612,7 +584,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
               <path d="M4,30 C2,34 0,38 2,42" fill="none" stroke="#a04040" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
 
               {/* Left ventricle */}
-              <g transform={`scale(${1 + cardiacPhase.ventricular * 0.12}, ${1 + cardiacPhase.ventricular * 0.08})`} style={{ transformOrigin: '15px 50px', transition: chamberTransitionSlow || 'transform 0.05s ease-out' }}>
+              <g transform={`scale(${1 - cardiacPhase.ventricular * 0.10}, ${1 - cardiacPhase.ventricular * 0.06})`} style={{ transformOrigin: '15px 50px', transition: chamberTransitionSlow || 'transform 0.05s ease-out' }}>
                 <path d="M8,30 C4,36 2,46 6,56 C10,64 18,70 24,66 C28,62 26,52 24,44 C22,38 16,32 8,30Z"
                   fill="url(#heart-myo)" opacity={0.9 + cardiacPhase.ventricular * 0.1} stroke="#802020" strokeWidth="0.6" />
                 {/* LV papillary muscle hints */}
@@ -820,54 +792,59 @@ function SubsegmentalAirway({ x1, y1, x2, y2, w, e, dir }: {
 }
 
 /* ── Lung outline paths ── */
-function leftLungPath(exp: number): string {
+function leftLungPath(exp: number, basal = 0): string {
   const w = 42 * exp;
   const h = 95 * exp;
   const cx = 70;
   const top = 60;
+  const Y = (f: number) => top + h * f * (1 - basal * 0.5 * Math.max(0, (f - 0.3) / 0.7));
   return `M${cx},${top}
-    C${cx - w * 0.12},${top + h * 0.06} ${cx - w * 0.4},${top + h * 0.12} ${cx - w * 0.65},${top + h * 0.22}
-    C${cx - w * 0.85},${top + h * 0.35} ${cx - w * 0.95},${top + h * 0.5} ${cx - w},${top + h * 0.65}
-    C${cx - w * 0.98},${top + h * 0.78} ${cx - w * 0.88},${top + h * 0.9} ${cx - w * 0.7},${top + h * 0.96}
-    C${cx - w * 0.45},${top + h} ${cx - w * 0.15},${top + h * 0.99} ${cx + 4},${top + h * 0.95}
-    C${cx + 8},${top + h * 0.82} ${cx + 12},${top + h * 0.72} ${cx + 10},${top + h * 0.62}
-    C${cx + 7},${top + h * 0.54} ${cx + 5},${top + h * 0.48} ${cx + 5},${top + h * 0.42}
-    C${cx + 4},${top + h * 0.3} ${cx + 3},${top + h * 0.18} ${cx + 1},${top + h * 0.08}
-    C${cx},${top + h * 0.02} ${cx},${top} ${cx},${top}Z`;
+    C${cx - w * 0.12},${Y(0.06)} ${cx - w * 0.4},${Y(0.12)} ${cx - w * 0.65},${Y(0.22)}
+    C${cx - w * 0.85},${Y(0.35)} ${cx - w * 0.95},${Y(0.5)} ${cx - w},${Y(0.65)}
+    C${cx - w * 0.98},${Y(0.78)} ${cx - w * 0.88},${Y(0.9)} ${cx - w * 0.7},${Y(0.96)}
+    C${cx - w * 0.45},${Y(1)} ${cx - w * 0.15},${Y(0.99)} ${cx + 4},${Y(0.95)}
+    C${cx + 8},${Y(0.82)} ${cx + 12},${Y(0.72)} ${cx + 10},${Y(0.62)}
+    C${cx + 7},${Y(0.54)} ${cx + 5},${Y(0.48)} ${cx + 5},${Y(0.42)}
+    C${cx + 4},${Y(0.3)} ${cx + 3},${Y(0.18)} ${cx + 1},${Y(0.08)}
+    C${cx},${Y(0.02)} ${cx},${top} ${cx},${top}Z`;
 }
 
-function rightLungPath(exp: number): string {
+function rightLungPath(exp: number, basal = 0): string {
   const w = 45 * exp;
   const h = 100 * exp;
   const cx = 130;
   const top = 56;
+  const Y = (f: number) => top + h * f * (1 - basal * 0.5 * Math.max(0, (f - 0.3) / 0.7));
   return `M${cx},${top}
-    C${cx + w * 0.12},${top + h * 0.06} ${cx + w * 0.4},${top + h * 0.12} ${cx + w * 0.65},${top + h * 0.22}
-    C${cx + w * 0.85},${top + h * 0.35} ${cx + w * 0.95},${top + h * 0.5} ${cx + w},${top + h * 0.65}
-    C${cx + w * 0.98},${top + h * 0.78} ${cx + w * 0.88},${top + h * 0.9} ${cx + w * 0.7},${top + h * 0.96}
-    C${cx + w * 0.45},${top + h} ${cx + w * 0.15},${top + h * 0.99} ${cx - 4},${top + h * 0.96}
-    C${cx - 5},${top + h * 0.7} ${cx - 5},${top + h * 0.45} ${cx - 4},${top + h * 0.2}
-    C${cx - 2},${top + h * 0.08} ${cx},${top} ${cx},${top}Z`;
+    C${cx + w * 0.12},${Y(0.06)} ${cx + w * 0.4},${Y(0.12)} ${cx + w * 0.65},${Y(0.22)}
+    C${cx + w * 0.85},${Y(0.35)} ${cx + w * 0.95},${Y(0.5)} ${cx + w},${Y(0.65)}
+    C${cx + w * 0.98},${Y(0.78)} ${cx + w * 0.88},${Y(0.9)} ${cx + w * 0.7},${Y(0.96)}
+    C${cx + w * 0.45},${Y(1)} ${cx + w * 0.15},${Y(0.99)} ${cx - 4},${Y(0.96)}
+    C${cx - 5},${Y(0.7)} ${cx - 5},${Y(0.45)} ${cx - 4},${Y(0.2)}
+    C${cx - 2},${Y(0.08)} ${cx},${top} ${cx},${top}Z`;
 }
 
-function leftFissure(exp: number): string {
+function leftFissure(exp: number, basal = 0): string {
   const w = 42 * exp; const h = 95 * exp;
   const cx = 70; const top = 60;
-  return `M${cx - w * 0.05},${top + h * 0.28}
-    C${cx - w * 0.3},${top + h * 0.5} ${cx - w * 0.55},${top + h * 0.7} ${cx - w * 0.75},${top + h * 0.88}`;
+  const Y = (f: number) => top + h * f * (1 - basal * 0.5 * Math.max(0, (f - 0.3) / 0.7));
+  return `M${cx - w * 0.05},${Y(0.28)}
+    C${cx - w * 0.3},${Y(0.5)} ${cx - w * 0.55},${Y(0.7)} ${cx - w * 0.75},${Y(0.88)}`;
 }
 
-function rightObliqueFissure(exp: number): string {
+function rightObliqueFissure(exp: number, basal = 0): string {
   const w = 45 * exp; const h = 100 * exp;
   const cx = 130; const top = 56;
-  return `M${cx + w * 0.08},${top + h * 0.22}
-    C${cx + w * 0.35},${top + h * 0.48} ${cx + w * 0.55},${top + h * 0.68} ${cx + w * 0.78},${top + h * 0.88}`;
+  const Y = (f: number) => top + h * f * (1 - basal * 0.5 * Math.max(0, (f - 0.3) / 0.7));
+  return `M${cx + w * 0.08},${Y(0.22)}
+    C${cx + w * 0.35},${Y(0.48)} ${cx + w * 0.55},${Y(0.68)} ${cx + w * 0.78},${Y(0.88)}`;
 }
 
-function rightHorizontalFissure(exp: number): string {
+function rightHorizontalFissure(exp: number, basal = 0): string {
   const w = 45 * exp; const h = 100 * exp;
   const cx = 130; const top = 56;
-  const y = top + h * 0.36;
+  const Y = (f: number) => top + h * f * (1 - basal * 0.5 * Math.max(0, (f - 0.3) / 0.7));
+  const y = Y(0.36);
   return `M${cx + w * 0.08},${y}
     C${cx + w * 0.25},${y - 2} ${cx + w * 0.5},${y + 1} ${cx + w * 0.72},${y - 1}`;
 }
@@ -943,4 +920,29 @@ function getObeseBasalPatches(score: number, expansion: number): AtelPatch[] {
     { x: 54, y: 132, rx: 10 * expansion, ry: 4, opacity: score > 0.5 ? (score - 0.4) * 0.5 : 0, fill, rotate: -8 },
     { x: 140, y: 134, rx: 11 * expansion, ry: 4, opacity: score > 0.5 ? (score - 0.4) * 0.5 : 0, fill, rotate: 8 },
   ].filter(p => p.opacity > 0.04);
+}
+
+/** Latest live sample with a bounded presentation easing (≤100 ms step, τ 60 ms).
+ * Snaps on reset/patient/mode change and under reduced-motion. */
+function useSmoothedLatest(target: number, resetKey: string): number {
+  const [v, setV] = useState(target);
+  const ref = useRef({ v: target, key: resetKey, t: 0, raf: 0 });
+  useEffect(() => {
+    const st = ref.current;
+    const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (st.key !== resetKey || reduce || typeof requestAnimationFrame === 'undefined') {
+      st.key = resetKey; st.v = target; setV(target); return;
+    }
+    cancelAnimationFrame(st.raf);
+    st.t = performance.now();
+    const tick = (now: number) => {
+      st.v = smoothStep(st.v, target, now - st.t); st.t = now;
+      setV(st.v);
+      if (Math.abs(st.v - target) > 0.5) st.raf = requestAnimationFrame(tick);
+      else { st.v = target; setV(target); }
+    };
+    st.raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(st.raf);
+  }, [target, resetKey]);
+  return v;
 }
