@@ -149,13 +149,23 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
     }
   }, [allSettings, vitals, measured, currentStep, tutorial, completedSteps, fresh]);
 
-  // Check if all steps complete
+  // A step counts as done only while it still holds: earned once, and (unless it is a
+  // declared transitional step) still met now on fresh measurements.
+  const stepState = (tutorial?.steps ?? []).map((st, i) => {
+    const earned = completedSteps.has(i);
+    const pending = !!st.needsVentilation && !fresh;
+    const met = !pending && evaluateStep(st, allSettings, vitals, measured, { fresh });
+    const ok = earned && (st.transitional || met);
+    return { earned, met, pending, ok, lost: earned && !st.transitional && !met };
+  });
+  const allOk = stepState.length > 0 && stepState.every(x => x.ok);
+
+  // Completion view only while every step still holds; it re-checks every update.
   useEffect(() => {
     if (!tutorial) return;
-    if (completedSteps.size === tutorial.steps.length && !showComplete) {
-      setShowComplete(true);
-    }
-  }, [completedSteps, tutorial, showComplete]);
+    if (allOk && !showComplete) setShowComplete(true);
+    if (!allOk && showComplete) setShowComplete(false);
+  }, [allOk, tutorial, showComplete]);
 
   const handleReset = useCallback(() => {
     setCurrentStep(0);
@@ -185,14 +195,17 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
   }
 
   const step = tutorial.steps[Math.min(currentStep, tutorial.steps.length - 1)];
-  const isStepComplete = completedSteps.has(currentStep);
-  const allComplete = completedSteps.size === tutorial.steps.length;
-  const progress = (completedSteps.size / tutorial.steps.length) * 100;
+  const cur = stepState[Math.min(currentStep, stepState.length - 1)];
+  const isStepComplete = !!cur?.ok;
+  const stepLost = !!cur?.lost;
+  const allComplete = allOk;
+  const progress = (stepState.filter(x => x.ok).length / tutorial.steps.length) * 100;
   const scoresArray = Array.from(stepScores.values());
   // Earlier steps that the current settings no longer satisfy (e.g. mode changed).
   const invalidated = tutorial.steps
     .map((s, i) => ({ s, i }))
-    .filter(({ s, i }) => completedSteps.has(i) && i !== currentStep && !s.needsVentilation && !evaluateStep(s, allSettings, vitals, measured, { fresh }));
+    .filter(({ i }) => i !== currentStep && (stepState[i]?.lost || (stepState[i]?.earned && stepState[i]?.pending && !tutorial.steps[i].transitional)));
+  void stepLost;
   const overall = overallGrade(scoresArray);
 
   /* ── Completion screen ─────────────────────────────────── */
@@ -328,7 +341,7 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
               key={i}
               onClick={() => { setCurrentStep(i); setShowHint(false); }}
               className={`w-2 h-2 rounded-full transition-colors ${
-                completedSteps.has(i) ? 'bg-green-500' :
+                stepState[i]?.ok ? 'bg-green-500' : stepState[i]?.earned && !tutorial.steps[i].transitional ? 'bg-yellow-500' :
                 i === currentStep ? 'bg-primary' : 'bg-muted-foreground/30'
               }`}
               title={`Step ${i + 1}`}
@@ -339,6 +352,11 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
         {invalidated.length > 0 && (
           <div className="mb-2 p-1.5 rounded border border-destructive/40 bg-destructive/10 text-[10px] text-destructive leading-relaxed" role="status">
             Your current settings no longer meet: {invalidated.map(({ s, i }) => `Step ${i + 1} (${s.title})`).join(', ')}. Review before continuing.
+          </div>
+        )}
+        {stepLost && (
+          <div className="mb-2 p-1.5 rounded border border-destructive/40 bg-destructive/10 text-[10px] text-destructive leading-relaxed" role="alert">
+            {cur?.pending ? 'Checking this step on fresh breaths…' : 'This step was met earlier but is no longer met with the current mode, settings or physiology. Restore it to continue.'}
           </div>
         )}
         {!fresh && !isStepComplete && step.needsVentilation && (

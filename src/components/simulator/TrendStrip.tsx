@@ -26,23 +26,27 @@ function Sparkline({ lane, width = 120, height = 26 }: { lane: Lane; width?: num
     const span = Math.max(1e-6, lane.max - lane.min);
     const stepX = width / (vs.length - 1);
     let d = '';
+    let pen = false;
     for (let i = 0; i < vs.length; i++) {
+      // Gaps (NaN) are not plotted as values — e.g. no valid EtCO₂ sample.
+      if (!Number.isFinite(vs[i])) { pen = false; continue; }
       const x = i * stepX;
       const yNorm = (vs[i] - lane.min) / span;
       const y = height - Math.min(1, Math.max(0, yNorm)) * height;
-      d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+      d += (pen ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+      pen = true;
     }
     return d;
   }, [lane, width, height]);
 
-  const latest = lane.values[lane.values.length - 1] ?? 0;
+  const latest = lane.values[lane.values.length - 1] ?? NaN;
 
   return (
     <div className="flex items-center gap-1.5 shrink-0">
       <div className="flex flex-col items-end leading-none">
         <span className="text-[8px] text-muted-foreground uppercase tracking-wider">{lane.label}</span>
         <span className="monitor-text text-[11px] font-bold tabular-nums" style={{ color: lane.color }}>
-          {lane.format(latest)}
+          {Number.isFinite(latest) ? lane.format(latest) : '—'}
         </span>
       </div>
       <svg width={width} height={height} className="shrink-0" aria-hidden>

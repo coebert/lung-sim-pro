@@ -33,9 +33,9 @@ export function PatientDropdown({ selectedPatient, onSelectPatient, compact }: P
         )}
         <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72">
+      <DropdownMenuContent align="end" collisionPadding={8} className="w-72 max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto overscroll-contain">
         <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
-          Patient scenario — press 1–6
+          Patient scenario
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {patients.map((p, idx) => {

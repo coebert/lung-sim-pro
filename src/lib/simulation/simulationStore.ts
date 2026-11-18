@@ -1,4 +1,5 @@
 import { LiveSimulation } from './liveSimulation';
+import { etco2Display } from './etco2Display';
 import { useSyncExternalStore } from 'react';
 import {
   VentSettings,
@@ -29,15 +30,15 @@ import { patients, getDefaultAllParams } from './patients';
 class Ring {
   private data: number[];
   private head = 0;
-  constructor(private size: number) {
-    this.data = new Array(size).fill(0);
+  constructor(private size: number, private empty = 0) {
+    this.data = new Array(size).fill(empty);
   }
   push(v: number): void {
     this.data[this.head] = v;
     this.head = (this.head + 1) % this.size;
   }
   reset(): void {
-    this.data.fill(0);
+    this.data.fill(this.empty);
     this.head = 0;
   }
   /** Linearised copy — oldest sample first, newest last. */
@@ -104,9 +105,10 @@ class SimulationStore {
   private static readonly TREND_SIZE = 300;
   private trendCounter = 0;
   private trendRings = {
-    spo2: new Ring(SimulationStore.TREND_SIZE),
-    map: new Ring(SimulationStore.TREND_SIZE),
-    etco2: new Ring(SimulationStore.TREND_SIZE),
+    // Empty trend slots are NaN (gaps), never plotted as zero readings.
+    spo2: new Ring(SimulationStore.TREND_SIZE, NaN),
+    map: new Ring(SimulationStore.TREND_SIZE, NaN),
+    etco2: new Ring(SimulationStore.TREND_SIZE, NaN),
   };
 
   private rings = {
@@ -302,7 +304,7 @@ class SimulationStore {
         const v = this.sim.displayedVitals();
         this.trendRings.spo2.push(v.spo2);
         this.trendRings.map.push((v.sbp + 2 * v.dbp) / 3);
-        this.trendRings.etco2.push(v.etco2 / 7.501); // → kPa
+        this.trendRings.etco2.push(etco2Display(v).kPa); // kPa, NaN when no valid sample
       }
 
       this.emitVitals();

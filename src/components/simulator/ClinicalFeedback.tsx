@@ -35,7 +35,7 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     const peepRatio = settings.peep / patient.optimalPEEP;
 
     if (vitals.spo2 < 88) {
-      list.push({ text: `Critical hypoxaemia (SpO₂ ${Math.round(vitals.spo2)}%). Consider increasing FiO₂ or ${settings.mode === 'APRV' ? 'P High / shortening T Low' : 'PEEP'}.`, severity: 'danger' });
+      list.push({ text: `Critical hypoxaemia (SpO₂ ${Math.round(vitals.spo2)}%). Consider increasing FiO₂ or ${settings.mode === 'APRV' ? 'P High / reviewing T Low against the release flow' : 'PEEP'}.`, severity: 'danger' });
     } else if (vitals.spo2 < 92) {
       list.push({ text: `SpO₂ is low (${Math.round(vitals.spo2)}%). Oxygenation may be inadequate.`, severity: 'warn' });
     } else if (vitals.spo2 >= 96) {
@@ -69,7 +69,16 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     const ventRatio = minuteVent / optimalMV;
 
     const permissive = patient.id === 'bronchospasm' || patient.id === 'copd' || patient.id === 'asthma' || patient.id === 'ards' || measured.autoPEEP > 1;
-    if (vitals.etco2 > 45 && permissive) {
+    // CO₂ advice only from a valid capnogram: no plateau under-reads alveolar CO₂,
+    // and no signal means no exhaled CO₂ reaches the sensor (not hypocapnia).
+    const va = measured.alveolarVentilation ?? 0;
+    if (vitals.etco2Status === 'unavailable') {
+      list.push({ text: `No capnographic signal: exhaled breaths (VT ${measured.measuredTV} mL) are not clearing the ~${Math.round(2.2 * (patient.predictedBodyWeight ?? patient.weight))} mL dead space${va <= 0.1 ? ' — alveolar ventilation is near zero' : ''}. This is NOT hypocapnia: CO₂ is accumulating. Increase tidal volume / lengthen expiration rather than reducing ventilation.`, severity: 'danger' });
+    } else if (vitals.etco2Status === 'measuring') {
+      // no CO₂ advice until a complete breath has been sampled
+    } else if (vitals.etco2Status === 'no-plateau') {
+      list.push({ text: `EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa has no alveolar plateau, so it under-reads alveolar CO₂. Do not reduce ventilation on this number — check VT against dead space and expiratory time.`, severity: 'warn' });
+    } else if (vitals.etco2 > 45 && permissive) {
       list.push({ text: patient.id === 'bronchospasm' || measured.autoPEEP > 1
         ? `Hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Permissive hypercapnia may be acceptable (pH is not modelled here). Do NOT raise RR or shorten expiratory time — this worsens air trapping.`
         : `Hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Permissive hypercapnia may be acceptable in lung-protective ventilation (pH is not modelled here). Increase RR cautiously (watch auto-PEEP); do not raise VT above 6–8 mL/kg PBW.`,
@@ -130,6 +139,17 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       } else if (tvPerKg >= 4 && tvPerKg <= 8) {
         list.push({ text: `Tidal volume (${tvPerKg.toFixed(1)} mL/kg PBW) is within protective range.`, severity: 'good' });
       }
+    }
+
+    // ── Patient–ventilator interaction ──
+    if ((measured.autoTriggers ?? 0) >= 2) {
+      list.push({ text: `Auto-triggering: about ${Math.round(measured.autoTriggers!)} breaths/min are triggered by cardiogenic flow oscillation, not patient effort (patient ${Math.round(measured.effortRate ?? 0)}/min, ventilator ${Math.round(measured.measuredRR)}/min). Make the flow trigger less sensitive (above the ~${patient.cardiogenicOscillation ?? 0} L/min oscillation) and check for leaks.`, severity: 'warn' });
+    }
+    if ((measured.missedTriggers ?? 0) >= 2) {
+      list.push({ text: `Missed triggering: ${Math.round(measured.missedTriggers!)} efforts/min fail to trigger (patient ${Math.round(measured.effortRate ?? 0)}/min, ventilator ${Math.round(measured.measuredRR)}/min). Intrinsic PEEP (${measured.autoPEEP.toFixed(1)} cmH₂O) must be overcome before flow reaches the trigger. Shorten supported breaths (raise ETS, lower PS) so the lung empties.`, severity: 'warn' });
+    }
+    if ((measured.pressureLimited ?? 0) > 0) {
+      list.push({ text: `Pressure-limited: volume breaths reach the high-pressure limit and are terminated, so set VT is not delivered (measured ${measured.measuredTV} mL). Peak pressure here is mostly resistive — slow the inspiratory flow (longer Ti) or reduce VT/RR rather than simply raising the limit.`, severity: 'danger' });
     }
 
     // ── Pressures ──
@@ -229,7 +249,7 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       if (tHigh < 2) {
         list.push({ text: `T High too short (${tHigh.toFixed(1)}s). Insufficient time for alveolar recruitment — lung units need ≥3s at high pressure to open. Aim for 4–6s.`, severity: 'danger' });
       } else if (tHigh < 3) {
-        list.push({ text: `T High is short (${tHigh.toFixed(1)}s). Only partial recruitment will occur. Optimal is 4–6s for full alveolar opening.`, severity: 'warn' });
+        list.push({ text: `T High is short (${tHigh.toFixed(1)}s). Only partial recruitment may occur. A commonly used range is 4–6 s; watch CO₂ as you lengthen it.`, severity: 'warn' });
       } else if (tHigh > 6) {
         list.push({ text: `T High is prolonged (${tHigh.toFixed(1)}s). Recruitment is optimised but CO₂ clearance may be impaired due to infrequent releases.`, severity: 'warn' });
       } else {
@@ -237,24 +257,26 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       }
 
       // T Low assessment — tidal volume is a function of T Low: a long T Low
-      // permits full exhalation (large VT, derecruitment); the ideal T Low
+      // permits full exhalation (large VT, derecruitment); a suitable T Low
       // cycles back to P High before expiration has completed.
+      // T Low from this lung's own release flow (case-specific), not a fixed interval.
       const measuredVT = Math.round(measured.measuredTV);
-      if (tLow < 0.1) {
-        list.push({ text: `T Low too short (${tLow.toFixed(1)}s). No meaningful release occurring — CO₂ cannot be cleared.`, severity: 'danger' });
-      } else if (tLow > 1.2) {
-        list.push({ text: `T Low too long (${tLow.toFixed(1)}s). Expiration completes fully before the ventilator cycles back to P High — hence the large tidal volume (measured VT ${measuredVT} mL). Full exhalation causes de-recruitment and loss of oxygenation. Shorten T Low (0.3–0.8s) so it cycles back to P High before the patient has fully expired.`, severity: 'danger' });
-      } else if (tLow > 0.8) {
-        list.push({ text: `T Low is slightly long (${tLow.toFixed(1)}s). Expiration is nearly complete (VT ${measuredVT} mL), risking partial de-recruitment. Ideal: 0.3–0.8s.`, severity: 'warn' });
-      } else if (tLow < 0.3) {
-        list.push({ text: `T Low is very short (${tLow.toFixed(1)}s). Auto-PEEP is maintained (VT truncated to ${measuredVT} mL) but CO₂ clearance is limited. May cause hypercapnia.`, severity: 'warn' });
+      const pct = aprv.endToPeakFlowPct;
+      if (aprv.noRelease) {
+        list.push({ text: `No release: P High (${pHigh}) is not above P Low (${pLow}). This is CPAP — there is no mandatory ventilation, only the patient's own breaths.`, severity: patient.spontaneousRate > 0 ? 'warn' : 'danger' });
+      } else if (aprv.obstructive) {
+        list.push({ text: `Obstructive lung (τ ≈ ${aprv.tau.toFixed(2)} s): release flow is still ${pct}% of peak when T Low (${tLow.toFixed(1)} s) ends. Restrictive-lung targets do not apply — a short release traps gas. APRV is generally avoided here; if used, release much more completely (end flow well below 50% of peak).`, severity: pct > 50 ? 'danger' : 'warn' });
+      } else if (pct > 75) {
+        list.push({ text: `T Low ${tLow.toFixed(1)} s ends the release while flow is still ${pct}% of peak — very little gas leaves (VT ${measuredVT} mL), limiting CO₂ clearance. For this lung, lengthen T Low until end-release flow is about 50–75% of peak.`, severity: 'warn' });
+      } else if (pct >= 50) {
+        list.push({ text: `T Low ${tLow.toFixed(1)} s ends the release at ${pct}% of peak expiratory flow — within the 50–75% teaching target for this restrictive lung (VT ${measuredVT} mL, intrinsic PEEP ${measured.autoPEEP.toFixed(1)}).`, severity: 'good' });
       } else {
-        list.push({ text: `T Low (${tLow.toFixed(1)}s) is optimal — the ventilator cycles back to P High before expiration is complete, maintaining auto-PEEP and recruitment while permitting CO₂ clearance (VT ${measuredVT} mL).`, severity: 'good' });
+        list.push({ text: `T Low ${tLow.toFixed(1)} s lets expiratory flow fall to ${pct}% of peak — the lung empties further (VT ${measuredVT} mL) and may derecruit. For this lung, shorten T Low so the release ends at about 50–75% of peak flow.`, severity: pct < 25 ? 'danger' : 'warn' });
       }
 
       // P Low assessment
       if (pLow > 5) {
-        list.push({ text: `P Low is high (${pLow} cmH₂O). This reduces the pressure differential during release, diminishing CO₂ clearance and the recruitment-release cycle. Ideal P Low is 0 cmH₂O.`, severity: 'warn' });
+        list.push({ text: `P Low is high (${pLow} cmH₂O). This reduces the pressure differential during release, diminishing CO₂ clearance and the recruitment-release cycle. P Low 0 cmH₂O is a common starting point.`, severity: 'warn' });
       } else if (pLow > 0 && pLow <= 5) {
         list.push({ text: `P Low is ${pLow} cmH₂O. Slightly reduces driving pressure. Setting P Low to 0 maximises the release differential (auto-PEEP from short T Low prevents derecruitment, not P Low).`, severity: 'warn' });
       } else {

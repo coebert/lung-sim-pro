@@ -1,6 +1,7 @@
 import { VentSettings, VentMode, AllModeParams, PatientPhysiology } from '@/lib/simulation/types';
 import { prvcInspPressure, psvInspTime, simvSupportInspTime, aprvReleaseMetrics, PRVC_PMAX_RESERVE } from '@/lib/simulation/waveformGenerators';
 import { computeIE, type IEMetrics } from '@/lib/simulation/scoring';
+import { controlSpec } from '@/lib/simulation/controlSpecs';
 import { StepperControl } from '@/components/simulator/StepperControl';
 import type { ComponentProps } from 'react';
 
@@ -35,9 +36,8 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
     if (m === 'ti') onUpdate({ inspiratoryTime: Math.max(0.3, Math.min(3, Math.round(ie.iTime * 10) / 10)) });
     else onUpdate({ ieRatio: Math.max(0.25, Math.min(4, Math.round(ie.eRatio * 4) / 4)), inspiratoryTime: 0 });
   };
-  const pbw = patient ? (patient.predictedBodyWeight ?? patient.weight) : 70;
-  const child = pbw < 40;
-  const tvRange = child ? { min: 40, max: 400, step: 5 } : { min: 200, max: 800, step: 10 };
+  // Ranges come from the shared control spec (also used by reachability tests).
+  const R = (f: keyof AllModeParams) => controlSpec(f, settings.mode, patient) ?? { min: 0, max: 0, step: 1 };
 
   return (
     <div className="flex flex-col gap-2">
@@ -67,7 +67,7 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
             label="PEEP"
             value={settings.peep}
             unit="cmH₂O"
-            min={0} max={25} step={1}
+            {...R('peep')}
             onChange={(v) => onUpdate({ peep: v })}
             holdAccel={PEEP_ACCEL}
           />
@@ -85,17 +85,24 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
         {(settings.mode === 'VCV' || settings.mode === 'SIMV') && (
           <>
             <SettingControl
+              label="P limit"
+              value={settings.pLimit}
+              unit="cmH₂O"
+              {...R('pLimit')}
+              onChange={(v) => onUpdate({ pLimit: v })}
+            />
+            <SettingControl
               label="TV"
               value={settings.tidalVolume}
               unit="mL"
-              min={tvRange.min} max={tvRange.max} step={tvRange.step}
+              {...R('tidalVolume')}
               onChange={(v) => onUpdate({ tidalVolume: v })}
             />
             <SettingControl
               label="RR"
               value={settings.respiratoryRate}
               unit="/min"
-              min={4} max={40} step={1}
+              {...R('respiratoryRate')}
               onChange={(v) => onUpdate({ respiratoryRate: v })}
             />
             <TimingToggleAndControl
@@ -115,21 +122,21 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               label="Pinsp"
               value={settings.pInsp}
               unit="cmH₂O"
-              min={5} max={40} step={1}
+              {...R('pInsp')}
               onChange={(v) => onUpdate({ pInsp: v })}
             />
             <SettingControl
               label="Rise"
               value={settings.riseTime}
               unit="sec"
-              min={0} max={0.6} step={0.05}
+              {...R('riseTime')}
               onChange={(v) => onUpdate({ riseTime: Math.round(v * 100) / 100 })}
             />
             <SettingControl
               label="RR"
               value={settings.respiratoryRate}
               unit="/min"
-              min={4} max={40} step={1}
+              {...R('respiratoryRate')}
               onChange={(v) => onUpdate({ respiratoryRate: v })}
             />
             <TimingToggleAndControl
@@ -149,28 +156,28 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               label="Target TV"
               value={settings.tidalVolume}
               unit="mL"
-              min={tvRange.min} max={tvRange.max} step={tvRange.step}
+              {...R('tidalVolume')}
               onChange={(v) => onUpdate({ tidalVolume: v })}
             />
             <SettingControl
               label="RR"
               value={settings.respiratoryRate}
               unit="/min"
-              min={4} max={40} step={1}
+              {...R('respiratoryRate')}
               onChange={(v) => onUpdate({ respiratoryRate: v })}
             />
             <SettingControl
               label="Pmax"
               value={settings.pMax}
               unit="cmH₂O"
-              min={15} max={50} step={1}
+              {...R('pMax')}
               onChange={(v) => onUpdate({ pMax: v })}
             />
             <SettingControl
               label="Rise"
               value={settings.riseTime}
               unit="sec"
-              min={0} max={0.6} step={0.05}
+              {...R('riseTime')}
               onChange={(v) => onUpdate({ riseTime: Math.round(v * 100) / 100 })}
             />
             {patient && (() => {
@@ -202,22 +209,29 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               label="PS"
               value={settings.pressureSupport}
               unit="cmH₂O"
-              min={0} max={30} step={1}
+              {...R('pressureSupport')}
               onChange={(v) => onUpdate({ pressureSupport: v })}
             />
             <SettingControl
               label="Rise"
               value={settings.riseTime}
               unit="sec"
-              min={0} max={0.6} step={0.05}
+              {...R('riseTime')}
               onChange={(v) => onUpdate({ riseTime: Math.round(v * 100) / 100 })}
             />
             <SettingControl
               label="ETS"
               value={settings.ets}
               unit="% pk"
-              min={5} max={80} step={5}
+              {...R('ets')}
               onChange={(v) => onUpdate({ ets: v })}
+            />
+            <SettingControl
+              label="Trigger"
+              value={settings.triggerSens}
+              unit="L/min"
+              {...R('triggerSens')}
+              onChange={(v) => onUpdate({ triggerSens: Math.round(v * 10) / 10 })}
             />
             {patient && patient.spontaneousRate > 0 && settings.pressureSupport > 0 && (
               <ReadoutTile
@@ -237,22 +251,29 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               label="PS"
               value={settings.pressureSupport}
               unit="cmH₂O"
-              min={0} max={30} step={1}
+              {...R('pressureSupport')}
               onChange={(v) => onUpdate({ pressureSupport: v })}
             />
             <SettingControl
               label="Rise"
               value={settings.riseTime}
               unit="sec"
-              min={0} max={0.6} step={0.05}
+              {...R('riseTime')}
               onChange={(v) => onUpdate({ riseTime: Math.round(v * 100) / 100 })}
             />
             <SettingControl
               label="ETS"
               value={settings.ets}
               unit="% pk"
-              min={5} max={80} step={5}
+              {...R('ets')}
               onChange={(v) => onUpdate({ ets: v })}
+            />
+            <SettingControl
+              label="Trigger"
+              value={settings.triggerSens}
+              unit="L/min"
+              {...R('triggerSens')}
+              onChange={(v) => onUpdate({ triggerSens: Math.round(v * 10) / 10 })}
             />
             {patient && patient.spontaneousRate > 0 && (
               <ReadoutTile
@@ -272,28 +293,28 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               label="P High"
               value={settings.pHigh}
               unit="cmH₂O"
-              min={5} max={40} step={1}
+              {...R('pHigh')}
               onChange={(v) => onUpdate({ pHigh: v })}
             />
             <SettingControl
               label="P Low"
               value={settings.pLow}
               unit="cmH₂O"
-              min={0} max={10} step={1}
+              {...R('pLow')}
               onChange={(v) => onUpdate({ pLow: v })}
             />
             <SettingControl
               label="T High"
               value={settings.tHigh}
               unit="sec"
-              min={1} max={8} step={0.5}
+              {...R('tHigh')}
               onChange={(v) => onUpdate({ tHigh: v })}
             />
             <SettingControl
               label="T Low"
               value={settings.tLow}
               unit="sec"
-              min={0.1} max={2} step={0.1}
+              {...R('tLow')}
               onChange={(v) => onUpdate({ tLow: v })}
             />
             {settings.pHigh <= settings.pLow ? (

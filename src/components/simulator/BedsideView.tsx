@@ -7,7 +7,8 @@ interface BedsideViewProps {
   buffers: WaveformBuffers;
   measured: MeasuredValues;
   settings: VentSettings;
-  etco2KPa: number;
+  /** Shared EtCO₂ display (dash when no valid sample). */
+  etco2: { valid: boolean; kPa: number; text: string; note?: string };
   patient?: PatientPhysiology;
   onUpdate: (patch: Partial<VentSettings>) => void;
   fullVentilator?: boolean;
@@ -26,7 +27,7 @@ const TRACE: Record<TraceKey, { label: string; unit: string; color: string }> = 
  * beneath it and a small measured-values strip (Ppeak, Pplat, VTe, EtCO₂) —
  * like glancing at a single screen at the foot of the bed.
  */
-export function BedsideView({ buffers, measured, settings, etco2KPa, patient, onUpdate, fullVentilator = false }: BedsideViewProps) {
+export function BedsideView({ buffers, measured, settings, etco2, patient, onUpdate, fullVentilator = false }: BedsideViewProps) {
   const isAPRV = settings.mode === 'APRV';
 
   const fmt = (v: number) => (v < 10 ? v.toFixed(1) : String(Math.round(v)));
@@ -35,7 +36,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
     { label: 'Ppeak', value: fmt(measured.peakPressure), unit: 'cmH₂O', color: WAVE_COLOR.pressure },
     { label: 'Pplat est', value: isAPRV ? '—' : fmt(measured.plateauPressure), unit: 'cmH₂O', color: WAVE_COLOR.pressure },
     { label: 'VTe', value: String(Math.round(measured.measuredTV)), unit: 'mL', color: WAVE_COLOR.volume },
-    { label: 'EtCO₂', value: etco2KPa.toFixed(1), unit: 'kPa', color: WAVE_COLOR.capno },
+    { label: 'EtCO₂', value: etco2.text, unit: etco2.note ?? 'kPa', color: WAVE_COLOR.capno },
   ];
 
   return (
@@ -65,7 +66,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
             label="CO₂"
             unit="kPa"
             minValue={-0.5}
-            maxValue={Math.max(8, etco2KPa * 1.2, ...buffers.capno.map((value) => value / 7.501 * 1.1))}
+            maxValue={Math.max(8, etco2.valid ? etco2.kPa * 1.2 : 0, ...buffers.capno.map((value) => value / 7.501 * 1.1))}
             autoHeight
           />
         </section>

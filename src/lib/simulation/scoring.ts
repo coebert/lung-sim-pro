@@ -1,4 +1,6 @@
 import { VentSettings, PatientPhysiology, CommonSettings, APRVSettings } from './types';
+import { APRV_EXP_TAU_FACTOR, aprvReleaseMetrics } from './aprvTrajectory';
+export { APRV_EXP_TAU_FACTOR };
 
 /**
  * Shared physiology math used by both the engine and the UI feedback panels.
@@ -32,8 +34,6 @@ export interface IEMetrics {
 
 /** Minimum expiratory time the model enforces (s). */
 export const MIN_EXP_TIME = 0.1;
-/** APRV release (expiratory) τ is this multiple of the inspiratory τ (shared by waveform + scoring). */
-export const APRV_EXP_TAU_FACTOR = 1.25;
 
 /** Anatomical + apparatus dead space estimate (mL): 2.2 mL/kg predicted body weight. */
 export function deadSpaceMl(p: PatientPhysiology): number {
@@ -132,6 +132,11 @@ export interface APRVMetrics {
   drivingPressure: number;
   openingPressure: number;
   meanAirwayPressure: number;
+  /** End-release flow as % of peak expiratory flow (trajectory-derived). */
+  endToPeakFlowPct: number;
+  /** True for a long time constant (obstructive) lung. */
+  obstructive: boolean;
+  noRelease: boolean;
   pHighScore: number;
   tHighScore: number;
   tLowScore: number;
@@ -141,7 +146,7 @@ export interface APRVMetrics {
 }
 
 export function computeAPRV(s: APRVSettings, p: PatientPhysiology): APRVMetrics {
-  const { pHigh, pLow, tHigh, tLow } = s;
+  const { pHigh, pLow, tHigh } = s;
   // Data-driven per-patient opening pressure, with a sensible fallback so
   // patients that don't declare one still behave as before.
   const openingPressure = p.openingPressure ?? p.optimalPEEP * 1.5;
@@ -156,12 +161,18 @@ export function computeAPRV(s: APRVSettings, p: PatientPhysiology): APRVMetrics 
   // T High adequacy: ≥4s optimal, 2–4s partial, <2s poor
   const tHighScore = clamp((tHigh - 1.5) / 3.0, 0, 1);
 
-  // T Low adequacy: 0.3–0.8s optimal; too short (<0.1) no release;
-  // too long (>1.2) allows full exhalation → derecruitment
+  // T Low adequacy from this lung's own release trajectory (not a fixed
+  // duration): for a restrictive/recruitable lung, end the release when
+  // expiratory flow has fallen to ~50–75% of its peak. Too short ⇒ little
+  // CO₂ clearance; too long ⇒ derecruitment. Obstructive lungs are scored
+  // separately (no recruitment benefit, gas-trapping risk).
+  const release = aprvReleaseMetrics(s, p);
+  const pct = release.endToPeakFlowPct;
   let tLowScore: number;
-  if (tLow < 0.1) tLowScore = 0.1;
-  else if (tLow <= 0.8) tLowScore = clamp(tLow / 0.3, 0, 1);
-  else tLowScore = clamp(1.0 - (tLow - 0.8) / 0.7, 0, 1);
+  if (release.noRelease) tLowScore = 0;
+  else if (pct > 75) tLowScore = clamp(1 - (pct - 75) / 20, 0, 1);
+  else if (pct >= 50) tLowScore = 1;
+  else tLowScore = clamp(0.2 + 0.8 * (pct - 10) / 40, 0.2, 1);
 
   // P Low penalty: ideally 0; higher P Low reduces pressure differential
   const pLowPenalty = clamp(pLow / 10, 0, 0.5);
@@ -174,21 +185,24 @@ export function computeAPRV(s: APRVSettings, p: PatientPhysiology): APRVMetrics 
     0, 1
   );
 
-  const meanAirwayPressure = (pHigh * tHigh + pLow * tLow) / Math.max(0.2, tHigh + tLow);
+  const meanAirwayPressure = (pHigh * tHigh + pLow * s.tLow) / Math.max(0.2, tHigh + s.tLow);
 
   // Gas trapping: the release only empties a fraction 1−e^(−T Low/τ) of
   // the lung (τ = R·C). Obstructed lungs (long τ) cannot empty in a short
   // release, so APRV stacks gas → dynamic hyperinflation, rising CO₂ and
   // falling venous return. Only clinically relevant once τ is long.
   const tau = Math.max(0.05, (p.resistance * p.compliance) / 1000);
-  // Same expiratory time constant as the APRV waveform trajectory.
-  const releaseFraction = 1 - Math.exp(-tLow / (tau * APRV_EXP_TAU_FACTOR));
+  // Fraction emptied, from the same trajectory as the waveform (0 when P High ≤ P Low).
+  const releaseFraction = release.releaseFraction;
   const obstruction = clamp((tau - 0.5) / 0.7, 0, 1);
-  const gasTrapping = clamp(obstruction * (1 - releaseFraction) * clamp(drivingPressure / 20, 0.3, 1.5), 0, 1);
+  const gasTrapping = release.noRelease ? 0 : clamp(obstruction * (1 - releaseFraction) * clamp(drivingPressure / 20, 0.3, 1.5), 0, 1);
 
   return {
     tau,
     releaseFraction,
+    endToPeakFlowPct: pct,
+    obstructive: tau >= 0.5,
+    noRelease: release.noRelease,
     gasTrapping,
     drivingPressure,
     openingPressure,

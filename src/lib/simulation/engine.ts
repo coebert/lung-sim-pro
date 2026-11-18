@@ -8,6 +8,7 @@ import {
   type BeatTime,
   generateCapnography,
   simvSchedule,
+  CapnoSensor,
 } from './waveformGenerators';
 import { clamp, computeAPRV, computeInverseRatio, computeShunt, deadSpaceMl } from './scoring';
 
@@ -68,6 +69,23 @@ export function targetAlveolarCO2(measured: MeasuredValues, patient: PatientPhys
   return clamp(NORMO_CO2 * referenceAlveolarVentilation(patient) / Math.max(va, 0.05), 15, 120);
 }
 
+/**
+ * Oxygenation ceiling from alveolar ventilation: with V̇A near zero (apnoea,
+ * or breaths no larger than dead space) alveolar O₂ is not replenished.
+ * Returns the SpO₂ cap and whether the patient is hypoventilating.
+ */
+export function hypoventilationCap(measured: MeasuredValues, patient: PatientPhysiology) {
+  const frac = alveolarVentilation(measured, patient) / referenceAlveolarVentilation(patient);
+  const hypo = isApnoeic(measured) || frac < 0.4;
+  return { hypo, cap: hypo ? 60 + 40 * clamp(frac / 0.4, 0, 1) * (isApnoeic(measured) ? 0 : 1) : 100 };
+}
+
+/** SpO₂ step: desaturation from hypoventilation follows O₂ stores (~1 min at FiO₂ 0.4, slower on more O₂). */
+function spo2Step(current: number, target: number, rate: number, hypo: boolean, fio2: number): number {
+  const k = target < current && hypo ? rate * 0.5 * 0.2 * Math.sqrt(0.21 / Math.max(0.21, fio2)) : rate * 0.5;
+  return clamp(current + (target - current) * k, 40, 100);
+}
+
 /** No exhaled gas: no breath within the apnoea time, or negligible tidal volume. */
 export function isApnoeic(measured: MeasuredValues): boolean {
   return measured.apnoea === true || measured.measuredTV < 50 || measured.measuredRR < 1;
@@ -91,6 +109,8 @@ export function generateWaveformSample(
   vitals: Vitals,
   /** Beat timing from the live CardiacClock; derived from `time` if omitted. */
   beat?: BeatTime,
+  /** Stateful capnograph sensor (live simulation); a pure replay is used if omitted. */
+  capnoSensor?: CapnoSensor,
 ): WaveformSample {
   const vent = generateVentWaveformPoint(time, settings, patient);
   const bt = beat ?? beatTimeAt(time, vitals.hr);
@@ -104,7 +124,9 @@ export function generateWaveformSample(
     abp: abpAtBeat(bt, vitals.sbp, vitals.dbp),
     spo2Pleth: plethAtBeat(bt),
     // The capnogram is driven by modelled alveolar CO₂; displayed EtCO₂ is sampled from it.
-    capno: generateCapnography(time, settings, patient, vitals.paco2 ?? vitals.etco2),
+    capno: capnoSensor
+      ? capnoSensor.push(vent.flow, vent.volume, vitals.paco2 ?? vitals.etco2, 0.02)
+      : generateCapnography(time, settings, patient, vitals.paco2 ?? vitals.etco2),
   };
 }
 
@@ -247,8 +269,9 @@ export function updateVitals(
   const targetSBP = patient.baseSBP - peepEffect - shuntBPPenalty - irvBPPenalty + distress * 10;
   const targetDBP = patient.baseDBP - peepEffect * 0.5 - shuntBPPenalty * 0.5 - irvBPPenalty * 0.5 + distress * 5;
 
-  // Apnoea / no effective ventilation: progressive hypoxaemia.
-  if (apnoeic) targetSpO2 = Math.min(targetSpO2, 60);
+  // Apnoea / no effective alveolar ventilation: progressive hypoxaemia.
+  const hv = hypoventilationCap(measured, patient);
+  targetSpO2 = Math.min(targetSpO2, hv.cap);
 
   // Overdistension (model-derived plateau, not resistive peak) worsens V/Q.
   if (measured.plateauPressure > 35) {
@@ -259,7 +282,7 @@ export function updateVitals(
     hr: clamp(vitals.hr + (targetHR - vitals.hr) * rate, 30, 200),
     sbp: clamp(vitals.sbp + (targetSBP - vitals.sbp) * rate, 50, 250),
     dbp: clamp(vitals.dbp + (targetDBP - vitals.dbp) * rate, 20, 150),
-    spo2: clamp(vitals.spo2 + (targetSpO2 - vitals.spo2) * rate * 0.5, 40, 100),
+    spo2: spo2Step(vitals.spo2, targetSpO2, rate, hv.hypo, settings.fio2),
     ...co2Update(vitals, targetEtCO2, apnoeic, rate),
   };
 }
@@ -316,7 +339,8 @@ function updateVitalsAPRV(
   const apnoeic = isApnoeic(measured);
   let targetEtCO2 = targetAlveolarCO2(measured, patient);
   targetEtCO2 += trap * 30;
-  if (apnoeic) targetSpO2 = Math.min(targetSpO2, 60);
+  const hv = hypoventilationCap(measured, patient);
+  targetSpO2 = Math.min(targetSpO2, hv.cap);
 
   const mapExcess = Math.max(0, aprv.meanAirwayPressure - 20);
   const distress = Math.max(0, 1 - aprv.recruitmentScore) + Math.max(0, 1 - oxygenation);
@@ -328,7 +352,7 @@ function updateVitalsAPRV(
     hr: clamp(vitals.hr + (targetHR - vitals.hr) * rate, 30, 200),
     sbp: clamp(vitals.sbp + (targetSBP - vitals.sbp) * rate, 50, 250),
     dbp: clamp(vitals.dbp + (targetDBP - vitals.dbp) * rate, 20, 150),
-    spo2: clamp(vitals.spo2 + (targetSpO2 - vitals.spo2) * rate * 0.5, 40, 100),
+    spo2: spo2Step(vitals.spo2, targetSpO2, rate, hv.hypo, settings.fio2),
     ...co2Update(vitals, targetEtCO2, apnoeic, rate),
   };
 }

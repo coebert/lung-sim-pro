@@ -12,11 +12,11 @@ export interface CommonSettings {
 /** Mode-specific parameter shapes. Each variant only carries the fields that are
  * meaningful for that mode, so the compiler flags out-of-mode access at the call site. */
 export type VentSettings =
-  | (CommonSettings & { mode: 'VCV';  tidalVolume: number; flowRate: number })
+  | (CommonSettings & { mode: 'VCV';  tidalVolume: number; flowRate: number; pLimit: number })
   | (CommonSettings & { mode: 'PCV';  pInsp: number; riseTime: number })
   | (CommonSettings & { mode: 'PRVC'; tidalVolume: number; pMax: number; riseTime: number })
-  | (CommonSettings & { mode: 'SIMV'; tidalVolume: number; pressureSupport: number; riseTime: number; ets: number })
-  | (CommonSettings & { mode: 'PSV';  pressureSupport: number; riseTime: number; ets: number })
+  | (CommonSettings & { mode: 'SIMV'; tidalVolume: number; pressureSupport: number; riseTime: number; ets: number; triggerSens: number; pLimit: number })
+  | (CommonSettings & { mode: 'PSV';  pressureSupport: number; riseTime: number; ets: number; triggerSens: number })
   | (CommonSettings & { mode: 'APRV'; pHigh: number; pLow: number; tHigh: number; tLow: number });
 
 export type VCVSettings  = Extract<VentSettings, { mode: 'VCV'  }>;
@@ -42,6 +42,10 @@ export interface AllModeParams extends CommonSettings {
   riseTime: number;
   /** PSV / SIMV-support expiratory trigger sensitivity: cycle off at this % of peak flow. */
   ets: number;
+  /** Flow trigger sensitivity (L/min) for patient-triggered breaths (PSV, SIMV). */
+  triggerSens: number;
+  /** High airway-pressure limit (cmH₂O): a volume breath that reaches it is terminated (VCV, SIMV mandatory). */
+  pLimit: number;
   pHigh: number;
   pLow: number;
   tHigh: number;
@@ -58,11 +62,11 @@ export function buildVentSettings(all: AllModeParams): VentSettings {
     inspiratoryTime: all.inspiratoryTime,
   };
   switch (all.mode) {
-    case 'VCV':  return { ...common, mode: 'VCV',  tidalVolume: all.tidalVolume, flowRate: all.flowRate };
+    case 'VCV':  return { ...common, mode: 'VCV',  tidalVolume: all.tidalVolume, flowRate: all.flowRate, pLimit: all.pLimit };
     case 'PCV':  return { ...common, mode: 'PCV',  pInsp: all.pInsp, riseTime: all.riseTime };
     case 'PRVC': return { ...common, mode: 'PRVC', tidalVolume: all.tidalVolume, pMax: all.pMax, riseTime: all.riseTime };
-    case 'SIMV': return { ...common, mode: 'SIMV', tidalVolume: all.tidalVolume, pressureSupport: all.pressureSupport, riseTime: all.riseTime, ets: all.ets };
-    case 'PSV':  return { ...common, mode: 'PSV',  pressureSupport: all.pressureSupport, riseTime: all.riseTime, ets: all.ets };
+    case 'SIMV': return { ...common, mode: 'SIMV', tidalVolume: all.tidalVolume, pressureSupport: all.pressureSupport, riseTime: all.riseTime, ets: all.ets, triggerSens: all.triggerSens, pLimit: all.pLimit };
+    case 'PSV':  return { ...common, mode: 'PSV',  pressureSupport: all.pressureSupport, riseTime: all.riseTime, ets: all.ets, triggerSens: all.triggerSens };
     case 'APRV': return { ...common, mode: 'APRV', pHigh: all.pHigh, pLow: all.pLow, tHigh: all.tHigh, tLow: all.tLow };
   }
 }
@@ -81,7 +85,10 @@ export type PatientId =
   | 'copd'
   | 'asthma'
   | 'sepsis'
-  | 'paediatric';
+  | 'paediatric'
+  | 'autotrigger'
+  | 'copd-spont'
+  | 'pressure-limited';
 
 export interface PatientPhysiology {
   id: PatientId;
@@ -111,6 +118,10 @@ export interface PatientPhysiology {
   proneVQBonus: number;
   /** Intrapulmonary shunt reduction gained from prone positioning (fraction). */
   proneShuntReduction: number;
+  /** Cardiogenic flow oscillation amplitude at the airway (L/min) — can auto-trigger a sensitive flow trigger. */
+  cardiogenicOscillation?: number;
+  /** Case starting settings layered over the shared defaults (teaching scenarios). */
+  defaultSettings?: Partial<AllModeParams>;
 }
 
 export interface Vitals {
@@ -123,7 +134,7 @@ export interface Vitals {
   /** Modelled alveolar/arterial CO₂ (mmHg) driving the capnogram; not measured by the monitor. */
   paco2?: number;
   /** Capnogram quality: plateau reached, no plateau (value under-reads), or no exhaled gas. */
-  etco2Status?: 'plateau' | 'no-plateau' | 'unavailable';
+  etco2Status?: 'plateau' | 'no-plateau' | 'unavailable' | 'measuring';
   // NB: respiratory rate lives on `MeasuredValues.measuredRR` — a single source of truth.
 }
 
@@ -152,6 +163,12 @@ export interface MeasuredValues {
   freshRevision?: number;
   /** Observation window (s) used for minute ventilation and rate. */
   windowSec?: number;
+  /** Per-minute counts over the window: patient efforts, efforts that failed to trigger, ventilator auto-triggers. */
+  effortRate?: number;
+  missedTriggers?: number;
+  autoTriggers?: number;
+  /** Volume breaths terminated at the high-pressure limit, per minute. */
+  pressureLimited?: number;
 }
 
 /** Named channels for the seven live waveform buffers. */

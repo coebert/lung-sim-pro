@@ -35,6 +35,8 @@ const baseParams: AllModeParams = {
   pressureSupport: 10,
   riseTime: 0.15,
   ets: 25,
+  triggerSens: 2,
+  pLimit: 40,
   pHigh: 28,
   pLow: 0,
   tHigh: 4.5,
@@ -47,11 +49,11 @@ describe('buildVentSettings — discriminated-union narrowing', () => {
   const commonKeys = ['mode', 'peep', 'fio2', 'respiratoryRate', 'ieRatio', 'inspiratoryTime'] as const;
 
   const expectedExtraKeys: Record<VentMode, string[]> = {
-    VCV:  ['tidalVolume', 'flowRate'],
+    VCV:  ['tidalVolume', 'flowRate', 'pLimit'],
     PCV:  ['pInsp', 'riseTime'],
     PRVC: ['tidalVolume', 'pMax', 'riseTime'],
-    SIMV: ['tidalVolume', 'pressureSupport', 'riseTime', 'ets'],
-    PSV:  ['pressureSupport', 'riseTime', 'ets'],
+    SIMV: ['tidalVolume', 'pressureSupport', 'riseTime', 'ets', 'triggerSens', 'pLimit'],
+    PSV:  ['pressureSupport', 'riseTime', 'ets', 'triggerSens'],
     APRV: ['pHigh', 'pLow', 'tHigh', 'tLow'],
   };
 

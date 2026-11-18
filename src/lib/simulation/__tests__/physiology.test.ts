@@ -23,6 +23,7 @@ import {
   updateVitals,
 } from '../engine';
 import { patients } from '../patients';
+import { CapnoSensor } from '../waveformGenerators';
 import type {
   AllModeParams, MeasuredValues, PatientPhysiology, VentSettings, Vitals,
 } from '../types';
@@ -63,6 +64,7 @@ function runTrajectory(
     measuredTV: 0, minuteVentilation: 0, measuredRR: 14, dynamicCompliance: 0, autoPEEP: 0,
   };
   const frames: Frame[] = [];
+  const capno = new CapnoSensor(patient);
   const totalTicks = Math.round(seconds * SAMPLE_RATE);
   const captureTicks = new Set(captureAt.map(s => Math.round(s * SAMPLE_RATE)));
 
@@ -72,7 +74,7 @@ function runTrajectory(
 
   for (let i = 1; i <= totalTicks; i++) {
     const t = i * TICK_DT;
-    const sample = generateWaveformSample(t, settings, patient, vitals);
+    const sample = generateWaveformSample(t, settings, patient, vitals, undefined, capno);
     pressure.push(sample.pressure);
     volume.push(sample.volume);
     // Recompute measured + vitals every 250 ms (matches the live store cadence).
@@ -129,6 +131,8 @@ function makeSettings(patient: PatientPhysiology, patch: Partial<AllModeParams>)
     pressureSupport: patient.optimalPS,
     riseTime: 0.15,
     ets: 25,
+    triggerSens: 2,
+    pLimit: 40,
     pHigh: 28,
     pLow: 0,
     tHigh: 4.5,
@@ -153,6 +157,9 @@ const scenarios: Scenario[] = [
   { id: 'asthma',       label: 'VCV — slow rate asthma',           settingsPatch: { ieRatio: 4 } },
   { id: 'sepsis',       label: 'VCV — septic shock',               settingsPatch: {} },
   { id: 'paediatric',   label: 'PCV — child pInsp 15',             settingsPatch: { mode: 'PCV', pInsp: 15 } },
+  { id: 'autotrigger',  label: 'PSV — sensitive trigger 1 L/min',  settingsPatch: { mode: 'PSV', pressureSupport: 8, triggerSens: 1 } },
+  { id: 'copd-spont',   label: 'PSV — PS 10, ETS 5 %',             settingsPatch: { mode: 'PSV', pressureSupport: 10, ets: 5 } },
+  { id: 'pressure-limited', label: 'VCV — Ti 0.5, limit 40',       settingsPatch: { inspiratoryTime: 0.5, tidalVolume: 450, pLimit: 40 } },
 
   // ── Mode-specific: PCV (pressure-controlled) ──
   // ARDS drives PCV clinically — low compliance means volume varies with the

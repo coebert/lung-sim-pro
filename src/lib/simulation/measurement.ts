@@ -5,8 +5,8 @@ import { deadSpaceMl } from './scoring';
 export const APNOEA_TIME_SEC = 20;
 /** Minute ventilation / rate observation window (s). */
 export const MV_WINDOW_SEC = 60;
-const FLOW_ON = 1;   // L/min — inspiratory flow that marks a breath start
-const FLOW_OFF = -1; // L/min — expiratory flow that re-arms detection
+/** Minimum inspired/exhaled volume (mL) for a breath — above cardiogenic ripple (~10 mL). */
+const BREATH_MIN_ML = 15;
 
 export interface CompletedBreath {
   start: number;
@@ -18,7 +18,7 @@ export interface CompletedBreath {
   vMax: number;
   /** End-expiratory volume above FRC (mL) — trapped gas. */
   vEnd: number;
-  kind: 'mandatory' | 'support';
+  kind: 'mandatory' | 'support' | 'spontaneous';
   /** Mean airway pressure over the breath. */
   meanP: number;
   /** Highest capnogram value during the breath (sampled end-tidal CO₂, mmHg). */
@@ -43,24 +43,40 @@ export class BreathTracker {
     this.armed = true;
     this.cur = null;
     this.resetTime = time;
+    this.prevFlow = 0;
+    this.cross = null;
   }
 
+  private prevFlow = 0;
+  private cross: { t: number; v: number } | null = null;
+
+  /**
+   * Breath start = the last upward zero crossing of flow, confirmed once at
+   * least BREATH_MIN_ML has been inspired since it (so cardiogenic ripple and
+   * failed efforts are not counted, but small slow-flow breaths are).
+   * Exhaled VT of the previous breath = its peak volume − volume at that crossing.
+   */
   push(time: number, pressure: number, flow: number, volume: number, capno: number, kind: CompletedBreath['kind']): void {
-    if (this.armed && flow > FLOW_ON) {
+    if (flow > 0 && this.prevFlow <= 0) this.cross = { t: time, v: volume };
+    this.prevFlow = flow;
+    if (this.armed && this.cross && flow > 0 && volume - this.cross.v >= BREATH_MIN_ML) {
+      const { t, v } = this.cross;
       if (this.cur) {
         this.breaths.push({
-          start: this.cur.start, end: time, vt: Math.max(0, this.cur.vMax - volume),
-          peak: this.cur.peak, vMax: this.cur.vMax, vEnd: volume, kind: this.cur.kind,
+          start: this.cur.start, end: t, vt: Math.max(0, this.cur.vMax - v),
+          peak: this.cur.peak, vMax: this.cur.vMax, vEnd: v, kind: this.cur.kind,
           meanP: this.cur.sumP / Math.max(1, this.cur.n), capPeak: this.cur.cap,
         });
         const cutoff = time - MV_WINDOW_SEC * 2;
         while (this.breaths.length && this.breaths[0].end < cutoff) this.breaths.shift();
       }
-      this.cur = { start: time, peak: pressure, vMax: volume, kind, sumP: 0, n: 0, cap: 0 };
-      this.lastBreathStart = time;
+      this.cur = { start: t, peak: pressure, vMax: volume, kind, sumP: 0, n: 0, cap: 0 };
+      this.lastBreathStart = t;
       this.armed = false;
+      this.cross = null;
     }
-    if (flow < FLOW_OFF) this.armed = true;
+    if (flow < 0 && this.cur && this.cur.vMax - volume >= BREATH_MIN_ML) this.armed = true;
+    if (!this.cur && flow < 0) this.armed = true;
     if (this.cur) {
       if (pressure > this.cur.peak) this.cur.peak = pressure;
       if (volume > this.cur.vMax) this.cur.vMax = volume;

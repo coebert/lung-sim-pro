@@ -1,5 +1,5 @@
 import { MeasuredValues, PatientPhysiology, VentSettings, Vitals } from './types';
-import { CardiacClock, breathKindAt } from './waveformGenerators';
+import { CardiacClock, CapnoSensor, breathKindAt, triggerStats } from './waveformGenerators';
 import {
   TICK_DT, baselinePressure, createInitialVitals, generateWaveformSample, updateVitals, isApnoeic,
   type WaveformSample,
@@ -25,9 +25,11 @@ export class LiveSimulation {
   measured: MeasuredValues = { ...EMPTY_MEASURED };
   readonly tracker = new BreathTracker();
   readonly cardiac = new CardiacClock();
+  private capno: CapnoSensor;
 
   constructor(public settings: VentSettings, public patient: PatientPhysiology) {
     this.vitals = createInitialVitals(patient);
+    this.capno = new CapnoSensor(patient);
   }
 
   /** New settings: measurements restart on fresh breaths; `restart` also clears the breath clock. */
@@ -37,6 +39,7 @@ export class LiveSimulation {
     if (restart) {
       this.time = 0;
       this.tracker.reset(0);
+      this.capno = new CapnoSensor(this.patient);
     }
     this.since = this.time;
   }
@@ -51,11 +54,12 @@ export class LiveSimulation {
     this.measured = { ...EMPTY_MEASURED };
     this.tracker.reset(0);
     this.cardiac.reset();
+    this.capno = new CapnoSensor(patient);
   }
 
   step(): WaveformSample {
     this.time += TICK_DT;
-    const sample = generateWaveformSample(this.time, this.settings, this.patient, this.vitals, this.cardiac.next(this.vitals.hr));
+    const sample = generateWaveformSample(this.time, this.settings, this.patient, this.vitals, this.cardiac.next(this.vitals.hr), this.capno);
     this.tracker.push(this.time, sample.pressure, sample.flow, sample.volume, sample.capno, breathKindAt(this.time, this.settings, this.patient));
     return sample;
   }
@@ -66,6 +70,12 @@ export class LiveSimulation {
       this.tracker, this.time, this.since, baselinePressure(this.settings),
       this.settings, this.patient, this.measured, this.revision,
     );
+    if (!this.measured.warmingUp) {
+      const from = Math.max(this.since, this.time - 60);
+      const st = triggerStats(this.settings, this.patient, from, this.time);
+      const r1 = (v: number) => Math.round(v * 10) / 10;
+      this.measured = { ...this.measured, effortRate: r1(st.effortRate), missedTriggers: r1(st.missedTriggers), autoTriggers: r1(st.autoTriggers), pressureLimited: r1(st.pressureLimited) };
+    }
     // Hold physiology until a complete breath on the new settings has been measured.
     if (!this.measured.warmingUp) {
       this.vitals = updateVitals(this.settings, this.patient, this.vitals, this.measured, prone, ticks);
@@ -76,6 +86,9 @@ export class LiveSimulation {
   displayedVitals(): Vitals {
     const alveolar = this.vitals.paco2 ?? this.vitals.etco2;
     const last = this.tracker.breaths[this.tracker.breaths.length - 1];
+    if (this.measured.warmingUp && !this.measured.apnoea) {
+      return { ...this.vitals, etco2: 0, etco2Status: 'measuring' };
+    }
     if (isApnoeic(this.measured) || !last || last.capPeak < 1) {
       return { ...this.vitals, etco2: 0, etco2Status: 'unavailable' };
     }

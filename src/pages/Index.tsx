@@ -1,3 +1,4 @@
+import { etco2Display } from '@/lib/simulation/etco2Display';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLayoutMode } from '@/hooks/use-layout-mode';
@@ -58,7 +59,7 @@ const Index = () => {
       <span style={{ color: spo2Color(vitals.spo2) }}>
         SpO₂ {Math.round(vitals.spo2)}%
       </span>
-      <span style={{ color: VITAL_COLOR.etco2 }}>EtCO₂ {(vitals.etco2 / 7.501).toFixed(1)} kPa</span>
+      <span style={{ color: VITAL_COLOR.etco2 }}>EtCO₂ {etco2Display(vitals).text}{etco2Display(vitals).valid ? ' kPa' : ''}{etco2Display(vitals).note ? ` (${etco2Display(vitals).note})` : ''}</span>
     </div>
   );
 

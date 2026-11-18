@@ -771,7 +771,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 </text>
                 {/* Qualitative label */}
                 <text x="100" y="210" textAnchor="middle" fill="#888" fontSize="5" fontFamily="monospace">
-                  {aprvRecruitment > 0.8 ? 'Optimal — alveoli recruiting' : aprvRecruitment > 0.5 ? 'Partial — adjust settings' : 'Poor — review P High, T High, T Low'}
+                  {aprvRecruitment > 0.8 ? 'Good — alveoli recruiting' : aprvRecruitment > 0.5 ? 'Partial — adjust settings' : 'Poor — review P High, T High, T Low'}
                 </text>
               </g>
             )}

@@ -15,7 +15,7 @@ export const learnSections: LearnSection[] = [
     items: [
       { title: 'VCV — Volume control', body: [
         'The ventilator delivers a set tidal volume with a constant flow. Pressure rises in response to the lung and airway mechanics.',
-        'Peak pressure minus plateau pressure reflects airway resistance. Plateau minus PEEP is the driving pressure, which reflects compliance.',
+        'Peak pressure minus plateau pressure reflects airway resistance. Driving pressure is plateau minus TOTAL PEEP (set PEEP + intrinsic PEEP); it reflects respiratory-system compliance. With gas trapping, plateau minus set PEEP overstates it.',
         'Key settings: TV, RR, I:E (or Ti), PEEP, FiO₂, flow.' ] },
       { title: 'PCV — Pressure control', body: [
         'The ventilator holds a set inspiratory pressure (Pinsp above PEEP) for a set time. Tidal volume varies with compliance, resistance and auto-PEEP.',
@@ -25,14 +25,15 @@ export const learnSections: LearnSection[] = [
         'A pressure-controlled breath whose Pinsp is adjusted breath by breath to reach a target volume, capped by Pmax.',
         'If the "volume not reached" warning appears, the lung needs more pressure than the cap allows.' ] },
       { title: 'SIMV — Synchronised intermittent mandatory ventilation', body: [
-        'Delivers a set number of mandatory breaths. Between them, the patient breathes spontaneously with pressure support.',
+        'Delivers a set number of mandatory breaths, synchronised to the patient: in each mandatory interval the first effective patient trigger gets the mandatory breath; later efforts in the interval get pressure support. If the patient makes no effective effort, a time-triggered mandatory breath is delivered at the end of the interval.',
         'Support breaths are cycled off by ETS (expiratory trigger sensitivity), like PSV. On the P-V loop, mandatory and support breaths form separate shapes.' ] },
       { title: 'PSV — Pressure support', body: [
-        'Every breath is triggered by the patient. The ventilator adds a set pressure until flow falls to the ETS percentage of peak flow.',
+        'Every breath is triggered by the patient when their effort generates flow above the trigger sensitivity. The ventilator adds a set pressure until flow falls to the ETS percentage of peak flow.',
+        'Triggering problems: a too-sensitive trigger can auto-trigger from cardiac oscillations; intrinsic PEEP can make efforts fail to trigger (missed triggers).',
         'Higher ETS gives a shorter breath, which helps obstructed patients. There is no backup rate here, so a paralysed patient becomes apnoeic.' ] },
       { title: 'APRV — Airway pressure release ventilation', body: [
-        'A long time at P High keeps the lung open, with brief releases to P Low that clear CO₂.',
-        'T Low is kept short, so expiratory flow is cut off at roughly 50–75% of peak, which keeps some intrinsic PEEP. The P-V loop looks like a box.' ] },
+        'A long time at P High keeps the lung open, with brief releases to P Low that clear CO₂. The patient can breathe spontaneously throughout; with P High = P Low it becomes CPAP with no mandatory ventilation.',
+        'T Low is set from each patient\'s own release flow, not a fixed time. In restrictive (short time-constant) lungs a common teaching target ends the release at about 50–75% of peak expiratory flow, keeping some intrinsic PEEP. Obstructive (long time-constant) lungs trap gas with short releases, and APRV is generally avoided there. The P-V loop looks like a box.' ] },
     ],
   },
   {

@@ -86,6 +86,12 @@ export function evaluateAlarms(
       severity: 'high',
       active: vitals.spo2 < limits.spo2Low,
     },
+    {
+      id: 'p-limit',
+      label: 'High pressure limit — breath terminated, VT not delivered',
+      severity: 'high',
+      active: (measured.pressureLimited ?? 0) > 0,
+    },
     ...extra,
   ];
 }

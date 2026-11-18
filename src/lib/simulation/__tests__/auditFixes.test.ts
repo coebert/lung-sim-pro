@@ -195,7 +195,7 @@ describe('6 · SIMV minute ventilation sums the actual breaths', () => {
     expect(m.vtSupported).toBeDefined();
     const expected = 8 * (m.vtMandatory! + m.vtSupported!) / 1000; // 1 mandatory + 1 supported per 7.5 s
     expect(Math.abs(m.minuteVentilation - expected)).toBeLessThan(0.15 * expected);
-    expect(m.measuredRR).toBeCloseTo(16, 0);
+    expect(m.measuredRR).toBeCloseTo(14, 0); // every effort gets a breath (patient 14/min > set 8)
   });
 });
 

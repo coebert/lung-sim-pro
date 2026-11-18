@@ -1,3 +1,4 @@
+import { etco2Display } from '@/lib/simulation/etco2Display';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BedsideView } from '@/components/simulator/BedsideView';
@@ -83,7 +84,7 @@ const Bedside = ({ fullVentilator = false }: { fullVentilator?: boolean }) => {
           buffers={buffers}
           measured={measured}
           settings={settings}
-          etco2KPa={vitals.etco2 / 7.501}
+          etco2={etco2Display(vitals)}
           patient={patient}
           onUpdate={simulationStore.updateSettings}
           fullVentilator={fullVentilator}

@@ -27,6 +27,13 @@ export interface TutorialStep {
   needsVentilation?: boolean;
   /** Settings patch a correct learner would apply for this step (matches the hint; used by walkthrough tests). */
   solution: Partial<AllModeParams>;
+  /**
+   * Valid sequential transition: a later step intentionally undoes this one
+   * (e.g. "observe the problem", or "PS 0" before "add support"). Its earned
+   * completion is kept. Every other step must still hold for the lesson to
+   * stay complete.
+   */
+  transitional?: boolean;
 }
 
 export interface TutorialScenario {
@@ -127,6 +134,7 @@ export const tutorials: TutorialScenario[] = [
         needsVentilation: true,
         check: (s, _v, m) => s.pressureSupport === 0 && m.measuredTV >= 300 && m.measuredRR >= 10,
         solution: { pressureSupport: 0 },
+        transitional: true, // the next step deliberately adds support again
         successMessage: 'Without support the patient’s own effort still produces a normal breath. Pressure support adds to effort; it does not create it.',
       },
       {
@@ -364,7 +372,7 @@ export const tutorials: TutorialScenario[] = [
         modes: ['PSV'],
         needsVentilation: true,
         check: (_s, v) => v.spo2 >= 92 && v.etco2 > 0 && v.etco2 <= 55,
-        solution: { peep: 5, fio2: 0.45 },
+        solution: { peep: 5, fio2: 0.45, pressureSupport: 12 },
         successMessage: 'The patient is breathing comfortably with good gas exchange. This is a good starting point for weaning assessment.',
       },
     ],
@@ -675,6 +683,136 @@ export const tutorials: TutorialScenario[] = [
       },
     ],
     summary: 'Children: scale everything by weight. Use 6–8 mL/kg, a faster rate and pressure control, and watch the actual delivered volume rather than the set pressure.',
+  },
+
+  {
+    patientId: 'autotrigger',
+    title: 'Auto-triggering: Breaths the Patient Did Not Ask For',
+    introduction:
+      'After cardiac surgery this patient breathes about 10/min, but strong cardiogenic oscillations (±3 L/min) reach the airway. The flow trigger is set very sensitive (1 L/min), so heartbeats can trigger the ventilator. Look at the flow trace: small ripples at the heart rate, and breaths starting without the patient’s effort dip.',
+    steps: [
+      {
+        title: 'Recognise auto-triggering',
+        instruction: 'Compare the measured ventilator rate with the patient’s own effort rate (Clinical panel). Auto-triggering shows as a ventilator rate well above the patient’s rate, with breaths starting on cardiac ripples and a falling EtCO₂.',
+        hint: 'Leave the settings and watch: the rate is around 30/min while the patient makes only ~10 efforts/min.',
+        modes: ['PSV'],
+        needsVentilation: true,
+        check: (_s, _v, m) => (m.autoTriggers ?? 0) >= 5 && m.measuredRR >= (m.effortRate ?? 0) + 5,
+        solution: {},
+        transitional: true, // the next step fixes the problem
+        successMessage: 'Correct: most breaths are triggered by cardiac oscillation, not by the patient.',
+      },
+      {
+        title: 'Make the trigger less sensitive',
+        instruction: 'Raise the flow trigger above the ~3 L/min cardiogenic oscillation, but not so high that genuine efforts are missed. The ventilator rate should fall to the patient’s own rate.',
+        hint: 'Set Trigger to 4 L/min.',
+        modes: ['PSV'],
+        needsVentilation: true,
+        check: (s, _v, m) => s.triggerSens > 3 && s.triggerSens <= 6 && (m.autoTriggers ?? 0) < 1 && (m.missedTriggers ?? 0) < 1 && Math.abs(m.measuredRR - (m.effortRate ?? 0)) <= 2,
+        solution: { triggerSens: 4 },
+        successMessage: 'Every breath is now patient-triggered.',
+      },
+      {
+        title: 'Match support to the patient',
+        instruction: 'With auto-triggering gone, the patient’s own breaths plus 8 cmH₂O support may over-ventilate. Adjust PS so EtCO₂ (with a plateau) is 32–48 mmHg and SpO₂ ≥ 94%.',
+        hint: 'Lower PS to about 5 cmH₂O.',
+        modes: ['PSV'],
+        needsVentilation: true,
+        check: (s, v) => s.pressureSupport >= 3 && s.pressureSupport <= 8 && v.etco2Status === 'plateau' && v.etco2 >= 32 && v.etco2 <= 48 && v.spo2 >= 94,
+        solution: { pressureSupport: 5 },
+        successMessage: 'Ventilation now follows the patient’s drive.',
+      },
+    ],
+    summary: 'Auto-triggering: ventilator rate > patient effort rate, breaths without an effort dip, falling CO₂. Causes include cardiogenic oscillation and circuit leaks. Fix: make the trigger less sensitive (and fix leaks), then re-titrate support. Teaching model: leaks are not simulated.',
+  },
+  {
+    patientId: 'copd-spont',
+    title: 'Missed Triggering: Efforts Lost to Intrinsic PEEP',
+    introduction:
+      'This COPD patient makes weak efforts 22 times a minute. Long, generously supported breaths (PS 10, ETS 5%) leave too little time to exhale, so intrinsic PEEP builds up. Each effort must first overcome it before flow can reach the trigger — many fail. On the flow trace, a failed effort is a small notch in expiratory flow with no breath following.',
+    steps: [
+      {
+        title: 'Recognise missed triggers',
+        instruction: 'Compare the patient’s effort rate with the ventilator rate and look for notches in expiratory flow. Check intrinsic PEEP.',
+        hint: 'Leave the settings: the patient makes ~22 efforts/min but only about half trigger.',
+        modes: ['PSV'],
+        needsVentilation: true,
+        check: (_s, _v, m) => (m.missedTriggers ?? 0) >= 5 && m.autoPEEP >= 1.5,
+        solution: {},
+        transitional: true, // the next step removes the missed triggers
+        successMessage: 'Correct: efforts are being missed because of intrinsic PEEP.',
+      },
+      {
+        title: 'Shorten the supported breath',
+        instruction: 'Raise ETS so each supported breath cycles off earlier, leaving more time to exhale. Every effort should then trigger.',
+        hint: 'Set ETS to 40%.',
+        modes: ['PSV'],
+        needsVentilation: true,
+        check: (s, _v, m) => s.ets >= 30 && (m.missedTriggers ?? 0) < 1 && m.measuredRR >= (m.effortRate ?? 0) - 2,
+        solution: { ets: 40 },
+        successMessage: 'The patient’s efforts now all trigger a breath.',
+      },
+      {
+        title: 'Check volume and trapping',
+        instruction: 'Keep PS 6–12 cmH₂O with measured VT 300–560 mL and intrinsic PEEP below 5 cmH₂O. (Clinically, external PEEP can also counterbalance flow-limited intrinsic PEEP; that waterfall effect is not simulated here.)',
+        hint: 'PS 10 with ETS 40% should already satisfy this.',
+        modes: ['PSV'],
+        needsVentilation: true,
+        check: (s, _v, m) => s.pressureSupport >= 6 && s.pressureSupport <= 12 && m.measuredTV >= 300 && m.measuredTV <= 560 && m.autoPEEP < 5,
+        solution: {},
+        successMessage: 'Synchrony restored without excessive volume.',
+      },
+    ],
+    summary: 'Missed triggering: patient effort rate > ventilator rate, expiratory flow notches, intrinsic PEEP. Over-assistance (high PS, low ETS) lengthens breaths and traps gas. Fix: shorten/smaller supported breaths (raise ETS, lower PS); consider external PEEP for flow-limited COPD.',
+  },
+  {
+    patientId: 'pressure-limited',
+    title: 'Pressure-limited Ventilation: The Breath That Never Arrives',
+    introduction:
+      'This paralysed asthmatic is on VCV 450 mL with Ti 0.5 s. That needs a high inspiratory flow, and through narrow airways most of the peak pressure is resistive. Peak pressure hits the 40 cmH₂O high-pressure limit, the ventilator terminates the breath, and the set volume is never delivered.',
+    steps: [
+      {
+        title: 'Recognise pressure limiting',
+        instruction: 'Look at the pressure trace (flat-topped at the limit), the high-pressure alarm, and compare measured VTe with the set VT.',
+        hint: 'Leave the settings: VTe is about 330 mL against 450 mL set.',
+        modes: ['VCV'],
+        needsVentilation: true,
+        check: (s, _v, m) => (m.pressureLimited ?? 0) > 0 && m.measuredTV < 0.85 * s.tidalVolume,
+        solution: {},
+        transitional: true, // fixed by the following steps
+        successMessage: 'Correct: every breath is cut off at the pressure limit.',
+      },
+      {
+        title: 'Slow the rate',
+        instruction: 'Reduce the rate to 8–12/min. This gives time for a longer inspiration and a long expiration.',
+        hint: 'Set RR 10.',
+        modes: ['VCV'],
+        check: (s) => s.respiratoryRate >= 8 && s.respiratoryRate <= 12,
+        solution: { respiratoryRate: 10 },
+        successMessage: 'There is now time for a slower inspiration.',
+      },
+      {
+        title: 'Lower inspiratory flow, not the safety limit',
+        instruction: 'Lengthen Ti (lower flow ⇒ lower resistive pressure) until breaths are no longer terminated and VTe is ≥ 90% of set — keep the high-pressure limit at 40 cmH₂O or below.',
+        hint: 'Set Ti to about 1.2 s (I:E about 1:4 at RR 10).',
+        modes: ['VCV'],
+        needsVentilation: true,
+        check: (s, _v, m) => s.pLimit <= 40 && (m.pressureLimited ?? 0) === 0 && m.measuredTV >= 0.9 * s.tidalVolume,
+        solution: { inspiratoryTime: 1.2 },
+        successMessage: 'The full volume is delivered below the limit.',
+      },
+      {
+        title: 'Confirm safety',
+        instruction: 'Check the model-derived plateau is below 30 cmH₂O and intrinsic PEEP below 3 cmH₂O.',
+        hint: 'These should already be satisfied at RR 10, Ti 1.2 s.',
+        modes: ['VCV'],
+        needsVentilation: true,
+        check: (_s, _v, m) => m.plateauPressure < 30 && m.autoPEEP < 3,
+        solution: {},
+        successMessage: 'High peak, normal plateau: resistance, not stiff lungs.',
+      },
+    ],
+    summary: 'Pressure-limited ventilation: when a volume breath reaches the high-pressure limit it is terminated and VT falls. In obstruction the peak is mostly resistive — slow the inspiratory flow and the rate rather than raising the limit.',
   },
 ];
 
