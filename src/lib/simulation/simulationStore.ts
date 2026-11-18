@@ -1,3 +1,4 @@
+import { normaliseAprvPressures } from './types';
 import { LiveSimulation } from './liveSimulation';
 import { etco2Display } from './etco2Display';
 import { useSyncExternalStore } from 'react';
@@ -177,7 +178,7 @@ class SimulationStore {
     // I:E and Ti are alternative ways to set timing — whichever was set last wins.
     if ('ieRatio' in patch && !('inspiratoryTime' in patch)) patch = { ...patch, inspiratoryTime: 0 };
     const modeChanged = 'mode' in patch && patch.mode !== this.allSettings.mode;
-    this.allSettings = { ...this.allSettings, ...patch };
+    this.allSettings = normaliseAprvPressures({ ...this.allSettings, ...patch }, patch);
     this.settings = buildVentSettings(this.allSettings);
     this.sim.setSettings(this.settings, modeChanged);
     if (modeChanged) {

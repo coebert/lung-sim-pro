@@ -257,6 +257,9 @@ function volumeAt(b: TimelineBreath, time: number, p: PatientPhysiology): number
   return evalBreath(time - b.start, b.spec, b.v0, 0, p).volume;
 }
 
+/** Maximum SIMV synchronisation window before each mandatory due time (s). */
+export const SIMV_SYNC_WINDOW = 5;
+
 function extendTimeline(tl: Timeline, s: PSVSettings | SIMVSettings, p: PatientPhysiology, until: number) {
   const tp = p.spontaneousRate > 0 ? 60 / p.spontaneousRate : Infinity;
   const simv = s.mode === 'SIMV';
@@ -282,10 +285,14 @@ function extendTimeline(tl: Timeline, s: PSVSettings | SIMVSettings, p: PatientP
       tl.nextEffort++;
     }
     const eT = effortTime(tl.nextEffort);
-    // SIMV: each mandatory interval gets exactly one mandatory breath — the first
-    // patient trigger in the interval (synchronised), or a time-triggered breath
-    // at the end of the interval if the patient made no effective effort.
-    const deadline = simv ? Math.max(lockEnd, (tl.mandWindowDone + 2) * tm - 1e-3) : Infinity;
+    // SIMV: mandatory slot k is due at k·tm on a fixed grid set by the prescribed
+    // rate. A patient (or auto) trigger inside the synchronisation window just
+    // before the due time receives that slot's mandatory breath early; with no
+    // effective effort the breath is time-triggered at the due time. Triggers
+    // outside the window are supported breaths. The patient's effort clock is separate.
+    const due = (tl.mandWindowDone + 1) * tm;
+    const syncW = Math.min(0.25 * tm, SIMV_SYNC_WINDOW);
+    const deadline = simv ? Math.max(lockEnd, due) : Infinity;
     // Auto-trigger: cardiogenic + lung flow exceeding the trigger threshold during expiration.
     let auto = Infinity;
     if (cur && (p.cardiogenicOscillation ?? 0) > s.triggerSens) {
@@ -297,14 +304,15 @@ function extendTimeline(tl: Timeline, s: PSVSettings | SIMVSettings, p: PatientP
     }
     const next = Math.min(eT, deadline, auto);
     if (!Number.isFinite(next)) { tl.built = Infinity; break; }
-    const windowOf = (t: number) => (simv ? Math.floor(t / tm + 1e-9) : 0);
-    const kindFor = (t: number): BreathKind => (simv && windowOf(t) > tl.mandWindowDone ? 'mandatory' : 'support');
+    const kindFor = (t: number): BreathKind => (simv && t >= due - syncW - 1e-9 ? 'mandatory' : 'support');
+    // A slot delayed past later due times (long breath in progress) does not stack breaths.
+    const claimSlot = (t: number) => { tl.mandWindowDone = Math.max(tl.mandWindowDone + 1, Math.floor(t / tm + 1e-9)); };
     if (next === auto && auto < eT && auto <= deadline) {
       const k = kindFor(auto);
-      if (k === 'mandatory') tl.mandWindowDone = windowOf(auto);
+      if (k === 'mandatory') claimSlot(auto);
       addBreath(auto, k, 'auto', false);
     } else if (next === deadline && deadline < eT) {
-      tl.mandWindowDone = Math.max(tl.mandWindowDone + 1, windowOf(deadline));
+      claimSlot(deadline);
       addBreath(deadline, 'mandatory', 'time', false);
     } else {
       // Patient effort: triggers if the flow it generates exceeds the trigger threshold
@@ -321,7 +329,7 @@ function extendTimeline(tl: Timeline, s: PSVSettings | SIMVSettings, p: PatientP
       tl.nextEffort++;
       if (triggered) {
         const k = kindFor(eT);
-        if (k === 'mandatory') tl.mandWindowDone = windowOf(eT);
+        if (k === 'mandatory') claimSlot(eT);
         addBreath(eT, k, 'patient', k !== 'mandatory');
       }
     }
@@ -354,13 +362,13 @@ export function triggerStats(settings: VentSettings, p: PatientPhysiology, from:
   if (settings.mode === 'APRV') {
     const tp = p.spontaneousRate > 0 ? 60 / p.spontaneousRate : Infinity;
     const n = Number.isFinite(tp) ? Math.floor(to / tp) - Math.floor(from / tp) : 0;
-    return { effortRate: (n / span) * 60, missedTriggers: 0, autoTriggers: 0, pressureLimited: 0 };
+    return { effortRate: (n / span) * 60, missedTriggers: 0, autoTriggers: 0, machineRate: 0, assistedRate: 0, mandatoryRate: 0, pressureLimited: 0 };
   }
   if (settings.mode === 'VCV') {
     const lim = vcvBreath(settings, p).limited ? settings.respiratoryRate : 0;
-    return { effortRate: 0, missedTriggers: 0, autoTriggers: 0, pressureLimited: lim };
+    return { effortRate: 0, missedTriggers: 0, autoTriggers: 0, machineRate: 0, assistedRate: 0, mandatoryRate: 0, pressureLimited: lim };
   }
-  if (settings.mode !== 'PSV' && settings.mode !== 'SIMV') return { effortRate: 0, missedTriggers: 0, autoTriggers: 0, pressureLimited: 0 };
+  if (settings.mode !== 'PSV' && settings.mode !== 'SIMV') return { effortRate: 0, missedTriggers: 0, autoTriggers: 0, machineRate: 0, assistedRate: 0, mandatoryRate: 0, pressureLimited: 0 };
   const tl = getTimeline(settings, p, to);
   const eff = tl.efforts.filter(e => e.t >= from && e.t <= to);
   const br = tl.breaths.filter(b => b.start >= from && b.start <= to);
@@ -368,6 +376,12 @@ export function triggerStats(settings: VentSettings, p: PatientPhysiology, from:
     effortRate: (eff.length / span) * 60,
     missedTriggers: (eff.filter(e => e.sensed && !e.triggered).length / span) * 60,
     autoTriggers: (br.filter(b => b.trigger === 'auto').length / span) * 60,
+    /** Ventilator-delivered breaths/min (assisted + auto + time-triggered), excluding unsupported efforts. */
+    machineRate: (br.length / span) * 60,
+    /** Patient-triggered (assisted) ventilator breaths/min. */
+    assistedRate: (br.filter(b => b.trigger === 'patient').length / span) * 60,
+    /** Mandatory (SIMV) breaths/min, whichever trigger started them. */
+    mandatoryRate: (br.filter(b => b.kind === 'mandatory').length / span) * 60,
     pressureLimited: (br.filter(b => b.spec.limited).length / span) * 60,
   };
 }
@@ -418,6 +432,8 @@ export function generateVentWaveformPoint(
 export function breathKindAt(time: number, settings: VentSettings, patient: PatientPhysiology): BreathKind {
   if (settings.mode === 'APRV') {
     const tp = patient.spontaneousRate > 0 ? 60 / patient.spontaneousRate : 0;
+    // Equal (or legacy inverted) pressures = CPAP: no releases, so no machine breaths.
+    if (settings.pHigh <= settings.pLow) return 'spontaneous';
     if (!tp) return 'mandatory';
     const cycle = Math.max(0.2, settings.tHigh + settings.tLow);
     const phase = time % cycle;
@@ -652,4 +668,9 @@ export function generateCapnography(time: number, settings: VentSettings, patien
   const a = generateVentWaveformPoint(time, settings, patient);
   v = sensor.push(a.flow, a.volume, etco2, time - prevT);
   return v;
+}
+
+/** Ventilator breath start times/kinds in PSV/SIMV up to `until` (s) — for inspection and tests. */
+export function ventilatorBreaths(settings: PSVSettings | SIMVSettings, p: PatientPhysiology, until: number) {
+  return getTimeline(settings, p, until).breaths.filter(b => b.start <= until).map(b => ({ start: b.start, kind: b.kind, trigger: b.trigger }));
 }

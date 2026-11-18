@@ -67,7 +67,7 @@ export function buildVentSettings(all: AllModeParams): VentSettings {
     case 'PRVC': return { ...common, mode: 'PRVC', tidalVolume: all.tidalVolume, pMax: all.pMax, riseTime: all.riseTime };
     case 'SIMV': return { ...common, mode: 'SIMV', tidalVolume: all.tidalVolume, pressureSupport: all.pressureSupport, riseTime: all.riseTime, ets: all.ets, triggerSens: all.triggerSens, pLimit: all.pLimit };
     case 'PSV':  return { ...common, mode: 'PSV',  pressureSupport: all.pressureSupport, riseTime: all.riseTime, ets: all.ets, triggerSens: all.triggerSens };
-    case 'APRV': return { ...common, mode: 'APRV', pHigh: all.pHigh, pLow: all.pLow, tHigh: all.tHigh, tLow: all.tLow };
+    case 'APRV': return { ...common, mode: 'APRV', pHigh: all.pHigh, pLow: Math.min(all.pLow, all.pHigh), tHigh: all.tHigh, tLow: all.tLow };
   }
 }
 
@@ -166,6 +166,10 @@ export interface MeasuredValues {
   /** Per-minute counts over the window: patient efforts, efforts that failed to trigger, ventilator auto-triggers. */
   effortRate?: number;
   missedTriggers?: number;
+  /** Ventilator breaths/min (excludes unsupported efforts), patient-triggered subset, SIMV mandatory subset. */
+  machineRate?: number;
+  assistedRate?: number;
+  mandatoryRate?: number;
   autoTriggers?: number;
   /** Volume breaths terminated at the high-pressure limit, per minute. */
   pressureLimited?: number;
@@ -184,3 +188,10 @@ export type WaveformBuffers = Record<WaveformChannel, number[]> & {
    */
   aprvCycleMarkers?: number[];
 };
+
+/** APRV never runs inverted: P Low is capped at P High (equal = CPAP at that pressure).
+ * Lowering P High drags P Low down with it; raising P Low stops at P High. Legacy
+ * inverted settings are resolved the same way so every path sees one pressure. */
+export function normaliseAprvPressures<T extends { pHigh: number; pLow: number }>(all: T, _patch?: Partial<T>): T {
+  return all.pLow > all.pHigh ? { ...all, pLow: all.pHigh } : all;
+}

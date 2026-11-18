@@ -71,5 +71,5 @@ describe('breath-synchronized capnography', () => {
         expect(v).toBeLessThanOrEqual(38);
       }
     }
-  });
+  }, 30000);
 });

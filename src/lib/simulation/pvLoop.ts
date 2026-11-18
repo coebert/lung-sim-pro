@@ -39,7 +39,7 @@ export function pvLoopPressures(
   const out = new Array<number>(n);
   const C = patient.compliance; // mL/cmH₂O
   const R = patient.resistance;
-  const base = settings.mode === 'APRV' ? settings.pLow : settings.peep;
+  const base = settings.mode === 'APRV' ? Math.min(settings.pLow, settings.pHigh) : settings.peep;
   const opening = patient.openingPressure ?? patient.optimalPEEP * 1.5;
   const recruitAmp = Math.max(0, opening - base) * LOWER_GAIN;
   const v0 = 3 * C; // mL over which recruitment completes

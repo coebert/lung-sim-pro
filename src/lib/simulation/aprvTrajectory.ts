@@ -18,7 +18,13 @@ export function neuralTi(tp: number): number {
   return Math.min(1.2, 0.35 * tp);
 }
 
+/** Inverted (legacy) pressures resolve to CPAP at P High — the same rule the store applies. */
+export function effectiveAprv(s: APRVSettings): APRVSettings {
+  return s.pLow > s.pHigh ? { ...s, pLow: s.pHigh } : s;
+}
+
 export function aprvPressure(phase: number, s: APRVSettings): number {
+  s = effectiveAprv(s);
   const d = s.pHigh - s.pLow;
   if (phase < s.tHigh) {
     const r = Math.min(1, phase / APRV_RISE);
@@ -59,6 +65,7 @@ function integrateCycle(s: APRVSettings, p: PatientPhysiology, v0: number, k: nu
 }
 
 function trajectory(s: APRVSettings, p: PatientPhysiology, effortAmp: number): Trajectory {
+  s = effectiveAprv(s);
   const cycle = Math.max(0.2, s.tHigh + s.tLow);
   const key = `${s.pHigh}|${s.pLow}|${s.tHigh}|${s.tLow}|${p.compliance}|${p.resistance}|${p.spontaneousRate}|${effortAmp}`;
   const hit = cache.get(key);
@@ -101,6 +108,7 @@ function remember(t: Trajectory, k: number, tab: Float64Array) {
 
 /** Pressure (cmH₂O), flow (L/min, exact derivative of volume) and volume (mL) at `time`. */
 export function aprvPoint(time: number, s: APRVSettings, p: PatientPhysiology, effortAmp: number) {
+  s = effectiveAprv(s);
   const t = trajectory(s, p, effortAmp);
   const tt = Math.max(0, time);
   const k = Math.floor(tt / t.cycle);
@@ -122,6 +130,7 @@ export function aprvPoint(time: number, s: APRVSettings, p: PatientPhysiology, e
  * expiratory flow — the case-specific T Low cue. No release when P High ≤ P Low.
  */
 export function aprvReleaseMetrics(s: APRVSettings, p: PatientPhysiology) {
+  s = effectiveAprv(s);
   if (s.pHigh <= s.pLow) {
     return { releaseVolume: 0, releaseFraction: 0, endExpiratoryVolume: 0, peakExpFlow: 0, endReleaseFlow: 0, endToPeakFlowPct: 0, noRelease: true };
   }

@@ -122,7 +122,7 @@ export const tutorials: TutorialScenario[] = [
     title: 'Spontaneous Breathing: Patient Effort and Pressure Support',
     tabLabel: 'Spontaneous',
     introduction:
-      'This patient breathes on their own at 14/min. In PSV every breath is triggered and cycled by the patient; the ventilator only adds pressure. You will see how much of each breath is the patient’s own effort. Teaching model: trigger failures and auto-triggering are not simulated.',
+      'This patient breathes on their own at 14/min. In PSV every breath is triggered and cycled by the patient; the ventilator only adds pressure. You will see how much of each breath is the patient’s own effort. This healthy patient triggers reliably at the default sensitivity; missed triggers (from intrinsic PEEP) and auto-triggering (from cardiogenic oscillation with an over-sensitive trigger) are simulated in their own lessons.',
     steps: [
       {
         title: 'Switch to PSV',
@@ -166,13 +166,13 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Reduce tidal volume to ≤6 mL/kg',
         instruction:
-          'ARDS requires strict lung-protective ventilation. In a volume mode, set TV to 4–6 mL/kg PBW (280–420 mL for PBW 70 kg; ideally ~350 mL). The measured exhaled VT must actually be 270–440 mL and the model-derived plateau below 30 cmH₂O — a set target that is not delivered does not count.',
+          'ARDS requires strict lung-protective ventilation. In a volume mode, set TV to 4–6 mL/kg PBW (280–420 mL for PBW 70 kg; ideally ~350 mL). The measured exhaled VT must actually be 270–440 mL and the model-derived plateau ≤ 30 cmH₂O (this simulation’s objective) — a set target that is not delivered does not count.',
         hint: 'Set TV to 350 mL. Accept that the minute ventilation will drop.',
         modes: VOLUME_MODES,
         needsVentilation: true,
-        check: (s, _v, m) => within(s.tidalVolume, 280, 420) && within(m.measuredTV, 270, 440) && m.minuteVentilation >= 3 && m.plateauPressure < 30,
+        check: (s, _v, m) => within(s.tidalVolume, 280, 420) && within(m.measuredTV, 270, 440) && m.minuteVentilation >= 3 && m.plateauPressure <= 30,
         solution: { tidalVolume: 350 },
-        successMessage: 'Delivered tidal volume is protective and plateau pressure is below 30.',
+        successMessage: 'Delivered tidal volume is protective and plateau pressure is ≤ 30.',
       },
       {
         title: 'Increase PEEP to recruit collapsed lung',
@@ -315,7 +315,7 @@ export const tutorials: TutorialScenario[] = [
         hint: 'Set TV to 350 mL.',
         modes: VOLUME_MODES,
         needsVentilation: true,
-        check: (s, _v, m) => within(s.tidalVolume, 325, 390) && within(m.measuredTV, 310, 400) && m.plateauPressure < 30,
+        check: (s, _v, m) => within(s.tidalVolume, 325, 390) && within(m.measuredTV, 310, 400) && m.plateauPressure <= 30,
         solution: { tidalVolume: 350 },
         successMessage: 'Tidal volume is appropriate for the stiff lungs. Plateau pressure is controlled.',
       },
@@ -390,7 +390,7 @@ export const tutorials: TutorialScenario[] = [
     patientId: 'ards',
     title: 'APRV: Airway Pressure Release Ventilation for ARDS',
     introduction:
-      'This ARDS patient has diffuse atelectasis and hypoxaemia. APRV holds a sustained high pressure (P High) with brief releases (T Low) for CO₂ clearance. Trade-offs: higher mean airway pressure can help recruitable lungs but adds intrinsic PEEP, may reduce venous return, and offers no benefit in obstructive disease. Teaching model: spontaneous breathing during P High is not simulated.',
+      'This ARDS patient has diffuse atelectasis and hypoxaemia. APRV holds a sustained high pressure (P High) with brief releases (T Low) for CO₂ clearance. Trade-offs: higher mean airway pressure can help recruitable lungs but adds intrinsic PEEP, may reduce venous return, and offers no benefit in obstructive disease. This patient is paralysed, so all ventilation comes from releases. In spontaneously breathing patients the app adds their own efforts at P High and P Low to the same lung model; that is not part of this case.',
     steps: [
       {
         title: 'Switch to APRV mode',
@@ -531,7 +531,7 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Accept permissive hypercapnia',
         instruction:
-          'Low tidal volume often raises CO₂. ARDSNet targets arterial pH 7.30–7.45 and raises the rate (up to 35) for acidaemia. This simulator does not model pH or measure PaCO₂, so an EtCO₂ threshold cannot verify either; here we use EtCO₂ ≤ 60 mmHg as a teaching proxy. Never raise tidal volume if that pushes plateau above 30.',
+          'Low tidal volume often raises CO₂. ARDSNet targets arterial pH 7.30–7.45 and raises the rate (up to 35) for acidaemia. This simulator does not model pH or measure PaCO₂, so an EtCO₂ threshold cannot verify either; here we use EtCO₂ ≤ 60 mmHg as a teaching proxy. In this simulation the objective is to keep plateau ≤ 30 cmH₂O while doing so. (The real protocol allows VT up to 8 mL/kg for severe acidaemia, pH < 7.15, which needs arterial pH this simulator cannot provide.)',
         hint: 'Keep EtCO₂ ≤ 60 mmHg (8 kPa) with plateau still ≤ 30, VT 280–440 mL (4–6 mL/kg) and RR 20–35.',
         modes: ['VCV'],
         needsVentilation: true,
@@ -541,7 +541,7 @@ export const tutorials: TutorialScenario[] = [
       },
     ],
     summary:
-      'ARDSNet in brief (teaching subset): VCV, tidal volume 6 mL/kg PBW (4–8), rate up to 35, PEEP paired with FiO₂ from the table, SpO₂ 88–95%, plateau ≤ 30 cmH₂O, pH 7.30–7.45 (not modelled here). Plateau ≈ total PEEP + VT ÷ compliance, so when PEEP rises, tidal volume must sometimes fall.',
+      'ARDSNet in brief (teaching subset): VCV, tidal volume 6 mL/kg PBW (4–8), rate up to 35, PEEP paired with FiO₂ from the table, SpO₂ 88–95%, plateau ≤ 30 cmH₂O as this simulation’s objective, pH 7.30–7.45 (not modelled here; the protocol’s severe-acidaemia allowance of VT up to 8 mL/kg therefore cannot be assessed). Plateau ≈ total PEEP + VT ÷ compliance, so when PEEP rises, tidal volume must sometimes fall.',
   },
   {
     patientId: 'copd',

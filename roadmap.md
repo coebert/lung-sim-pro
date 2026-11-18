@@ -57,12 +57,13 @@
 - [x] 3 Paediatric weight-based defaults, TV range, PBW-based alarm limit, tutorial reorder
 - [x] 4 Tutorial mode binding, fresh-breath checks, O₂ upper bounds, invalidated-step notice
 - [x] 5 PCV rise forwarded; stored timing basis; applied Ti/Te readouts with limit warning; asthma text
-- [x] 6 Breath-based MV/RR, per-breath mandatory/supported VT, residual volume carried in SIMV (scheduler rounding remains)
-- [x] 7 Patient effort in PSV/SIMV support; APRV spontaneous breathing labelled as not modelled
+- [x] 6 Breath-based MV/RR, per-breath mandatory/supported VT, residual volume carried in SIMV; event-timed scheduler (2ce0284); SIMV mandatory slots due at k·60/RR from t=0 with a 25%/≤5 s sync window — RR4 no longer skips the first slot (tested RR4–14, live no-apnoea)
+- [x] 7 Patient effort in PSV/SIMV support; APRV spontaneous effort in the shared lung model (2ce0284); P Low can no longer exceed P High (legacy inverted settings = CPAP at P High on every path, tested 5–10 × P Low ≥ P High, both patient types)
 - [x] 8 Apnoea from time since last breath (20 s); last complete breath retained
 - [x] 9 APRV single trajectory + end-release flow readout
 - [x] 10 PRVC Pmax/PEEP conflict and target-not-reached alarms
 - [x] 11 Alveolar-ventilation CO₂, sampled EtCO₂ with plateau status, plateau-based SpO₂ penalty
-- [x] 12 Wording (ARDSNet pH, APRV), PBW, model-derived Pplat, warm-up/apnoea feedback, scoring, spontaneous tutorial
+- [x] 12 Wording (ARDSNet pH, APRV), PBW, model-derived Pplat, warm-up/apnoea feedback, scoring, spontaneous tutorial; ARDSNet plateau ≤30 stated as simulation objective with severe-acidaemia caveat; stale 'not simulated' lesson text removed; missed-trigger feedback separates effort / ventilator / total rates
+- [x] 11 follow-up: dead space split into anatomical 2.2 mL/kg PBW + apparatus 0 mL; VCO₂ implied by normocapnia at reference VA; one assumption shared by gas model and capnogram
 - [ ] Clinician review of physiology targets and tutorial wording (paediatric case especially) — needs a clinician
 - [ ] Physical iPhone walkthrough of the next bundled build — needs a device + Xcode

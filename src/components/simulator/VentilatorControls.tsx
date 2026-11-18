@@ -294,14 +294,14 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               value={settings.pHigh}
               unit="cmH₂O"
               {...R('pHigh')}
-              onChange={(v) => onUpdate({ pHigh: v })}
+              onChange={(v) => onUpdate(v < settings.pLow ? { pHigh: v, pLow: v } : { pHigh: v })}
             />
             <SettingControl
               label="P Low"
               value={settings.pLow}
               unit="cmH₂O"
               {...R('pLow')}
-              onChange={(v) => onUpdate({ pLow: v })}
+              onChange={(v) => onUpdate({ pLow: Math.min(v, settings.pHigh) })}
             />
             <SettingControl
               label="T High"
@@ -318,7 +318,7 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               onChange={(v) => onUpdate({ tLow: v })}
             />
             {settings.pHigh <= settings.pLow ? (
-              <ReadoutTile label="Release" value="none" unit="P High ≤ P Low" warn note="CPAP only, no mandatory ventilation" />
+              <ReadoutTile label="Release" value="none" unit="P High = P Low" warn note={`CPAP ${settings.pHigh} cmH₂O: spontaneous breaths only`} />
             ) : patient && (() => {
               const r = aprvReleaseMetrics(settings, patient);
               return (

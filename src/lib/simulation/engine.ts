@@ -54,6 +54,16 @@ export function alveolarVentilation(measured: MeasuredValues, patient: PatientPh
   return Math.max(0, measured.measuredTV - deadSpaceMl(patient)) * measured.measuredRR / 1000;
 }
 
+/**
+ * CO₂ production assumption: each case's VCO₂ is implied, not set — it is the
+ * value that makes its reference ventilation (optimal VT and RR, minus the
+ * shared dead space) normocapnic at NORMO_CO2. Alveolar CO₂ then follows
+ * PACO₂ = 0.863 × VCO₂ / VA. Fever/sepsis/metabolic changes are not modelled.
+ */
+export function co2ProductionMlMin(patient: PatientPhysiology): number {
+  return (referenceAlveolarVentilation(patient) * 1000 * NORMO_CO2) / 863;
+}
+
 /** Reference alveolar ventilation (L/min) that gives normocapnia for this case's CO₂ production. */
 export function referenceAlveolarVentilation(patient: PatientPhysiology): number {
   return Math.max(0.3, (patient.optimalTV - deadSpaceMl(patient)) * patient.optimalRR / 1000);
@@ -140,7 +150,7 @@ export function effectiveRate(settings: VentSettings, patient: PatientPhysiology
 
 /** End-expiratory baseline pressure: P Low in APRV, PEEP elsewhere. */
 export function baselinePressure(settings: VentSettings): number {
-  return settings.mode === 'APRV' ? settings.pLow : settings.peep;
+  return settings.mode === 'APRV' ? Math.min(settings.pLow, settings.pHigh) : settings.peep;
 }
 
 /** Compute measured values from the most-recent 5s of pressure & volume. */

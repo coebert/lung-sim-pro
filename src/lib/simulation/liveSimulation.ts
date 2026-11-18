@@ -74,7 +74,7 @@ export class LiveSimulation {
       const from = Math.max(this.since, this.time - 60);
       const st = triggerStats(this.settings, this.patient, from, this.time);
       const r1 = (v: number) => Math.round(v * 10) / 10;
-      this.measured = { ...this.measured, effortRate: r1(st.effortRate), missedTriggers: r1(st.missedTriggers), autoTriggers: r1(st.autoTriggers), pressureLimited: r1(st.pressureLimited) };
+      this.measured = { ...this.measured, effortRate: r1(st.effortRate), missedTriggers: r1(st.missedTriggers), autoTriggers: r1(st.autoTriggers), machineRate: r1(st.machineRate), assistedRate: r1(st.assistedRate), mandatoryRate: r1(st.mandatoryRate), pressureLimited: r1(st.pressureLimited) };
     }
     // Hold physiology until a complete breath on the new settings has been measured.
     if (!this.measured.warmingUp) {

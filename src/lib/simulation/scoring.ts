@@ -35,9 +35,26 @@ export interface IEMetrics {
 /** Minimum expiratory time the model enforces (s). */
 export const MIN_EXP_TIME = 0.1;
 
-/** Anatomical + apparatus dead space estimate (mL): 2.2 mL/kg predicted body weight. */
+/**
+ * Dead-space model (teaching assumptions, shared by gas exchange, alveolar
+ * ventilation and the capnogram's phase-II washout):
+ *  - Anatomical: 2.2 mL/kg predicted body weight (Radford's ~1 mL/lb rule),
+ *    weight-scaled so a 20 kg child gets ~44 mL and a 70 kg adult ~154 mL.
+ *    Alveolar dead space from V/Q mismatch is not added here; it is
+ *    represented by the case's shunt/CO₂ handling.
+ *  - Apparatus: 0 mL. No HME, catheter mount or Y-piece volume is simulated;
+ *    clinically these add tens of mL and matter most in small children.
+ */
+export const ANATOMICAL_DEAD_SPACE_ML_PER_KG = 2.2;
+export const APPARATUS_DEAD_SPACE_ML = 0;
+
+export function anatomicalDeadSpaceMl(p: PatientPhysiology): number {
+  return ANATOMICAL_DEAD_SPACE_ML_PER_KG * (p.predictedBodyWeight ?? p.weight);
+}
+
+/** Total series dead space (mL) = anatomical estimate + apparatus (zero here). */
 export function deadSpaceMl(p: PatientPhysiology): number {
-  return 2.2 * (p.predictedBodyWeight ?? p.weight);
+  return anatomicalDeadSpaceMl(p) + APPARATUS_DEAD_SPACE_ML;
 }
 
 export function computeIE(s: CommonSettings): IEMetrics {
@@ -146,7 +163,8 @@ export interface APRVMetrics {
 }
 
 export function computeAPRV(s: APRVSettings, p: PatientPhysiology): APRVMetrics {
-  const { pHigh, pLow, tHigh } = s;
+  const { pHigh, tHigh } = s;
+  const pLow = Math.min(s.pLow, pHigh); // inverted legacy settings = CPAP at P High
   // Data-driven per-patient opening pressure, with a sensible fallback so
   // patients that don't declare one still behave as before.
   const openingPressure = p.openingPressure ?? p.optimalPEEP * 1.5;
