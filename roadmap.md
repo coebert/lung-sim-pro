@@ -67,3 +67,4 @@
 - [x] 11 follow-up: dead space split into anatomical 2.2 mL/kg PBW + apparatus 0 mL; VCO₂ implied by normocapnia at reference VA; one assumption shared by gas model and capnogram
 - [ ] Clinician review of physiology targets and tutorial wording (paediatric case especially) — needs a clinician
 - [ ] Physical iPhone walkthrough of the next bundled build — needs a device + Xcode
+- [x] Install Meshy lungs/heart/airways GLBs as bundled 3D Lung View (3D default, SVG fallback)

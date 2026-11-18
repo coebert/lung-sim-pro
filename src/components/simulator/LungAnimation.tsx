@@ -1,5 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { breathDrive, cardiacDrive, lungShape, smoothStep } from '@/lib/presentation/lungMotion';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { breathDrive, cardiacDrive, lungPose3D, lungShape, smoothStep } from '@/lib/presentation/lungMotion';
+import { canUse3D } from './lungView3DSupport';
+
+const LungView3D = lazy(() => import('./LungView3D'));
 import { PatientPhysiology, VentSettings, Vitals, WaveformBuffers } from '@/lib/simulation/types';
 import { computeAPRV } from '@/lib/simulation/scoring';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -23,6 +26,14 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
     if (onCollapsedChange) onCollapsedChange(next);
     else setInternalCollapsed(next);
   };
+
+  // 3D anatomy is the default where WebGL is available and motion is allowed;
+  // the SVG stays as loading state and fallback.
+  const [failed3D, setFailed3D] = useState(false);
+  const [ready3D, setReady3D] = useState(false);
+  const [supports3D] = useState(() => canUse3D());
+  const use3D = supports3D && !failed3D;
+  useEffect(() => { if (collapsed) setReady3D(false); }, [collapsed]);
 
   // Live drive: latest volume sample, smoothed over ≤ one 50 Hz step (bounded
   // presentation interpolation). Frozen buffers stop changing, so motion stops.
@@ -149,8 +160,33 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
       </button>
 
       {!collapsed && (
-        <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-monitor-bg p-1">
+        <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center bg-monitor-bg p-1" data-lung-view={ready3D ? '3d' : 'svg'} data-pathology={pathology} data-atel={atel.toFixed(2)} data-trap={drive.trapFrac.toFixed(2)}>
+          {use3D && (
+            <Suspense fallback={null}>
+              <LungView3D
+                right={lungPose3D(drive, shape, atel)}
+                left={lungPose3D(drive, shape, atel)}
+                ventricular={cardiacPhase.ventricular}
+                atrial={cardiacPhase.atrial}
+                tint={lungTint3D(pathology, ardsRecruitment, hyperinflation)}
+                onReady={() => setReady3D(true)}
+                onError={() => { setFailed3D(true); setReady3D(false); }}
+              />
+            </Suspense>
+          )}
+          {ready3D && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-1 flex flex-col items-center gap-0.5 font-mono text-[9px] font-bold">
+              {settings.mode === 'APRV' && aprvRecruitment !== null && (
+                <span style={{ color: aprvRecruitment > 0.7 ? '#4ade80' : aprvRecruitment > 0.4 ? '#eab308' : '#ef4444' }}>Recruitment {Math.round(aprvRecruitment * 100)}%</span>
+              )}
+              {statusText && <span style={{ color: statusColor }}>{statusText}</span>}
+            </div>
+          )}
+          {ready3D && prone && (
+            <div className="pointer-events-none absolute top-1 left-1/2 -translate-x-1/2 rounded bg-primary px-2 py-0.5 font-mono text-[9px] font-bold text-primary-foreground">PRONE</div>
+          )}
           <svg
+            style={ready3D ? { display: 'none' } : undefined}
             viewBox="0 0 200 220"
             className="w-full h-full max-h-full"
             preserveAspectRatio="xMidYMid meet"
@@ -762,6 +798,14 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
       )}
     </div>
   );
+}
+
+/** Lung tissue colour multiplier for the 3D textures (illustrative). */
+function lungTint3D(pathology: string, ardsRecruitment: number, hyperinflation: number): [number, number, number] {
+  if (pathology === 'ards') { const r = ardsRecruitment; return [0.6 + 0.4 * r, 0.5 + 0.5 * r, 0.6 + 0.4 * r]; }
+  if (pathology === 'restrictive') return [0.85, 0.8, 0.8];
+  const h = Math.min(1, (hyperinflation - 1) / 0.7);
+  return [1, 1 - 0.12 * h, 1 - 0.15 * h];
 }
 
 /* ── Subsegmental airway with terminal alveolar cluster ── */

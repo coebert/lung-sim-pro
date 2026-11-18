@@ -98,3 +98,32 @@ export function smoothStep(prev: number, target: number, dtMs: number, tauMs = 6
   const k = 1 - Math.exp(-Math.max(0, Math.min(dtMs, 100)) / tauMs);
   return prev + (target - prev) * k;
 }
+
+export interface LungPose3D {
+  /** Persistent (end-expiratory) expansion offset; 0 = reference size. */
+  base: number;
+  /** Current tidal excursion offset above the end-expiratory shape. */
+  tidal: number;
+  /** Regional (lower/dependent zone) volume and excursion loss, 0–0.5. */
+  basal: number;
+  /** Diaphragm flattening 0–1 and caudal displacement (model units) from trapped gas. */
+  flat: number;
+  drop: number;
+}
+
+/**
+ * Per-lung pose for the 3D model, from the same LungShape the SVG uses. Each
+ * lung takes its own regional atelectasis value so one lung can collapse
+ * without changing the other. Tidal motion is only the live excursion.
+ */
+export function lungPose3D(d: BreathDrive, shape: LungShape, regionalAtel: number): LungPose3D {
+  const trap = Math.min(1.4, d.trapFrac);
+  const excursion = shape.expansion - shape.baseline;
+  return {
+    base: shape.baseline - 1,
+    tidal: excursion,
+    basal: Math.max(0, Math.min(0.5, regionalAtel * 0.45)),
+    flat: Math.min(1, trap / 0.9),
+    drop: 0.12 * Math.min(1, trap / 0.9),
+  };
+}
