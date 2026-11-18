@@ -132,10 +132,10 @@ export function vcvBreath(s: CommonSettings & { tidalVolume: number; pLimit?: nu
   const vLim = Math.max(0, (limit - s.peep - q * R) * C * 1000);
   const f = (v0: number) => vLim * Math.exp(-(cycle - Math.max(0, (vLim - v0) / (q * 1000))) / tau) - v0;
   let lo = 0, hi = vLim;
-  if (vLim <= 0 || f(0) <= 0) return { spec: { kind: 'volume' as const, cycle, ti: 1e-3, vt: 0, limited: true }, v0: 0, limited: true };
+  if (vLim <= 0 || f(0) <= 0) return { spec: { kind: 'volume' as const, cycle, ti: 0, vt: 0, limited: true }, v0: 0, limited: true };
   for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (f(m) > 0) lo = m; else hi = m; }
   const v0 = (lo + hi) / 2;
-  const tCut = Math.max(1e-3, (vLim - v0) / (q * 1000));
+  const tCut = Math.max(0, (vLim - v0) / (q * 1000));
   return { spec: { kind: 'volume' as const, cycle, ti: tCut, vt: q * tCut * 1000, limited: true }, v0, limited: true };
 }
 
@@ -247,7 +247,9 @@ function mandatorySpec(s: SIMVSettings, p: PatientPhysiology, v0: number): Breat
   const tCut = ((s.pLimit - s.peep - q * R) * C * 1000 - v0) / (q * 1000);
   void tm;
   if (tCut < ti) {
-    const t = Math.max(1e-3, tCut);
+    // Resistive + elastic pressure already at the limit: no flow at all (ti 0 =
+    // passive expiration of the carried volume). Otherwise cut exactly at the limit.
+    const t = Math.max(0, tCut);
     return { kind: 'volume', cycle: Infinity, ti: t, vt: q * t * 1000, limited: true };
   }
   return { kind: 'volume', cycle: Infinity, ti, vt: s.tidalVolume };

@@ -280,16 +280,19 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       // T Low from this lung's own release flow (case-specific), not a fixed interval.
       const measuredVT = Math.round(measured.measuredTV);
       const pct = aprv.endToPeakFlowPct;
+      // For a breathing patient the release metrics are a passive-lung reference:
+      // their own efforts make each actual release larger or smaller.
+      const ref = patient.spontaneousRate > 0 ? ' (passive-lung reference; this patient’s own breaths change each actual release — check the flow trace)' : '';
       if (aprv.noRelease) {
         list.push({ text: `No release: P High (${pHigh}) is not above P Low (${pLow}). This is CPAP — there is no mandatory ventilation, only the patient's own breaths.`, severity: patient.spontaneousRate > 0 ? 'warn' : 'danger' });
       } else if (aprv.obstructive) {
-        list.push({ text: `Obstructive lung (τ ≈ ${aprv.tau.toFixed(2)} s): release flow is still ${pct}% of peak when T Low (${tLow.toFixed(1)} s) ends. Restrictive-lung targets do not apply — a short release traps gas. APRV is generally avoided here; if used, release much more completely (end flow well below 50% of peak).`, severity: pct > 50 ? 'danger' : 'warn' });
+        list.push({ text: `Obstructive lung (τ ≈ ${aprv.tau.toFixed(2)} s): release flow is still ${pct}% of peak${ref} when T Low (${tLow.toFixed(1)} s) ends. Restrictive-lung targets do not apply — a short release traps gas. APRV is generally avoided here; if used, release much more completely (end flow well below 50% of peak).`, severity: pct > 50 ? 'danger' : 'warn' });
       } else if (pct > 75) {
-        list.push({ text: `T Low ${tLow.toFixed(1)} s ends the release while flow is still ${pct}% of peak — very little gas leaves (VT ${measuredVT} mL), limiting CO₂ clearance. For this lung, lengthen T Low until end-release flow is about 50–75% of peak.`, severity: 'warn' });
+        list.push({ text: `T Low ${tLow.toFixed(1)} s ends the release while flow is still ${pct}% of peak${ref} — very little gas leaves (VT ${measuredVT} mL), limiting CO₂ clearance. For this lung, lengthen T Low until end-release flow is about 50–75% of peak.`, severity: 'warn' });
       } else if (pct >= 50) {
-        list.push({ text: `T Low ${tLow.toFixed(1)} s ends the release at ${pct}% of peak expiratory flow — within the 50–75% teaching target for this restrictive lung (VT ${measuredVT} mL, intrinsic PEEP ${measured.autoPEEP.toFixed(1)}).`, severity: 'good' });
+        list.push({ text: `T Low ${tLow.toFixed(1)} s ends the release at ${pct}% of peak expiratory flow${ref} — within the 50–75% teaching target for this restrictive lung (VT ${measuredVT} mL, intrinsic PEEP ${measured.autoPEEP.toFixed(1)}).`, severity: 'good' });
       } else {
-        list.push({ text: `T Low ${tLow.toFixed(1)} s lets expiratory flow fall to ${pct}% of peak — the lung empties further (VT ${measuredVT} mL) and may derecruit. For this lung, shorten T Low so the release ends at about 50–75% of peak flow.`, severity: pct < 25 ? 'danger' : 'warn' });
+        list.push({ text: `T Low ${tLow.toFixed(1)} s lets expiratory flow fall to ${pct}% of peak${ref} — the lung empties further (VT ${measuredVT} mL) and may derecruit. For this lung, shorten T Low so the release ends at about 50–75% of peak flow.`, severity: pct < 25 ? 'danger' : 'warn' });
       }
 
       // P Low assessment

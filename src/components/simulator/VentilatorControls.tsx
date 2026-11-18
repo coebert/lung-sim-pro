@@ -323,10 +323,12 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               const r = aprvReleaseMetrics(settings, patient);
               return (
                 <ReadoutTile
-                  label="End-release flow"
+                  label={patient.spontaneousRate > 0 ? 'End-release flow (passive ref.)' : 'End-release flow'}
                   value={`${r.endToPeakFlowPct}`}
                   unit="% of peak"
-                  note={`release ${Math.round(r.releaseVolume)} mL`}
+                  note={patient.spontaneousRate > 0
+                    ? `passive reference release ${Math.round(r.releaseVolume)} mL — own breaths change each actual release`
+                    : `release ${Math.round(r.releaseVolume)} mL`}
                 />
               );
             })()}
