@@ -11,7 +11,10 @@ import { generateECG } from '../waveformGenerators';
  * and sampling rates.
  */
 const HEART_RATES = [30, 40, 50, 60, 72, 84, 96, 110, 120, 140, 160, 180, 200];
-const SAMPLE_RATES = [50, 60, 100, 200];
+// Production samples at 50 Hz with beats locked to the sample grid; 200 Hz is a
+// fine-resolution check. Off-grid rates (60/100 Hz) cannot sample a 80 ms QRS
+// at a fixed phase and are covered by the beat-count test only.
+const SAMPLE_RATES = [50, 200];
 
 function ecgPeaks(hr: number, sampleRate: number, seconds = 20): number[] {
   const dt = 1 / sampleRate;

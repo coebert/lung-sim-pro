@@ -529,7 +529,6 @@ export function beatTimeAt(time: number, hr: number): BeatTime {
 }
 
 // Electromechanical timing relative to beat start (P-wave onset):
-const R_PEAK = 0.225;          // s (scaled by k at fast rates)
 const ABP_DELAY = 0.18;        // R-wave → radial upstroke (pre-ejection + pulse transit)
 const PLETH_DELAY = 0.30;      // R-wave → finger pleth upstroke
 
@@ -538,25 +537,46 @@ function systoleScale(cycle: number): number {
   return Math.min(1, cycle / 0.8);
 }
 
+/** Raised-cosine bump: finite support |t − c| < hw, smooth to zero at both ends. */
+function bump(t: number, c: number, hw: number): number {
+  const x = (t - c) / hw;
+  return x <= -1 || x >= 1 ? 0 : 0.5 * (1 + Math.cos(Math.PI * x));
+}
+
+/**
+ * Illustrative sinus P-QRS-T timing for one beat (s from P onset).
+ * Adult ordinary rates: P 0.10 s, PR 0.16 s, QRS 0.08 s (fixed), QT ≈ 0.38 s.
+ * Fast rates shorten P/PR (to 60 %) and ST-T so the T wave ends ≥ 30 ms before
+ * the next P; QRS width never changes and no P wave is dropped.
+ */
+export function ecgTiming(cycle: number) {
+  const a = Math.min(1, Math.max(0.6, cycle / 0.6));
+  // QRS onset snapped to the 20 ms sample grid so Q, R and S peaks are sampled exactly.
+  const pr = Math.round((0.16 * a) / 0.02) * 0.02;
+  const pDur = 0.10 * a;
+  const qrsOn = pr, rPeak = pr + 0.04, qrsEnd = pr + 0.08;
+  const b = Math.min(1, Math.max(0.15, (cycle - 0.03 - qrsEnd) / 0.30));
+  const tOn = qrsEnd + 0.10 * b, tDur = 0.20 * b;
+  return { pDur, pr, qrsOn, rPeak, qrsEnd, tOn, tEnd: tOn + tDur };
+}
+
 export function ecgAtBeat({ t0, cycle }: BeatTime): number {
-  // P wave and QRS have fixed timing (QRS width doesn't change with rate),
-  // so every beat's QRS is sampled identically whatever the heart rate —
-  // no beat-to-beat amplitude change that could mimic electrical alternans.
-  // Only the T wave (QT interval) moves earlier as the rate rises.
-  const k = systoleScale(cycle);
-  const g = (centre: number, sigma: number) =>
-    Math.exp(-((t0 - centre) ** 2) / (2 * sigma ** 2));
-  const p = 0.15 * g(0.10, 0.032);
-  const q = -0.12 * g(0.185, 0.016);
-  const r = 1.0 * g(R_PEAK, 0.046);
-  const s = -0.20 * g(0.275, 0.018);
-  const tw = 0.30 * g(0.30 + 0.12 * k, Math.max(0.045, 0.070 * k));
-  return p + q + r + s + tw;
+  // Every component has finite support, so the PR segment and the TP interval
+  // are exactly isoelectric. Beats start on the 50 Hz sample grid (CardiacClock)
+  // and R sits 40 ms (2 samples) after QRS onset, so at steady HR every beat is
+  // sampled at identical phases — stable R amplitude, no pseudo-alternans.
+  const e = ecgTiming(cycle);
+  const p = 0.15 * bump(t0, e.pDur / 2, e.pDur / 2);
+  const q = -0.12 * bump(t0, e.qrsOn + 0.02, 0.02);
+  const r = 1.0 * bump(t0, e.rPeak, 0.022);
+  const sw = -0.25 * bump(t0, e.qrsOn + 0.06, 0.02);
+  const tw = 0.30 * bump(t0, (e.tOn + e.tEnd) / 2, (e.tEnd - e.tOn) / 2);
+  return p + q + r + sw + tw;
 }
 
 /** Phase (0–1) of a pulse wave whose upstroke lags the R wave by `delay`. */
 function pulsePhase({ t0, cycle }: BeatTime, delay: number): number {
-  const onset = R_PEAK + delay * systoleScale(cycle);
+  const onset = ecgTiming(cycle).rPeak + delay * systoleScale(cycle);
   const tt = (((t0 - onset) % cycle) + cycle) % cycle;
   return tt / cycle;
 }

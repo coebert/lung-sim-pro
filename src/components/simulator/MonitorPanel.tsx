@@ -12,6 +12,9 @@ interface MonitorPanelProps {
   layout?: 'row' | 'grid';
 }
 
+/** ECG lane shows the last 5 s (50 Hz) so P-QRS-T is not compressed; other lanes keep the full buffer. */
+const ECG_WINDOW_SAMPLES = 250;
+
 export function MonitorPanel({ buffers, vitals, compact = false, layout = 'row' }: MonitorPanelProps) {
   const spo2C = spo2Color(vitals.spo2);
   const hrC = hrColor(vitals.hr);
@@ -33,7 +36,7 @@ export function MonitorPanel({ buffers, vitals, compact = false, layout = 'row' 
   const waves = (
     <>
       <WaveformLane>
-        <WaveformCanvas data={buffers.ecg} color={WAVE_COLOR.ecg} label="II" unit="ECG"
+        <WaveformCanvas data={buffers.ecg.slice(-ECG_WINDOW_SAMPLES)} color={WAVE_COLOR.ecg} label="II" unit="ECG"
           minValue={-0.5} maxValue={1.5} autoHeight />
       </WaveformLane>
       <WaveformLane>
