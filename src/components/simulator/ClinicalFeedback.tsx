@@ -1,3 +1,4 @@
+import { spo2Target } from '@/lib/simulation/targets';
 import { useMemo, useState } from 'react';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues } from '@/lib/simulation/types';
 import { computeAPRV, computeInverseRatio, computeShunt } from '@/lib/simulation/scoring';
@@ -34,19 +35,24 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     const fio2Ratio = settings.fio2 / patient.optimalFiO2;
     const peepRatio = settings.peep / patient.optimalPEEP;
 
-    if (vitals.spo2 < 88) {
-      list.push({ text: `Critical hypoxaemia (SpO₂ ${Math.round(vitals.spo2)}%). Consider increasing FiO₂ or ${settings.mode === 'APRV' ? 'P High / reviewing T Low against the release flow' : 'PEEP'}.`, severity: 'danger' });
-    } else if (vitals.spo2 < 92) {
-      list.push({ text: `SpO₂ is low (${Math.round(vitals.spo2)}%). Oxygenation may be inadequate.`, severity: 'warn' });
-    } else if (vitals.spo2 >= 96) {
-      list.push({ text: `SpO₂ adequate (${Math.round(vitals.spo2)}%).`, severity: 'good' });
+    // Targets are per scenario (e.g. 88–92% in COPD, 88–95% in ARDS).
+    const [spLo, spHi] = spo2Target(patient.id);
+    const sp = Math.round(vitals.spo2);
+    if (vitals.spo2 < spLo - 4) {
+      list.push({ text: `Critical hypoxaemia (SpO₂ ${sp}%, target ${spLo}–${spHi}%). Consider increasing FiO₂ or ${settings.mode === 'APRV' ? 'P High / reviewing T Low against the release flow' : 'PEEP'}.`, severity: 'danger' });
+    } else if (vitals.spo2 < spLo) {
+      list.push({ text: `SpO₂ ${sp}% is below this patient's target (${spLo}–${spHi}%).`, severity: 'warn' });
+    } else if (vitals.spo2 > spHi + 0.5) {
+      list.push({ text: `SpO₂ ${sp}% is above this patient's target (${spLo}–${spHi}%). Reduce FiO₂ to avoid excess oxygen.`, severity: 'warn' });
+    } else {
+      list.push({ text: `SpO₂ ${sp}% is within this patient's target (${spLo}–${spHi}%).`, severity: 'good' });
     }
 
-    if (settings.fio2 > 0.6 && vitals.spo2 > 94) {
+    if (settings.fio2 > 0.6 && vitals.spo2 > Math.min(94, spHi)) {
       list.push({ text: `FiO₂ is high (${(settings.fio2 * 100).toFixed(0)}%). Consider weaning to avoid oxygen toxicity.`, severity: 'warn' });
     }
     // Titrate FiO₂ to SpO₂, not to a fixed number: only advise more O₂ if desaturated.
-    if (fio2Ratio < 0.7 && vitals.spo2 < 92) {
+    if (fio2Ratio < 0.7 && vitals.spo2 < spLo) {
       list.push({ text: `FiO₂ may be insufficient for this patient's pathology. Target ~${(patient.optimalFiO2 * 100).toFixed(0)}%.`, severity: 'warn' });
     }
 
@@ -207,13 +213,25 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     }
 
     // ── Compliance ──
-    if (measured.dynamicCompliance > 0 && measured.dynamicCompliance < 20) {
-      list.push({ text: `Very low dynamic compliance (${measured.dynamicCompliance.toFixed(0)} mL/cmH₂O). Stiff lungs — consider lung-protective strategy.`, severity: 'warn' });
+    // Dynamic compliance (VT ÷ (Ppeak − PEEP)) includes resistive pressure, so a low value
+    // alone does not mean stiff lungs. Static compliance uses plateau − total PEEP.
+    const pbwC = (patient.predictedBodyWeight ?? patient.weight) / 70;
+    const totalPeep = settings.mode === 'APRV' ? 0 : settings.peep + measured.autoPEEP;
+    const stat = measured.plateauPressure - totalPeep > 0.5 ? measured.measuredTV / (measured.plateauPressure - totalPeep) : 0;
+    const resistive = measured.peakPressure - measured.plateauPressure;
+    if (settings.mode !== 'APRV' && measured.dynamicCompliance > 0 && measured.dynamicCompliance < 20 * pbwC) {
+      if (stat > 0 && stat < 25 * pbwC) {
+        list.push({ text: `Low static compliance (${stat.toFixed(0)} mL/cmH₂O from plateau − total PEEP). Stiff lungs — consider lung-protective strategy.`, severity: 'warn' });
+      } else if (resistive >= 5) {
+        list.push({ text: `Low dynamic compliance (${measured.dynamicCompliance.toFixed(0)} mL/cmH₂O) is mostly airway resistance: Ppeak − Pplat is ${resistive.toFixed(0)} cmH₂O while static compliance is ${stat > 0 ? stat.toFixed(0) : '—'} mL/cmH₂O. This is not stiff lungs.`, severity: 'warn' });
+      }
     }
 
     // ── Patient-specific guidance ──
     if (patient.id === 'ards' && settings.peep >= patient.optimalPEEP * 0.8
-        && 'tidalVolume' in settings && settings.tidalVolume / (patient.predictedBodyWeight ?? patient.weight) <= 6.5) {
+        && measured.measuredTV / (patient.predictedBodyWeight ?? patient.weight) >= 4
+        && measured.measuredTV / (patient.predictedBodyWeight ?? patient.weight) <= 6.5
+        && measured.plateauPressure < 30 && vitals.spo2 >= 88) {
       list.push({ text: `Lung-protective strategy in place: low VT + adequate PEEP for ARDS.`, severity: 'good' });
     }
     if (patient.id === 'bronchospasm' && settings.respiratoryRate <= 12 && eTime > 3) {

@@ -166,3 +166,37 @@ describe('live store: interaction cases (#1, #2, #3)', () => {
     expect(screen.getByTestId('header-etco2').textContent).toBe('EtCO₂ — (no signal)');
   });
 });
+
+describe('live feedback wording (#4, labels)', () => {
+  it('COPD SpO₂ 90% is within its 88–92% target, not "low"; healthy 92% is below its 94% target', () => {
+    function Fb({ spo2 }: { spo2: number }) {
+      const c = useControls();
+      const { vitals, measured } = useVitalsSnapshot();
+      return <ClinicalFeedback settings={c.settings} patient={c.patient} vitals={{ ...vitals, spo2 }} measured={measured} />;
+    }
+    act(() => { simulationStore.setPatient(P('copd')); });
+    const { container, unmount } = render(<Fb spo2={90} />);
+    run(30);
+    expect(container.textContent).toMatch(/SpO₂ 90% is within this patient's target \(88–92%\)/);
+    expect(container.textContent).not.toMatch(/below this patient's target/);
+    unmount();
+    act(() => { simulationStore.setPatient(P('healthy')); });
+    const h = render(<Fb spo2={92} />);
+    run(30);
+    expect(h.container.textContent).toMatch(/SpO₂ 92% is below this patient's target \(94–100%\)/);
+  });
+  it('bronchospasm: low dynamic compliance is attributed to resistance, not stiff lungs', () => {
+    act(() => { simulationStore.setPatient(P('bronchospasm')); });
+    render(<Harness tutorial={false} />);
+    run(40);
+    expect(screen.queryByText(/Stiff lungs/)).toBeNull();
+  });
+  it('ARDS target-limited PRVC: no "lung-protective strategy in place" reassurance', () => {
+    act(() => { simulationStore.setPatient(P('ards')); simulationStore.updateSettings({ mode: 'PRVC', tidalVolume: 350, peep: 10, pMax: 17, respiratoryRate: 14 }); });
+    render(<Harness />);
+    run(100);
+    expect(simulationStore.getVitalsSnapshot().measured.measuredTV).toBeLessThan(150);
+    expect(screen.queryByText(/Lung-protective strategy in place/)).toBeNull();
+    expect(screen.queryByText(/Delivered tidal volume is protective/)).toBeNull();
+  });
+});

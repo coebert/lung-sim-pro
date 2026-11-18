@@ -44,20 +44,49 @@ export class BreathTracker {
     this.cur = null;
     this.resetTime = time;
     this.prevFlow = 0;
+    this.prev = null;
     this.cross = null;
   }
 
   private prevFlow = 0;
+  private prev: { t: number; v: number; f: number } | null = null;
   private cross: { t: number; v: number } | null = null;
+
+  /**
+   * Volume extremum between two 50 Hz samples whose flows have opposite sign:
+   * intersect the volume lines extrapolated with each sample's flow. Exact for
+   * square/step flow edges, and close to the true turning point for smooth flow,
+   * so the trough/peak missed between samples is not lost from VTe or PEEPi.
+   */
+  private static extremum(a: { t: number; v: number; f: number }, t: number, v: number, f: number) {
+    const dt = t - a.t;
+    const f1 = (a.f * 1000) / 60, f2 = (f * 1000) / 60; // mL/s
+    const den = f1 - f2;
+    let x = Math.abs(den) < 1e-9 ? dt / 2 : (v - a.v - f2 * dt) / den;
+    x = Math.min(dt, Math.max(0, x));
+    const ext = a.v + f1 * x;
+    // Never beyond the physically bracketing samples by more than the flow allows.
+    return { t: a.t + x, v: ext };
+  }
 
   /**
    * Breath start = the last upward zero crossing of flow, confirmed once at
    * least BREATH_MIN_ML has been inspired since it (so cardiogenic ripple and
    * failed efforts are not counted, but small slow-flow breaths are).
-   * Exhaled VT of the previous breath = its peak volume − volume at that crossing.
+   * Exhaled VT of the previous breath = its peak volume − the trough at that
+   * crossing (both phase-interpolated between samples).
    */
   push(time: number, pressure: number, flow: number, volume: number, capno: number, kind: CompletedBreath['kind']): void {
-    if (flow > 0 && this.prevFlow <= 0) this.cross = { t: time, v: volume };
+    const prev = this.prev;
+    if (flow > 0 && this.prevFlow <= 0) {
+      const e = prev && prev.f < 0 ? BreathTracker.extremum(prev, time, volume, flow) : { t: time, v: prev ? Math.min(prev.v, volume) : volume };
+      this.cross = { t: e.t, v: Math.min(e.v, volume) };
+    }
+    if (flow < 0 && this.prevFlow > 0 && prev && this.cur) {
+      const e = BreathTracker.extremum(prev, time, volume, flow);
+      if (e.v > this.cur.vMax) this.cur.vMax = e.v;
+    }
+    this.prev = { t: time, v: volume, f: flow };
     this.prevFlow = flow;
     if (this.armed && this.cross && flow > 0 && volume - this.cross.v >= BREATH_MIN_ML) {
       const { t, v } = this.cross;

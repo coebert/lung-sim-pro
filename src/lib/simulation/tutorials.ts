@@ -56,12 +56,19 @@ export function evaluateStep(step: TutorialStep, s: AllModeParams, v: Vitals, m:
   if (step.modes && !step.modes.includes(s.mode)) return false;
   if (step.needsVentilation) {
     if (!ctx.fresh || m.warmingUp || isApnoeic(m)) return false;
+    // Target-limited PRVC (Pmax reached, VT well below target) is never a therapeutic success.
+    if (s.mode === 'PRVC' && m.measuredTV < 0.9 * s.tidalVolume) return false;
   }
   return step.check(s, v, m);
 }
 
 /** Te ÷ Ti actually applied (whichever timing control is active, after limits). */
 export const appliedE = (s: AllModeParams) => computeIE(s).eRatio;
+
+/** Inclusive range check; every tutorial tolerance is stated in its instruction text. */
+const within = (x: number, lo: number, hi: number) => x >= lo - 1e-9 && x <= hi + 1e-9;
+/** EtCO₂ from a valid capnogram sample (not unavailable / still measuring). */
+const etco2Valid = (v: Vitals) => v.etco2Status === undefined || v.etco2Status === 'plateau' || v.etco2Status === 'no-plateau';
 
 const VOLUME_MODES: VentMode[] = ['VCV', 'PRVC', 'SIMV'];
 const CONVENTIONAL: VentMode[] = ['VCV', 'PCV', 'PRVC', 'SIMV'];
@@ -87,24 +94,24 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Set respiratory rate',
         instruction:
-          'Set the respiratory rate to achieve a minute ventilation of approximately 6–8 L/min. Watch the EtCO₂ value.',
-        hint: 'A rate of 12–16 breaths/min should work well.',
+          'Set the respiratory rate to 12–16/min so measured minute ventilation is about 6–8 L/min (accepted 5.5–9 L/min) with EtCO₂ 30–48 mmHg.',
+        hint: 'A rate of 14 breaths/min with 490 mL gives about 6.9 L/min.',
         modes: SET_RATE,
         needsVentilation: true,
-        check: (s, v, m) => s.respiratoryRate >= 12 && s.respiratoryRate <= 16 && m.minuteVentilation >= 5 && v.etco2 >= 30 && v.etco2 <= 48,
+        check: (s, v, m) => within(s.respiratoryRate, 12, 16) && within(m.minuteVentilation, 5.5, 9) && etco2Valid(v) && within(v.etco2, 30, 48),
         solution: { respiratoryRate: 14 },
         successMessage: 'Respiratory rate and measured ventilation are appropriate — EtCO₂ is in a normal range.',
       },
       {
         title: 'Optimise PEEP and FiO₂',
         instruction:
-          'Set a baseline PEEP (typically 5 cmH₂O for healthy lungs) and adjust FiO₂ to maintain SpO₂ ≥ 94%.',
+          'Set a baseline PEEP of 4–8 cmH₂O (typically 5 for healthy lungs) and use the lowest FiO₂ that keeps SpO₂ ≥ 94% — accepted FiO₂ ≤ 0.40.',
         hint: 'PEEP 5, FiO₂ 0.3–0.4 should be sufficient.',
         modes: CONVENTIONAL,
         needsVentilation: true,
-        check: (s, v) => s.peep >= 4 && s.peep <= 8 && v.spo2 >= 94,
+        check: (s, v) => within(s.peep, 4, 8) && s.fio2 <= 0.4 + 1e-9 && v.spo2 >= 94,
         solution: { peep: 5, fio2: 0.35 },
-        successMessage: 'Excellent — oxygenation is adequate with minimal FiO₂. Well done!',
+        successMessage: 'Excellent — SpO₂ ≥ 94% on FiO₂ ≤ 0.40, without unnecessary oxygen. Well done!',
       },
     ],
     summary:
@@ -159,21 +166,21 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Reduce tidal volume to ≤6 mL/kg',
         instruction:
-          'ARDS requires strict lung-protective ventilation. In a volume mode (VCV), set TV to ≤ 420 mL for PBW 70 kg (ideally ~350 mL at 5 mL/kg). Watch the model-derived plateau pressure — it must stay below 30 cmH₂O.',
+          'ARDS requires strict lung-protective ventilation. In a volume mode, set TV to 4–6 mL/kg PBW (280–420 mL for PBW 70 kg; ideally ~350 mL). The measured exhaled VT must actually be 270–440 mL and the model-derived plateau below 30 cmH₂O — a set target that is not delivered does not count.',
         hint: 'Set TV to 350 mL. Accept that the minute ventilation will drop.',
         modes: VOLUME_MODES,
         needsVentilation: true,
-        check: (s, _v, m) => s.tidalVolume <= 420 && m.measuredTV <= 440 && m.plateauPressure < 30,
+        check: (s, _v, m) => within(s.tidalVolume, 280, 420) && within(m.measuredTV, 270, 440) && m.minuteVentilation >= 3 && m.plateauPressure < 30,
         solution: { tidalVolume: 350 },
         successMessage: 'Delivered tidal volume is protective and plateau pressure is below 30.',
       },
       {
         title: 'Increase PEEP to recruit collapsed lung',
         instruction:
-          'ARDS requires higher PEEP to keep collapsed alveoli open (recruitment). Watch the lung animation — atelectasis patches should begin to clear. Target PEEP 12–16 cmH₂O. Plateau pressure rises with PEEP in these stiff lungs: if it exceeds 30 cmH₂O, reduce TV towards 4–5 mL/kg and accept a higher CO₂.',
+          'ARDS requires higher PEEP to keep collapsed alveoli open (recruitment). Watch the lung animation — atelectasis patches should begin to clear. Target PEEP 12–16 cmH₂O (accepted exactly 12–16). Plateau pressure rises with PEEP in these stiff lungs: if it exceeds 30 cmH₂O, reduce TV towards 4–5 mL/kg and accept a higher CO₂.',
         hint: 'Increase PEEP to 14 cmH₂O and watch the SpO₂ improve.',
         modes: CONVENTIONAL,
-        check: (s) => s.peep >= 12 && s.peep <= 18,
+        check: (s) => within(s.peep, 12, 16),
         solution: { peep: 14 },
         successMessage: 'PEEP is in the therapeutic range. You should see recruitment occurring in the lung animation.',
       },
@@ -191,11 +198,11 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Compensate with respiratory rate',
         instruction:
-          'With low tidal volumes, you need a higher respiratory rate to maintain CO₂ clearance. Increase RR, but watch the flow trace for auto-PEEP.',
+          'With low tidal volumes, you need a higher respiratory rate to maintain CO₂ clearance. Increase RR to 18–28/min, keeping auto-PEEP below 3 cmH₂O and a measured EtCO₂ ≤ 60 mmHg.',
         hint: 'Try RR 20–26. In this teaching model an EtCO₂ up to 60 mmHg (8 kPa) is accepted; the simulator does not model pH.',
         modes: SET_RATE,
         needsVentilation: true,
-        check: (s, v, m) => s.respiratoryRate >= 18 && s.respiratoryRate <= 28 && m.autoPEEP < 3 && v.etco2 > 0 && v.etco2 <= 60,
+        check: (s, v, m) => within(s.respiratoryRate, 18, 28) && m.autoPEEP < 3 && etco2Valid(v) && v.etco2 > 0 && v.etco2 <= 60,
         solution: { respiratoryRate: 22 },
         successMessage: 'The higher rate is compensating for the low tidal volume without significant gas trapping.',
       },
@@ -213,9 +220,9 @@ export const tutorials: TutorialScenario[] = [
         title: 'Calculate predicted body weight tidal volume',
         instruction:
           'Use predicted body weight (PBW), not actual weight, to calculate TV. For this patient PBW is approximately 70 kg, so target 6–8 mL/kg PBW = 420–560 mL. Do NOT use the actual weight of 140 kg.',
-        hint: 'Set TV to 420–500 mL based on predicted body weight.',
+        hint: 'Set TV to about 450 mL (accepted 420–560 mL) based on predicted body weight.',
         modes: VOLUME_MODES,
-        check: (s) => s.tidalVolume >= 380 && s.tidalVolume <= 560,
+        check: (s) => within(s.tidalVolume, 420, 560),
         solution: { tidalVolume: 450 },
         successMessage: 'Good — you are using predicted body weight, not actual weight. This prevents overdistension.',
       },
@@ -223,9 +230,9 @@ export const tutorials: TutorialScenario[] = [
         title: 'Apply adequate PEEP to overcome abdominal pressure',
         instruction:
           'The raised diaphragm needs higher PEEP to prevent basal collapse. Watch the lung animation — basal atelectasis should clear as PEEP increases. Target PEEP 10–14 cmH₂O.',
-        hint: 'Increase PEEP to 10–12 cmH₂O. Watch the bases of the lungs.',
+        hint: 'Increase PEEP to 11 cmH₂O (accepted 10–14). Watch the bases of the lungs.',
         modes: CONVENTIONAL,
-        check: (s) => s.peep >= 8 && s.peep <= 16,
+        check: (s) => within(s.peep, 10, 14),
         solution: { peep: 11 },
         successMessage: 'PEEP is counteracting the abdominal pressure. Basal atelectasis should be resolving.',
       },
@@ -276,7 +283,7 @@ export const tutorials: TutorialScenario[] = [
           'In this passive (paralysed) patient, extra set PEEP adds to hyperinflation. Keep PEEP at 3–5 cmH₂O.',
         hint: 'Set PEEP to 5 cmH₂O.',
         modes: CONVENTIONAL,
-        check: (s) => s.peep >= 3 && s.peep <= 7,
+        check: (s) => within(s.peep, 3, 5),
         solution: { peep: 5 },
         successMessage: 'Low PEEP avoids adding to the already elevated intrinsic PEEP from air trapping.',
       },
@@ -304,11 +311,11 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Set small tidal volumes',
         instruction:
-          'Restrictive lungs have low compliance and small total capacity. Use 5–6 mL/kg PBW. For a 65 kg patient, aim for 325–390 mL.',
+          'Restrictive lungs have low compliance and small total capacity. Use 5–6 mL/kg PBW. For a 65 kg patient, set 325–390 mL (the volume control steps in 10 mL, so 330–390) and confirm it is delivered.',
         hint: 'Set TV to 350 mL.',
         modes: VOLUME_MODES,
         needsVentilation: true,
-        check: (s, _v, m) => s.tidalVolume >= 300 && s.tidalVolume <= 420 && m.plateauPressure < 30,
+        check: (s, _v, m) => within(s.tidalVolume, 325, 390) && within(m.measuredTV, 310, 400) && m.plateauPressure < 30,
         solution: { tidalVolume: 350 },
         successMessage: 'Tidal volume is appropriate for the stiff lungs. Plateau pressure is controlled.',
       },
@@ -318,7 +325,7 @@ export const tutorials: TutorialScenario[] = [
           'With smaller tidal volumes, increase RR to maintain minute ventilation. Target RR 18–22.',
         hint: 'Set RR to 20.',
         modes: SET_RATE,
-        check: (s) => s.respiratoryRate >= 16 && s.respiratoryRate <= 24,
+        check: (s) => within(s.respiratoryRate, 18, 22),
         solution: { respiratoryRate: 20 },
         successMessage: 'The higher rate compensates for the reduced tidal volume.',
       },
@@ -329,7 +336,7 @@ export const tutorials: TutorialScenario[] = [
         hint: 'PEEP 6, FiO₂ 0.4–0.5.',
         modes: CONVENTIONAL,
         needsVentilation: true,
-        check: (_s, v) => v.spo2 >= 92,
+        check: (s, v) => within(s.peep, 5, 8) && v.spo2 >= 92,
         solution: { peep: 6, fio2: 0.5 },
         successMessage: 'Oxygenation is adequate. Well managed!',
       },
@@ -368,11 +375,11 @@ export const tutorials: TutorialScenario[] = [
         title: 'Ensure adequate oxygenation and ventilation',
         instruction:
           'Adjust PEEP and FiO₂ to maintain SpO₂ ≥ 92% and EtCO₂ ≤ 55 mmHg. With a slow patient rate, CO₂ may still be raised.',
-        hint: 'PEEP 5, FiO₂ 0.4–0.5. If CO₂ stays high, a little more support raises VT.',
+        hint: 'PEEP 5, FiO₂ 0.4–0.5. If CO₂ stays high, a little more support raises VT — but keep measured VT ≤ 560 mL (step 2).',
         modes: ['PSV'],
         needsVentilation: true,
         check: (_s, v) => v.spo2 >= 92 && v.etco2 > 0 && v.etco2 <= 55,
-        solution: { peep: 5, fio2: 0.45, pressureSupport: 12 },
+        solution: { peep: 5, fio2: 0.45 },
         successMessage: 'The patient is breathing comfortably with good gas exchange. This is a good starting point for weaning assessment.',
       },
     ],
@@ -401,17 +408,17 @@ export const tutorials: TutorialScenario[] = [
           'P High is the sustained inflation pressure. For this case, choose 25–30 cmH₂O — enough to exceed its modelled opening pressure while staying well below 35 cmH₂O.',
         hint: 'Try P High 28 cmH₂O.',
         modes: ['APRV'],
-        check: (s) => s.pHigh >= 25 && s.pHigh <= 35,
+        check: (s) => within(s.pHigh, 25, 30),
         solution: { pHigh: 28 },
         successMessage: 'P High is in the target range for this case.',
       },
       {
         title: 'Set P Low',
         instruction:
-          'P Low is commonly set to 0 cmH₂O; the short release keeps end-release lung volume (intrinsic PEEP) above zero, so P Low is not the true end-expiratory pressure.',
+          'In this lesson set P Low to exactly 0 cmH₂O (a common starting point); the short release keeps end-release lung volume (intrinsic PEEP) above zero, so P Low is not the true end-expiratory pressure.',
         hint: 'Set P Low to 0 cmH₂O.',
         modes: ['APRV'],
-        check: (s) => s.pLow <= 2 && s.pHigh > s.pLow,
+        check: (s) => s.pLow === 0 && s.pHigh > s.pLow,
         solution: { pLow: 0 },
         successMessage: 'P Low 0 with a short release maximises the release gradient while intrinsic PEEP limits derecruitment.',
       },
@@ -491,12 +498,13 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Pair PEEP with FiO₂ (lower PEEP table, subset)',
         instruction:
-          'ARDSNet links PEEP to FiO₂ (teaching subset of the lower PEEP/FiO₂ table): 0.4 → 5–8, 0.5 → 8–10, 0.6 → 10, 0.7 → 10–14, 0.8 → 14, 0.9 → 14–18, 1.0 → 18–24. Choose a matching pair that gives SpO₂ 88–95%. As you raise PEEP, watch plateau pressure climb by the same amount.',
+          'ARDSNet links PEEP to FiO₂ (teaching subset of the lower PEEP/FiO₂ table): 0.4 → 5–8, 0.5 → 8–10, 0.6 → 10, 0.7 → 10–14, 0.8 → 14, 0.9 → 14–18, 1.0 → 18–24. Use one of these exact FiO₂ rows (in-between values such as 0.76 are not table rows) and a matching PEEP that gives SpO₂ 88–95%. As you raise PEEP, watch plateau pressure climb by the same amount.',
         hint: 'Try FiO₂ 0.8 with PEEP 14.',
         modes: ['VCV'],
         needsVentilation: true,
         check: (s, v) => {
           const f = Math.round(s.fio2 * 10) / 10;
+          if (Math.abs(s.fio2 - f) > 1e-6) return false; // only exact table rows
           const table: Record<string, [number, number]> = {
             '0.4': [5, 8], '0.5': [8, 10], '0.6': [10, 10], '0.7': [10, 14],
             '0.8': [14, 14], '0.9': [14, 18], '1': [18, 24],
@@ -524,10 +532,10 @@ export const tutorials: TutorialScenario[] = [
         title: 'Accept permissive hypercapnia',
         instruction:
           'Low tidal volume often raises CO₂. ARDSNet targets arterial pH 7.30–7.45 and raises the rate (up to 35) for acidaemia. This simulator does not model pH or measure PaCO₂, so an EtCO₂ threshold cannot verify either; here we use EtCO₂ ≤ 60 mmHg as a teaching proxy. Never raise tidal volume if that pushes plateau above 30.',
-        hint: 'Keep EtCO₂ ≤ 60 mmHg (8 kPa) with plateau still ≤ 30.',
+        hint: 'Keep EtCO₂ ≤ 60 mmHg (8 kPa) with plateau still ≤ 30, VT 280–440 mL (4–6 mL/kg) and RR 20–35.',
         modes: ['VCV'],
         needsVentilation: true,
-        check: (s, v, m) => v.etco2 > 0 && v.etco2 <= 60 && m.plateauPressure <= 30 && s.tidalVolume <= 440,
+        check: (s, v, m) => etco2Valid(v) && v.etco2 > 0 && v.etco2 <= 60 && m.plateauPressure <= 30 && within(s.tidalVolume, 280, 440) && within(m.measuredTV, 270, 450) && within(s.respiratoryRate, 20, 35),
         solution: {},
         successMessage: 'CO₂ is acceptable on this proxy and plateau is still protective. You have completed the teaching subset of the protocol.',
       },
@@ -544,9 +552,9 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Use a moderate tidal volume',
         instruction: 'Use 6–8 mL/kg PBW in a volume mode. For a predicted weight of 70 kg, that is 420–560 mL.',
-        hint: 'Set TV to about 420–480 mL.',
+        hint: 'Set TV to about 450 mL (accepted 420–560 mL).',
         modes: VOLUME_MODES,
-        check: (s) => s.tidalVolume >= 400 && s.tidalVolume <= 560,
+        check: (s) => within(s.tidalVolume, 420, 560),
         solution: { tidalVolume: 450 },
         successMessage: 'A moderate volume limits hyperinflation.',
       },
@@ -555,17 +563,17 @@ export const tutorials: TutorialScenario[] = [
         instruction: 'Lower the rate to 10–14 and make the applied expiration at least three times inspiration (I:E 1:3 or longer, or a shorter Ti). Watch the expiratory flow trace reach zero before the next breath.',
         hint: 'Try RR 12 with I:E 1:4.',
         modes: SET_RATE,
-        check: (s) => s.respiratoryRate <= 14 && appliedE(s) >= 3 - 1e-6,
+        check: (s) => within(s.respiratoryRate, 10, 14) && appliedE(s) >= 3 - 1e-6,
         solution: { respiratoryRate: 12, ieRatio: 4, inspiratoryTime: 0 },
         successMessage: 'More time to exhale lets the lungs empty.',
       },
       {
         title: 'Clear the auto-PEEP, SpO₂ 88–92%',
-        instruction: 'Bring the measured auto-PEEP below 2 cmH₂O while keeping SpO₂ 88–92% (avoid excess oxygen in a CO₂ retainer). A raised CO₂ is acceptable.',
+        instruction: 'Bring the measured auto-PEEP below 2 cmH₂O while keeping SpO₂ 88–92% (avoid excess oxygen in a CO₂ retainer), the rate still 10–14 and measured minute ventilation at least 4 L/min. A moderately raised CO₂ is acceptable; dropping the rate below 10 to clear trapping is not.',
         hint: 'If auto-PEEP persists, lower the rate further. Use a modest FiO₂ (about 0.3).',
         modes: CONVENTIONAL,
         needsVentilation: true,
-        check: (_s, v, m) => m.autoPEEP < 2 && v.spo2 >= 88 && v.spo2 <= 92,
+        check: (s, v, m) => within(s.respiratoryRate, 10, 14) && m.autoPEEP < 2 && m.minuteVentilation >= 4 && v.spo2 >= 88 && v.spo2 <= 92,
         solution: { fio2: 0.3 },
         successMessage: 'The trapped air is gone and oxygenation is in the 88–92% target band.',
       },
@@ -636,7 +644,7 @@ export const tutorials: TutorialScenario[] = [
       },
       {
         title: 'Moderate PEEP, adequate oxygen',
-        instruction: 'Use PEEP 6–10 with enough FiO₂ to keep SpO₂ ≥ 92%, while keeping systolic BP above 80. Avoid high PEEP in shock.',
+        instruction: 'Use PEEP 6–10 with enough FiO₂ to keep SpO₂ ≥ 92%, while keeping systolic BP at least 80 mmHg. Avoid high PEEP in shock.',
         hint: 'PEEP 8 with FiO₂ 0.6.',
         modes: CONVENTIONAL,
         needsVentilation: true,

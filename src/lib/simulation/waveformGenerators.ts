@@ -153,13 +153,43 @@ export const PRVC_PMAX_RESERVE = 5;
  * PRVC (Autoflow / VC+): regulates inspiratory pressure so the steady-state
  * VT meets the target, never exceeding Pmax − 5 cmH₂O. Returns Pinsp above PEEP.
  */
+const prvcGainCache = new Map<string, number>();
+
+/**
+ * Exhaled tidal volume (mL) per cmH₂O of inspiratory pressure for the exact
+ * periodic pressure breath the generator plays (same spec, same rise, same
+ * carried start volume): steady-state peak minus trough of the volume trace,
+ * found from the forward/reverse flow zero crossings at 1 ms resolution.
+ * Volume is linear in the driving pressure, so one unit breath calibrates PRVC.
+ */
+export function pressureBreathGain(cycle: number, ti: number, tr: number, p: PatientPhysiology): number {
+  const key = [cycle, ti, tr, p.compliance, p.resistance, lungTau(p)].join('|');
+  const hit = prvcGainCache.get(key);
+  if (hit !== undefined) return hit;
+  const spec: BreathSpec = { kind: 'pressure', cycle, ti, D: 1, tr };
+  const v0 = periodicPressure(cycle, spec, p);
+  const dt = 0.001;
+  let vMax = -Infinity, vMin = Infinity;
+  for (let t = 0; t < cycle; t += dt) {
+    const v = evalBreath(t, spec, v0, 0, p).volume;
+    if (v > vMax) vMax = v;
+    if (v < vMin) vMin = v;
+  }
+  const g = Math.max(0, vMax - vMin);
+  if (prvcGainCache.size > 500) prvcGainCache.clear();
+  prvcGainCache.set(key, g);
+  return g;
+}
+
+/**
+ * PRVC (Autoflow / VC+): regulates inspiratory pressure so the steady-state
+ * exhaled VT (trough → peak of the delivered breath) meets the target, never
+ * exceeding Pmax − 5 cmH₂O. Returns Pinsp above PEEP.
+ */
 export function prvcInspPressure(s: PRVCSettings, p: PatientPhysiology) {
-  const C = lungC(p), tau = lungTau(p);
   const iTime = getITime(s);
   const cycleTime = 60 / s.respiratoryRate;
-  const kI = Math.exp(-iTime / tau), kE = Math.exp(-Math.max(0, cycleTime - iTime) / tau);
-  const fillPerCm = rampFill(iTime, 1, Math.min(s.riseTime, iTime), C, tau) * 1000;
-  const vtPerCm = fillPerCm * (1 - kE) / Math.max(1e-6, 1 - kI * kE);
+  const vtPerCm = pressureBreathGain(cycleTime, iTime, s.riseTime, p);
   const needed = s.tidalVolume / Math.max(1e-6, vtPerCm);
   const ceiling = Math.max(0, s.pMax - PRVC_PMAX_RESERVE - s.peep);
   const conflict = s.pMax - PRVC_PMAX_RESERVE <= s.peep;

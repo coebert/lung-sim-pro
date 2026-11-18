@@ -73,10 +73,11 @@ describe('1 · pressure breaths keep trapped volume (closed-form periodic RC)', 
     const s = cfg(id, { mode: 'PRVC', ...patch }) as PRVCSettings;
     const r = prvcInspPressure(s, P(id));
     expect(r.limited).toBe(false);
-    const cyc = 60 / s.respiratoryRate, t0 = 100 * cyc;
-    // Exhaled VT = end-inspiratory − end-expiratory volume.
-    const vt = generateVentWaveformPoint(t0 + computeIE(s).iTime - 1e-9, s, P(id)).volume - generateVentWaveformPoint(t0, s, P(id)).volume;
-    expect(Math.abs(vt - s.tidalVolume)).toBeLessThan(Math.max(20, 0.1 * s.tidalVolume) / 4);
+    const cyc = 60 / s.respiratoryRate;
+    // Exhaled VT = true trough-to-peak excursion of the delivered breath (the
+    // trough may fall after the cycle starts when a slow rise reverses flow late).
+    const { vt } = scan(s, P(id), cyc);
+    expect(Math.abs(vt - s.tidalVolume)).toBeLessThan(0.02 * s.tidalVolume);
   });
   it('target-limited PRVC caps Pinsp at Pmax − 5 − PEEP and delivers less', () => {
     const s = cfg('healthy', { mode: 'PRVC', tidalVolume: 800, pMax: 20, peep: 5 }) as PRVCSettings;
