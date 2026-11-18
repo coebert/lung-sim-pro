@@ -9,7 +9,7 @@ exports[`computeAPRV — recruitment score for ARDS > P-High excessive — barot
   "pHighScore": 1,
   "pLowPenalty": 0,
   "recruitmentScore": 1,
-  "releaseFraction": 0.7904,
+  "releaseFraction": 0.7135,
   "tHighScore": 1,
   "tLowScore": 1,
   "tau": 0.32,
@@ -25,7 +25,7 @@ exports[`computeAPRV — recruitment score for ARDS > P-High too low — no driv
   "pHighScore": 0.2143,
   "pLowPenalty": 0,
   "recruitmentScore": 0.2143,
-  "releaseFraction": 0.7904,
+  "releaseFraction": 0.7135,
   "tHighScore": 1,
   "tLowScore": 1,
   "tau": 0.32,
@@ -41,7 +41,7 @@ exports[`computeAPRV — recruitment score for ARDS > P-Low elevated — narrow 
   "pHighScore": 0.4524,
   "pLowPenalty": 0.5,
   "recruitmentScore": 0.2262,
-  "releaseFraction": 0.7904,
+  "releaseFraction": 0.7135,
   "tHighScore": 1,
   "tLowScore": 1,
   "tau": 0.32,
@@ -57,7 +57,7 @@ exports[`computeAPRV — recruitment score for ARDS > T-High too short — parti
   "pHighScore": 0.8333,
   "pLowPenalty": 0,
   "recruitmentScore": 0,
-  "releaseFraction": 0.7904,
+  "releaseFraction": 0.7135,
   "tHighScore": 0,
   "tLowScore": 1,
   "tau": 0.32,
@@ -73,7 +73,7 @@ exports[`computeAPRV — recruitment score for ARDS > T-Low too long — de-recr
   "pHighScore": 0.8333,
   "pLowPenalty": 0,
   "recruitmentScore": 0,
-  "releaseFraction": 0.9908,
+  "releaseFraction": 0.9765,
   "tHighScore": 1,
   "tLowScore": 0,
   "tau": 0.32,
@@ -89,7 +89,7 @@ exports[`computeAPRV — recruitment score for ARDS > T-Low too short — no CO2
   "pHighScore": 0.8333,
   "pLowPenalty": 0,
   "recruitmentScore": 0.0833,
-  "releaseFraction": 0.1447,
+  "releaseFraction": 0.1175,
   "tHighScore": 1,
   "tLowScore": 0.1,
   "tau": 0.32,
@@ -105,7 +105,7 @@ exports[`computeAPRV — recruitment score for ARDS > optimal 1`] = `
   "pHighScore": 0.8333,
   "pLowPenalty": 0,
   "recruitmentScore": 0.8333,
-  "releaseFraction": 0.7904,
+  "releaseFraction": 0.7135,
   "tHighScore": 1,
   "tLowScore": 1,
   "tau": 0.32,
@@ -184,47 +184,67 @@ exports[`computeAPRV — recruitmentScore monotonicity in pHigh > is monotonical
 
 exports[`computeIE — I:E timing > bronchospasm 1:4 @ RR10 1`] = `
 {
+  "basis": "ie",
   "cycleTime": 6,
+  "eRatio": 4,
   "eTime": 4.8,
   "iTime": 1.2,
   "ieActual": 0.25,
+  "limited": false,
+  "requestedTi": 1.2,
 }
 `;
 
 exports[`computeIE — I:E timing > fixed iTime 1.0s @ RR20 1`] = `
 {
+  "basis": "ti",
   "cycleTime": 3,
+  "eRatio": 2,
   "eTime": 2,
   "iTime": 1,
   "ieActual": 0.5,
+  "limited": false,
+  "requestedTi": 1,
 }
 `;
 
 exports[`computeIE — I:E timing > inverse 2:1 via ieRatio 0.5 1`] = `
 {
+  "basis": "ie",
   "cycleTime": 4,
+  "eRatio": 0.5,
   "eTime": 1.3333,
   "iTime": 2.6667,
   "ieActual": 2,
+  "limited": false,
+  "requestedTi": 2.6667,
 }
 `;
 
 exports[`computeIE — I:E timing > normal 1:2 @ RR12 1`] = `
 {
+  "basis": "ie",
   "cycleTime": 5,
+  "eRatio": 2,
   "eTime": 3.3333,
   "iTime": 1.6667,
   "ieActual": 0.5,
+  "limited": false,
+  "requestedTi": 1.6667,
 }
 `;
 
 exports[`computeShunt — PEEP-driven shunt > ards — PEEP overshoot 1`] = `
 {
   "ie": {
+    "basis": "ie",
     "cycleTime": 4.2857,
+    "eRatio": 2,
     "eTime": 2.8571,
     "iTime": 1.4286,
     "ieActual": 0.5,
+    "limited": false,
+    "requestedTi": 1.4286,
   },
   "ieExcess": 0,
   "peepExcess": 5.8,
@@ -235,10 +255,14 @@ exports[`computeShunt — PEEP-driven shunt > ards — PEEP overshoot 1`] = `
 exports[`computeShunt — PEEP-driven shunt > ards — inverse ratio 1`] = `
 {
   "ie": {
+    "basis": "ie",
     "cycleTime": 4.2857,
+    "eRatio": 0.5,
     "eTime": 1.4286,
     "iTime": 2.8571,
     "ieActual": 2,
+    "limited": false,
+    "requestedTi": 2.8571,
   },
   "ieExcess": 0,
   "peepExcess": 0,
@@ -249,10 +273,14 @@ exports[`computeShunt — PEEP-driven shunt > ards — inverse ratio 1`] = `
 exports[`computeShunt — PEEP-driven shunt > ards — normal PEEP for ARDS 1`] = `
 {
   "ie": {
+    "basis": "ie",
     "cycleTime": 4.2857,
+    "eRatio": 2,
     "eTime": 2.8571,
     "iTime": 1.4286,
     "ieActual": 0.5,
+    "limited": false,
+    "requestedTi": 1.4286,
   },
   "ieExcess": 0,
   "peepExcess": 0,
@@ -263,10 +291,14 @@ exports[`computeShunt — PEEP-driven shunt > ards — normal PEEP for ARDS 1`] 
 exports[`computeShunt — PEEP-driven shunt > bronchospasm — long i-time 1`] = `
 {
   "ie": {
+    "basis": "ti",
     "cycleTime": 6,
+    "eRatio": 2,
     "eTime": 4,
     "iTime": 2,
     "ieActual": 0.5,
+    "limited": false,
+    "requestedTi": 2,
   },
   "ieExcess": 0,
   "peepExcess": 0,
@@ -277,10 +309,14 @@ exports[`computeShunt — PEEP-driven shunt > bronchospasm — long i-time 1`] =
 exports[`computeShunt — PEEP-driven shunt > healthy — excessive PEEP 1`] = `
 {
   "ie": {
+    "basis": "ie",
     "cycleTime": 4.2857,
+    "eRatio": 2,
     "eTime": 2.8571,
     "iTime": 1.4286,
     "ieActual": 0.5,
+    "limited": false,
+    "requestedTi": 1.4286,
   },
   "ieExcess": 0,
   "peepExcess": 11.5,
@@ -291,10 +327,14 @@ exports[`computeShunt — PEEP-driven shunt > healthy — excessive PEEP 1`] = `
 exports[`computeShunt — PEEP-driven shunt > healthy — sane settings 1`] = `
 {
   "ie": {
+    "basis": "ie",
     "cycleTime": 4.2857,
+    "eRatio": 2,
     "eTime": 2.8571,
     "iTime": 1.4286,
     "ieActual": 0.5,
+    "limited": false,
+    "requestedTi": 1.4286,
   },
   "ieExcess": 0,
   "peepExcess": 0,
@@ -554,7 +594,7 @@ exports[`patient physiology — canonical parameters > all patients 1`] = `
     "baseSBP": 100,
     "baseSpO2": 91,
     "compliance": 15,
-    "description": "Small lungs and narrow airways — tiny tidal volumes (6–8 mL/kg) and a faster rate",
+    "description": "Small lungs and narrow airways — tiny tidal volumes (6–8 mL/kg) and a faster rate. Starts on weight-based VCV (140 mL, RR 24, PEEP 6); the PCV inspiratory pressure is deliberately left at an adult 15 cmH₂O for you to titrate.",
     "frc": 500,
     "id": "paediatric",
     "name": "Child with Bronchiolitis (20kg)",

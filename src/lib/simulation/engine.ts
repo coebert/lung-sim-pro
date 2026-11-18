@@ -9,7 +9,7 @@ import {
   generateCapnography,
   simvSchedule,
 } from './waveformGenerators';
-import { clamp, computeAPRV, computeInverseRatio, computeShunt } from './scoring';
+import { clamp, computeAPRV, computeInverseRatio, computeShunt, deadSpaceMl } from './scoring';
 
 export const BUFFER_SIZE = 500;      // 10 seconds at 50Hz
 export const SAMPLE_RATE = 50;
@@ -40,7 +40,37 @@ export function createInitialVitals(patient: PatientPhysiology): Vitals {
     dbp: patient.baseDBP,
     spo2: patient.baseSpO2,
     etco2: patient.baseEtCO2,
+    paco2: patient.baseEtCO2,
   };
+}
+
+/** Normocapnic alveolar CO₂ (mmHg) at the patient's reference alveolar ventilation. */
+const NORMO_CO2 = 38;
+
+/** Alveolar ventilation (L/min) from measured values; prefers the breath-summed value. */
+export function alveolarVentilation(measured: MeasuredValues, patient: PatientPhysiology): number {
+  if (measured.alveolarVentilation !== undefined) return measured.alveolarVentilation;
+  return Math.max(0, measured.measuredTV - deadSpaceMl(patient)) * measured.measuredRR / 1000;
+}
+
+/** Reference alveolar ventilation (L/min) that gives normocapnia for this case's CO₂ production. */
+export function referenceAlveolarVentilation(patient: PatientPhysiology): number {
+  return Math.max(0.3, (patient.optimalTV - deadSpaceMl(patient)) * patient.optimalRR / 1000);
+}
+
+/**
+ * Steady-state alveolar CO₂ (mmHg): PACO₂ ∝ V̇CO₂ / V̇A (alveolar ventilation
+ * equation), calibrated so the case's reference ventilation gives 38 mmHg.
+ * Equal total minute ventilation with smaller breaths ⇒ less V̇A ⇒ higher CO₂.
+ */
+export function targetAlveolarCO2(measured: MeasuredValues, patient: PatientPhysiology): number {
+  const va = alveolarVentilation(measured, patient);
+  return clamp(NORMO_CO2 * referenceAlveolarVentilation(patient) / Math.max(va, 0.05), 15, 120);
+}
+
+/** No exhaled gas: no breath within the apnoea time, or negligible tidal volume. */
+export function isApnoeic(measured: MeasuredValues): boolean {
+  return measured.apnoea === true || measured.measuredTV < 50 || measured.measuredRR < 1;
 }
 
 /** All seven waveform samples for a single simulator tick. */
@@ -73,7 +103,8 @@ export function generateWaveformSample(
     ecg: ecgAtBeat(bt),
     abp: abpAtBeat(bt, vitals.sbp, vitals.dbp),
     spo2Pleth: plethAtBeat(bt),
-    capno: generateCapnography(time, settings, patient, vitals.etco2),
+    // The capnogram is driven by modelled alveolar CO₂; displayed EtCO₂ is sampled from it.
+    capno: generateCapnography(time, settings, patient, vitals.paco2 ?? vitals.etco2),
   };
 }
 
@@ -188,21 +219,16 @@ export function updateVitals(
     targetSpO2 -= shuntPenalty - fio2Compensation * 60;
   }
 
-  const minuteVent = (measured.measuredTV * measured.measuredRR) / 1000;
+  const minuteVent = measured.minuteVentilation;
   const optimalMV = (patient.optimalTV * patient.optimalRR) / 1000;
   const ventRatio = minuteVent / optimalMV;
 
-  let targetEtCO2 = 38;
-  if (ventRatio < 0.7) {
-    targetEtCO2 = 38 + (0.7 - ventRatio) * 60;
-  } else if (ventRatio > 1.5) {
-    targetEtCO2 = Math.max(15, 38 - (ventRatio - 1.5) * 20);
-  }
+  let targetEtCO2 = targetAlveolarCO2(measured, patient);
   targetEtCO2 += shuntFraction * 20;
   // Inverse ratio shortens expiratory time → less effective CO₂ clearance.
   if (irv.isInverse) targetEtCO2 += Math.min(10, (irv.ie.ieActual - 1) * 5);
-  // Apnoea / no exhaled gas: capnograph reads zero (no CO₂ reaches the sensor).
-  const apnoeic = measured.measuredTV < 50 || measured.measuredRR < 1;
+  // Apnoea / no exhaled gas: no CO₂ reaches the sensor, while arterial CO₂ climbs.
+  const apnoeic = isApnoeic(measured);
 
   // Dynamic hyperinflation: trapped gas raises intrathoracic pressure,
   // cutting venous return (hypotension, tachycardia) and adding dead space.
@@ -222,12 +248,11 @@ export function updateVitals(
   const targetDBP = patient.baseDBP - peepEffect * 0.5 - shuntBPPenalty * 0.5 - irvBPPenalty * 0.5 + distress * 5;
 
   // Apnoea / no effective ventilation: progressive hypoxaemia.
-  if (measured.measuredTV < 50) {
-    targetSpO2 = Math.min(targetSpO2, 60);
-  }
+  if (apnoeic) targetSpO2 = Math.min(targetSpO2, 60);
 
-  if (measured.peakPressure > 40) {
-    targetSpO2 -= (measured.peakPressure - 40) * 0.5;
+  // Overdistension (model-derived plateau, not resistive peak) worsens V/Q.
+  if (measured.plateauPressure > 35) {
+    targetSpO2 -= (measured.plateauPressure - 35) * 0.5;
   }
 
   return {
@@ -235,10 +260,17 @@ export function updateVitals(
     sbp: clamp(vitals.sbp + (targetSBP - vitals.sbp) * rate, 50, 250),
     dbp: clamp(vitals.dbp + (targetDBP - vitals.dbp) * rate, 20, 150),
     spo2: clamp(vitals.spo2 + (targetSpO2 - vitals.spo2) * rate * 0.5, 40, 100),
-    etco2: apnoeic
-      ? Math.max(0, vitals.etco2 + (0 - vitals.etco2) * Math.min(1, rate * 20))
-      : clamp(vitals.etco2 + (targetEtCO2 - vitals.etco2) * rate * 0.3, 5, 100),
+    ...co2Update(vitals, targetEtCO2, apnoeic, rate),
   };
+}
+
+/** Advance modelled alveolar CO₂; the monitor reading is absent when no gas is exhaled. */
+function co2Update(vitals: Vitals, target: number, apnoeic: boolean, rate: number): Pick<Vitals, 'etco2' | 'paco2'> {
+  const prev = vitals.paco2 ?? vitals.etco2;
+  const paco2 = apnoeic
+    ? clamp(prev + (120 - prev) * rate * 0.3, 5, 120) // CO₂ accumulates during apnoea
+    : clamp(prev + (target - prev) * rate * 0.3, 5, 120);
+  return { paco2, etco2: apnoeic ? 0 : paco2 };
 }
 
 function updateVitalsAPRV(
@@ -278,13 +310,13 @@ function updateVitalsAPRV(
   const trap = aprv.gasTrapping;
   targetSpO2 -= trap * 18;
 
-  const co2Clearance = clamp(settings.tLow / 0.5, 0.2, 1.5)
-    * clamp(aprv.drivingPressure / 20, 0.3, 1.5)
-    * (1 - clamp((aprv.tau - 0.5) / 0.7, 0, 1) * (1 - clamp(aprv.releaseFraction / 0.85, 0.2, 1)));
-  let targetEtCO2 = 38;
-  if (co2Clearance < 0.7) targetEtCO2 = 38 + (0.7 - co2Clearance) * 40;
-  else if (co2Clearance > 1.3) targetEtCO2 = Math.max(18, 38 - (co2Clearance - 1.3) * 25);
+  // CO₂ clearance from the delivered release volumes (alveolar ventilation),
+  // not from configured pressures: T High, T Low and P High − P Low act through
+  // release volume and release frequency.
+  const apnoeic = isApnoeic(measured);
+  let targetEtCO2 = targetAlveolarCO2(measured, patient);
   targetEtCO2 += trap * 30;
+  if (apnoeic) targetSpO2 = Math.min(targetSpO2, 60);
 
   const mapExcess = Math.max(0, aprv.meanAirwayPressure - 20);
   const distress = Math.max(0, 1 - aprv.recruitmentScore) + Math.max(0, 1 - oxygenation);
@@ -297,7 +329,7 @@ function updateVitalsAPRV(
     sbp: clamp(vitals.sbp + (targetSBP - vitals.sbp) * rate, 50, 250),
     dbp: clamp(vitals.dbp + (targetDBP - vitals.dbp) * rate, 20, 150),
     spo2: clamp(vitals.spo2 + (targetSpO2 - vitals.spo2) * rate * 0.5, 40, 100),
-    etco2: clamp(vitals.etco2 + (targetEtCO2 - vitals.etco2) * rate * 0.3, 5, 100),
+    ...co2Update(vitals, targetEtCO2, apnoeic, rate),
   };
 }
 

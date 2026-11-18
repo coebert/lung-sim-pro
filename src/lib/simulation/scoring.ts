@@ -18,8 +18,26 @@ export interface IEMetrics {
   cycleTime: number;
   iTime: number;
   eTime: number;
-  /** E/I ratio (numerator is always 1) — 0.8 = 1:1.25, 1 = 1:1, 2 = 1:0.5 */
+  /** I/E ratio as applied (Ti ÷ Te): 0.5 = 1:2, 2 = 2:1 */
   ieActual: number;
+  /** Te ÷ Ti as applied (the "E" of 1:E). */
+  eRatio: number;
+  /** Ti as entered (explicit Ti, or derived from the I:E setting) before limits. */
+  requestedTi: number;
+  /** True when the entered timing was limited to leave the minimum expiration. */
+  limited: boolean;
+  /** Which control sets timing. */
+  basis: 'ie' | 'ti';
+}
+
+/** Minimum expiratory time the model enforces (s). */
+export const MIN_EXP_TIME = 0.1;
+/** APRV release (expiratory) τ is this multiple of the inspiratory τ (shared by waveform + scoring). */
+export const APRV_EXP_TAU_FACTOR = 1.25;
+
+/** Anatomical + apparatus dead space estimate (mL): 2.2 mL/kg predicted body weight. */
+export function deadSpaceMl(p: PatientPhysiology): number {
+  return 2.2 * (p.predictedBodyWeight ?? p.weight);
 }
 
 export function computeIE(s: CommonSettings): IEMetrics {
@@ -28,10 +46,14 @@ export function computeIE(s: CommonSettings): IEMetrics {
     ? s.inspiratoryTime
     : cycleTime / (1 + s.ieRatio);
   // Ti can never exceed the breath cycle — leave at least 0.1 s to exhale.
-  const iTime = Math.min(rawI, Math.max(0.05, cycleTime - 0.1));
-  const eTime = Math.max(cycleTime - iTime, 0.1);
+  const iTime = Math.min(rawI, Math.max(0.05, cycleTime - MIN_EXP_TIME));
+  const eTime = Math.max(cycleTime - iTime, MIN_EXP_TIME);
   const ieActual = iTime / eTime;
-  return { cycleTime, iTime, eTime, ieActual };
+  return {
+    cycleTime, iTime, eTime, ieActual, eRatio: eTime / iTime,
+    requestedTi: rawI, limited: rawI > iTime + 1e-9,
+    basis: s.inspiratoryTime > 0 ? 'ti' : 'ie',
+  };
 }
 
 // ─── Shunt from excessive PEEP + long inspiratory time ───────────────
@@ -101,7 +123,7 @@ export function computeInverseRatio(s: CommonSettings, p: PatientPhysiology): In
 // ─── APRV recruitment ────────────────────────────────────────────────
 
 export interface APRVMetrics {
-  /** Expiratory time constant R·C (s). */
+  /** Inspiratory time constant R·C (s); the release uses tau × APRV_EXP_TAU_FACTOR. */
   tau: number;
   /** Fraction of lung volume emptied during T Low. */
   releaseFraction: number;
@@ -159,7 +181,8 @@ export function computeAPRV(s: APRVSettings, p: PatientPhysiology): APRVMetrics 
   // release, so APRV stacks gas → dynamic hyperinflation, rising CO₂ and
   // falling venous return. Only clinically relevant once τ is long.
   const tau = Math.max(0.05, (p.resistance * p.compliance) / 1000);
-  const releaseFraction = 1 - Math.exp(-tLow / tau);
+  // Same expiratory time constant as the APRV waveform trajectory.
+  const releaseFraction = 1 - Math.exp(-tLow / (tau * APRV_EXP_TAU_FACTOR));
   const obstruction = clamp((tau - 0.5) / 0.7, 0, 1);
   const gasTrapping = clamp(obstruction * (1 - releaseFraction) * clamp(drivingPressure / 20, 0.3, 1.5), 0, 1);
 

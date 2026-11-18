@@ -4,19 +4,19 @@ exports[`PCV — increasing pInsp raises delivered volume > peak volume rises mo
 [
   {
     "pInsp": 15,
-    "peak": 574,
+    "peak": 566,
   },
   {
     "pInsp": 20,
-    "peak": 765,
+    "peak": 755,
   },
   {
     "pInsp": 25,
-    "peak": 956,
+    "peak": 944,
   },
   {
     "pInsp": 30,
-    "peak": 1147,
+    "peak": 1133,
   },
 ]
 `;
@@ -41,52 +41,52 @@ exports[`SIMV — mandatory VT is independent of pressure support > mandatory ti
 exports[`generateVentWaveformPoint — per-mode waveform shape > APRV — ARDS waveform samples are stable 1`] = `
 [
   {
-    "flow": 0,
+    "flow": -61.61,
     "pressure": 0,
     "t": 0,
-    "volume": 320.89,
+    "volume": 329.11,
   },
   {
-    "flow": 50.74,
+    "flow": 55.13,
     "pressure": 28,
     "t": 0.45,
-    "volume": 926.93,
+    "volume": 826.03,
   },
   {
-    "flow": 12.26,
+    "flow": 13.3,
     "pressure": 28,
     "t": 0.91,
-    "volume": 1073.35,
+    "volume": 1048.98,
   },
   {
-    "flow": 2.96,
+    "flow": 3.22,
     "pressure": 28,
     "t": 1.36,
-    "volume": 1108.73,
+    "volume": 1102.84,
   },
   {
-    "flow": 0.72,
+    "flow": 0.78,
     "pressure": 28,
     "t": 1.82,
-    "volume": 1117.28,
+    "volume": 1115.85,
   },
   {
-    "flow": 0.17,
+    "flow": 0.19,
     "pressure": 28,
     "t": 2.27,
-    "volume": 1119.34,
+    "volume": 1119,
   },
   {
-    "flow": 0.04,
+    "flow": 0.05,
     "pressure": 28,
     "t": 2.73,
-    "volume": 1119.84,
+    "volume": 1119.76,
   },
   {
     "flow": 0.01,
     "pressure": 28,
     "t": 3.18,
-    "volume": 1119.96,
+    "volume": 1119.94,
   },
   {
     "flow": 0,
@@ -101,16 +101,16 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > APRV — ARDS w
     "volume": 1120,
   },
   {
-    "flow": -148.36,
+    "flow": -151.96,
     "pressure": 0.3,
     "t": 4.55,
-    "volume": 999.69,
+    "volume": 1025.01,
   },
   {
-    "flow": 0,
+    "flow": -61.61,
     "pressure": 0,
     "t": 5,
-    "volume": 320.89,
+    "volume": 329.11,
   },
 ]
 `;
@@ -118,52 +118,52 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > APRV — ARDS w
 exports[`generateVentWaveformPoint — per-mode waveform shape > PCV — ARDS waveform samples are stable 1`] = `
 [
   {
-    "flow": 187.5,
-    "pressure": 33,
+    "flow": -0.01,
+    "pressure": 8,
     "t": 0,
-    "volume": 0,
+    "volume": 0.03,
   },
   {
-    "flow": 45.3,
+    "flow": 57.79,
     "pressure": 33,
     "t": 0.45,
-    "volume": 758.4,
+    "volume": 691.79,
   },
   {
-    "flow": 10.94,
+    "flow": 13.96,
     "pressure": 33,
     "t": 0.91,
-    "volume": 941.63,
+    "volume": 925.53,
   },
   {
-    "flow": -57.54,
+    "flow": -56.81,
     "pressure": 8,
     "t": 1.36,
-    "volume": 306.88,
+    "volume": 302.99,
   },
   {
-    "flow": -13.9,
+    "flow": -13.73,
     "pressure": 8,
     "t": 1.82,
-    "volume": 74.14,
+    "volume": 73.2,
   },
   {
-    "flow": -3.36,
+    "flow": -3.32,
     "pressure": 8,
     "t": 2.27,
-    "volume": 17.91,
+    "volume": 17.69,
   },
   {
-    "flow": -0.81,
+    "flow": -0.8,
     "pressure": 8,
     "t": 2.73,
-    "volume": 4.33,
+    "volume": 4.27,
   },
   {
-    "flow": -0.2,
+    "flow": -0.19,
     "pressure": 8,
     "t": 3.18,
-    "volume": 1.05,
+    "volume": 1.03,
   },
   {
     "flow": -0.05,
@@ -178,16 +178,16 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > PCV — ARDS wa
     "volume": 0.06,
   },
   {
-    "flow": 83.27,
+    "flow": 106.23,
     "pressure": 33,
     "t": 4.55,
-    "volume": 555.89,
+    "volume": 433.46,
   },
   {
-    "flow": 20.12,
+    "flow": 25.66,
     "pressure": 33,
     "t": 5,
-    "volume": 892.7,
+    "volume": 863.12,
   },
 ]
 `;
@@ -195,28 +195,28 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > PCV — ARDS wa
 exports[`generateVentWaveformPoint — per-mode waveform shape > PRVC — ARDS waveform samples are stable 1`] = `
 [
   {
-    "flow": 0,
+    "flow": -0,
     "pressure": 8,
     "t": 0,
-    "volume": 0,
+    "volume": 0.01,
   },
   {
     "flow": 24.49,
     "pressure": 18.59,
     "t": 0.45,
-    "volume": 293.14,
+    "volume": 293.16,
   },
   {
     "flow": 5.92,
     "pressure": 18.59,
     "t": 0.91,
-    "volume": 392.2,
+    "volume": 392.21,
   },
   {
     "flow": -24.07,
     "pressure": 8,
     "t": 1.36,
-    "volume": 128.39,
+    "volume": 128.4,
   },
   {
     "flow": -5.82,
@@ -258,13 +258,13 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > PRVC — ARDS w
     "flow": 45.02,
     "pressure": 18.59,
     "t": 4.55,
-    "volume": 183.67,
+    "volume": 183.68,
   },
   {
     "flow": 10.88,
     "pressure": 18.59,
     "t": 5,
-    "volume": 365.75,
+    "volume": 365.76,
   },
 ]
 `;
@@ -272,46 +272,46 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > PRVC — ARDS w
 exports[`generateVentWaveformPoint — per-mode waveform shape > PSV — spontaneous waveform samples are stable 1`] = `
 [
   {
-    "flow": -0,
+    "flow": 54.42,
     "pressure": 8,
     "t": 0,
     "volume": 0,
   },
   {
-    "flow": 34.47,
+    "flow": 42.65,
     "pressure": 18,
     "t": 0.45,
-    "volume": 262.14,
+    "volume": 447.05,
   },
   {
-    "flow": -22.71,
+    "flow": -36.66,
     "pressure": 8,
     "t": 0.91,
-    "volume": 90.85,
+    "volume": 146.65,
   },
   {
-    "flow": -3.42,
+    "flow": -5.52,
     "pressure": 8,
     "t": 1.36,
-    "volume": 13.67,
+    "volume": 22.07,
   },
   {
-    "flow": -0.51,
+    "flow": -0.83,
     "pressure": 8,
     "t": 1.82,
-    "volume": 2.06,
+    "volume": 3.32,
   },
   {
-    "flow": -0.08,
+    "flow": -0.12,
     "pressure": 8,
     "t": 2.27,
-    "volume": 0.31,
+    "volume": 0.5,
   },
   {
-    "flow": -0.01,
+    "flow": -0.02,
     "pressure": 8,
     "t": 2.73,
-    "volume": 0.05,
+    "volume": 0.08,
   },
   {
     "flow": -0,
@@ -352,25 +352,25 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > SIMV — ARDS w
     "flow": 24,
     "pressure": 11.2,
     "t": 0,
-    "volume": 0,
+    "volume": 0.01,
   },
   {
     "flow": 24,
     "pressure": 15.75,
     "t": 0.45,
-    "volume": 181.82,
+    "volume": 181.83,
   },
   {
     "flow": 24,
     "pressure": 20.29,
     "t": 0.91,
-    "volume": 363.64,
+    "volume": 363.65,
   },
   {
     "flow": -24.07,
     "pressure": 8,
     "t": 1.36,
-    "volume": 128.39,
+    "volume": 128.4,
   },
   {
     "flow": -5.82,
@@ -412,13 +412,13 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > SIMV — ARDS w
     "flow": 24,
     "pressure": 13.8,
     "t": 4.55,
-    "volume": 103.9,
+    "volume": 103.91,
   },
   {
     "flow": 24,
     "pressure": 18.34,
     "t": 5,
-    "volume": 285.71,
+    "volume": 285.73,
   },
 ]
 `;
@@ -429,25 +429,25 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > VCV — ARDS wa
     "flow": 24,
     "pressure": 11.2,
     "t": 0,
-    "volume": 0,
+    "volume": 0.01,
   },
   {
     "flow": 24,
     "pressure": 15.75,
     "t": 0.45,
-    "volume": 181.82,
+    "volume": 181.83,
   },
   {
     "flow": 24,
     "pressure": 20.29,
     "t": 0.91,
-    "volume": 363.64,
+    "volume": 363.65,
   },
   {
     "flow": -24.07,
     "pressure": 8,
     "t": 1.36,
-    "volume": 128.39,
+    "volume": 128.4,
   },
   {
     "flow": -5.82,
@@ -489,13 +489,13 @@ exports[`generateVentWaveformPoint — per-mode waveform shape > VCV — ARDS wa
     "flow": 24,
     "pressure": 13.8,
     "t": 4.55,
-    "volume": 103.9,
+    "volume": 103.91,
   },
   {
     "flow": 24,
     "pressure": 18.34,
     "t": 5,
-    "volume": 285.71,
+    "volume": 285.73,
   },
 ]
 `;

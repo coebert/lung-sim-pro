@@ -113,7 +113,7 @@ export function VentilatorPanel({ buffers, measured, settings, compact = false, 
         <div className={`flex flex-col gap-1 ${compact ? 'w-[64px]' : 'w-[104px]'} shrink-0 overflow-y-auto`}>
           <Group compact={compact} color={WAVE_COLOR.pressure} rows={[
             ['Ppeak', fmt(measured.peakPressure), 'cmH₂O'],
-            ...(isAPRV ? [] : [['Pplat', fmt(measured.plateauPressure), 'cmH₂O'] as Row]),
+            ...(isAPRV ? [] : [['Pplat est', fmt(measured.plateauPressure), 'cmH₂O'] as Row]),
             ['Pmean', fmt(measured.meanPressure), 'cmH₂O'],
             [isAPRV ? 'P Low' : 'PEEP', fmt(isAPRV ? settings.pLow : settings.peep), 'cmH₂O'],
             ['PEEPi', fmt(measured.autoPEEP), 'cmH₂O'],

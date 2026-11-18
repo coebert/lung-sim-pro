@@ -33,7 +33,7 @@ export function BedsideView({ buffers, measured, settings, etco2KPa, patient, on
 
   const readings: { label: string; value: string; unit: string; color: string }[] = [
     { label: 'Ppeak', value: fmt(measured.peakPressure), unit: 'cmH₂O', color: WAVE_COLOR.pressure },
-    { label: 'Pplat', value: isAPRV ? '—' : fmt(measured.plateauPressure), unit: 'cmH₂O', color: WAVE_COLOR.pressure },
+    { label: 'Pplat est', value: isAPRV ? '—' : fmt(measured.plateauPressure), unit: 'cmH₂O', color: WAVE_COLOR.pressure },
     { label: 'VTe', value: String(Math.round(measured.measuredTV)), unit: 'mL', color: WAVE_COLOR.volume },
     { label: 'EtCO₂', value: etco2KPa.toFixed(1), unit: 'kPa', color: WAVE_COLOR.capno },
   ];

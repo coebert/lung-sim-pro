@@ -83,3 +83,7 @@ No accounts, ads, analytics SDKs, health/patient data APIs, or app-initiated net
 - [ ] App Privacy declaration verified against native binary + device network behaviour
 - [ ] App Store metadata: description, keywords, category, age rating, price tier, App Privacy answers (to be decided by the owner)
 - [ ] Education-only positioning in listing; no medical-device or clinical-validation claims
+
+## Build 1.0 (2)
+
+Build number raised to 2 for the next TestFlight upload. It contains the November 2026 physiology and tutorial audit fixes (see roadmap.md). Build 1.0 (1) is the installed baseline. Before submitting, run `npm run ios:prepare`, archive in Xcode, and walk through all tutorials on a physical iPhone, including offline launch.

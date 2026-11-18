@@ -50,3 +50,19 @@
 - [ ] Owner review of support/privacy text, then publish for public URLs
 - [ ] Store assets: screenshots, description (blocked: needs Rob's input/approval)
 - [ ] Build & submit via Xcode (blocked: done by Rob on his Mac)
+
+# Physiology & tutorial audit (18 Nov 2026)
+- [x] 1 Closed-form periodic RC pressure breaths + PRVC targeting
+- [x] 2 APRV gas exchange from delivered release ventilation; apnoea handling
+- [x] 3 Paediatric weight-based defaults, TV range, PBW-based alarm limit, tutorial reorder
+- [x] 4 Tutorial mode binding, fresh-breath checks, O₂ upper bounds, invalidated-step notice
+- [x] 5 PCV rise forwarded; stored timing basis; applied Ti/Te readouts with limit warning; asthma text
+- [x] 6 Breath-based MV/RR, per-breath mandatory/supported VT, residual volume carried in SIMV (scheduler rounding remains)
+- [x] 7 Patient effort in PSV/SIMV support; APRV spontaneous breathing labelled as not modelled
+- [x] 8 Apnoea from time since last breath (20 s); last complete breath retained
+- [x] 9 APRV single trajectory + end-release flow readout
+- [x] 10 PRVC Pmax/PEEP conflict and target-not-reached alarms
+- [x] 11 Alveolar-ventilation CO₂, sampled EtCO₂ with plateau status, plateau-based SpO₂ penalty
+- [x] 12 Wording (ARDSNet pH, APRV), PBW, model-derived Pplat, warm-up/apnoea feedback, scoring, spontaneous tutorial
+- [ ] Clinician review of physiology targets and tutorial wording (paediatric case especially) — needs a clinician
+- [ ] Physical iPhone walkthrough of the next bundled build — needs a device + Xcode

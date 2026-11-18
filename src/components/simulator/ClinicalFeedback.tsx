@@ -22,6 +22,13 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
 
   const insights = useMemo(() => {
     const list: Insight[] = [];
+    // No advice from half-measured or absent breaths.
+    if (measured.apnoea) {
+      return [{ text: `Apnoea: no breath detected for over 20 s.${settings.mode === 'PSV' && patient.spontaneousRate <= 0 ? ' PSV needs patient effort and this patient is paralysed — choose a mandatory mode.' : ' Check the mode and settings (e.g. Pmax vs PEEP, P High vs P Low).'} This simulator has no automatic apnoea backup.`, severity: 'danger' }];
+    }
+    if (measured.warmingUp) {
+      return [{ text: 'Measuring the first complete breath on the new settings…', severity: 'warn' }];
+    }
 
     // ── Oxygenation ──
     const fio2Ratio = settings.fio2 / patient.optimalFiO2;
@@ -57,15 +64,15 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     }
 
     // ── Ventilation / CO₂ ──
-    const minuteVent = (measured.measuredTV * measured.measuredRR) / 1000;
+    const minuteVent = measured.minuteVentilation;
     const optimalMV = (patient.optimalTV * patient.optimalRR) / 1000;
     const ventRatio = minuteVent / optimalMV;
 
     const permissive = patient.id === 'bronchospasm' || patient.id === 'copd' || patient.id === 'asthma' || patient.id === 'ards' || measured.autoPEEP > 1;
     if (vitals.etco2 > 45 && permissive) {
       list.push({ text: patient.id === 'bronchospasm' || measured.autoPEEP > 1
-        ? `Hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Permissive hypercapnia is acceptable if pH > 7.20. Do NOT raise RR or shorten expiratory time — this worsens air trapping.`
-        : `Hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Permissive hypercapnia is acceptable in lung-protective ventilation if pH > 7.20. Increase RR cautiously (watch auto-PEEP); do not raise VT above 6–8 mL/kg PBW.`,
+        ? `Hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Permissive hypercapnia may be acceptable (pH is not modelled here). Do NOT raise RR or shorten expiratory time — this worsens air trapping.`
+        : `Hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Permissive hypercapnia may be acceptable in lung-protective ventilation (pH is not modelled here). Increase RR cautiously (watch auto-PEEP); do not raise VT above 6–8 mL/kg PBW.`,
         severity: vitals.etco2 > 70 ? 'danger' : 'warn' });
     } else if (vitals.etco2 > 55) {
       list.push({ text: `Significant hypercapnia (EtCO₂ ${(vitals.etco2 / 7.501).toFixed(1)} kPa). Minute ventilation is inadequate.`, severity: 'danger' });
@@ -133,7 +140,7 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
     }
 
     if (measured.plateauPressure > 30) {
-      list.push({ text: `Plateau pressure >30 cmH₂O (${measured.plateauPressure.toFixed(0)}). High risk of alveolar overdistension.`, severity: 'danger' });
+      list.push({ text: `Model-derived plateau pressure >30 cmH₂O (${measured.plateauPressure.toFixed(0)}). High risk of alveolar overdistension.`, severity: 'danger' });
     }
 
     // ── Shunting ──

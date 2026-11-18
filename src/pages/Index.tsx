@@ -31,7 +31,7 @@ const Index = () => {
   const isLandscape = layoutMode === 'mobile-landscape';
   const isPortrait = layoutMode === 'mobile-portrait';
 
-  const { settings, allSettings, patient, prone, frozen } = useControls();
+  const { settings, allSettings, patient, prone, frozen, revision } = useControls();
   const { vitals, measured, alarms, trends } = useVitalsSnapshot();
   const buffers = useWaveforms();
 
@@ -65,7 +65,7 @@ const Index = () => {
   const overlayProps = {
     overlay: mobileOverlay,
     onClose: () => setMobileOverlay('none'),
-    settings, allSettings, patient, vitals, measured, prone, buffers,
+    settings, allSettings, patient, vitals, measured, prone, buffers, settingsRevision: revision,
   };
 
   return (
@@ -161,7 +161,7 @@ const Index = () => {
             </div>
             <div className={`${tutorialActive ? 'w-[320px]' : 'w-[220px]'} shrink-0 border-l border-border p-1 flex flex-col gap-1 transition-all`}>
               {tutorialActive ? (
-                <TutorialPanel allSettings={allSettings}
+                <TutorialPanel allSettings={allSettings} settingsRevision={revision}
                   patient={patient}
                   settings={settings}
                   vitals={vitals}

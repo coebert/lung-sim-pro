@@ -253,7 +253,7 @@ export const patients: PatientPhysiology[] = [
     proneShuntReduction: 0.03,
     id: 'paediatric',
     name: 'Child with Bronchiolitis (20kg)',
-    description: 'Small lungs and narrow airways — tiny tidal volumes (6–8 mL/kg) and a faster rate',
+    description: 'Small lungs and narrow airways — tiny tidal volumes (6–8 mL/kg) and a faster rate. Starts on weight-based VCV (140 mL, RR 24, PEEP 6); the PCV inspiratory pressure is deliberately left at an adult 15 cmH₂O for you to titrate.',
     weight: 20,
     compliance: 15,
     resistance: 25,
@@ -272,8 +272,33 @@ export const patients: PatientPhysiology[] = [
   },
 ];
 
-/** Full superset of parameters, seeded with sane defaults for every mode. */
-export function getDefaultAllParams(_patient: PatientPhysiology): AllModeParams {
+/**
+ * Full superset of parameters, seeded with defaults for every mode.
+ * Adults start on a shared adult baseline (500 mL, RR 14, PEEP 5) — for ARDS,
+ * obesity etc. this is a deliberate teaching starting point that the
+ * tutorials ask you to correct. Children (PBW < 40 kg) start on weight-based
+ * settings; see `paediatricDefaults`.
+ */
+export function getDefaultAllParams(patient: PatientPhysiology): AllModeParams {
+  const base = adultDefaults();
+  const pbw = patient.predictedBodyWeight ?? patient.weight;
+  return pbw < 40 ? { ...base, ...paediatricDefaults(pbw) } : base;
+}
+
+/** Weight-based paediatric starting settings (7 mL/kg, RR 24, PEEP 6, Pmax 30). */
+export function paediatricDefaults(pbw: number): Partial<AllModeParams> {
+  return {
+    tidalVolume: Math.round((7 * pbw) / 5) * 5,
+    respiratoryRate: 24,
+    peep: 6,
+    pMax: 30,
+    pressureSupport: 8,
+    // Explicitly labelled challenge: PCV pressure left at the adult default (15) to titrate.
+    pInsp: 15,
+  };
+}
+
+function adultDefaults(): AllModeParams {
   return {
     mode: 'VCV',
     peep: 5,

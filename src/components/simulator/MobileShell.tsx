@@ -75,11 +75,13 @@ interface MobileOverlayPanelProps {
   measured: MeasuredValues;
   prone: boolean;
   buffers: WaveformBuffers;
+  /** Current settings revision, so tutorial steps only use fresh breaths. */
+  settingsRevision?: number;
 }
 
 export function MobileOverlayPanel({
   overlay, onClose, bottomOffset, maxHeight,
-  settings, allSettings, patient, vitals, measured, prone, buffers,
+  settings, allSettings, patient, vitals, measured, prone, buffers, settingsRevision,
 }: MobileOverlayPanelProps) {
   // Keep the tutorial mounted once opened so its selection, step and scores survive
   // switching to other overlays. TutorialPanel itself still resets on patient change.
@@ -130,6 +132,7 @@ export function MobileOverlayPanel({
             allSettings={allSettings}
             vitals={vitals}
             measured={measured}
+            settingsRevision={settingsRevision}
             onClose={onClose}
           />
         </div>

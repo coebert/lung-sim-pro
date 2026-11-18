@@ -26,7 +26,7 @@ export function MonitorPanel({ buffers, vitals, compact = false, layout = 'row' 
     { key: 'HR',    label: 'HR',    unit: 'bpm',  color: VITAL_COLOR.hr,    valueColor: hrC,  value: Math.round(vitals.hr).toString(),           bigClass: bigNum },
     { key: 'ABP',   label: 'ABP',   unit: 'mmHg', color: VITAL_COLOR.abp,                     value: `${Math.round(vitals.sbp)}/${Math.round(vitals.dbp)}`, sub: `(${map})`, bigClass: midNum },
     { key: 'SpO2',  label: 'SpO₂',  unit: '%',    color: spo2C,                               value: Math.round(vitals.spo2).toString(),         bigClass: bigNum },
-    { key: 'EtCO2', label: 'EtCO₂', unit: 'kPa',  color: VITAL_COLOR.etco2,                   value: (vitals.etco2 / 7.501).toFixed(1),          bigClass: bigNum },
+    { key: 'EtCO2', label: 'EtCO₂', unit: 'kPa',  color: VITAL_COLOR.etco2,                   value: vitals.etco2Status === 'unavailable' ? '—' : (vitals.etco2 / 7.501).toFixed(1), sub: vitals.etco2Status === 'no-plateau' ? 'no plateau' : undefined, bigClass: bigNum },
   ];
 
   const waves = (

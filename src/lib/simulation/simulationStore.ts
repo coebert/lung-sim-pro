@@ -1,4 +1,4 @@
-import { CardiacClock } from './waveformGenerators';
+import { LiveSimulation } from './liveSimulation';
 import { useSyncExternalStore } from 'react';
 import {
   VentSettings,
@@ -9,19 +9,8 @@ import {
   AllModeParams,
   buildVentSettings,
 } from './types';
-import {
-  BUFFER_SIZE,
-  RECENT_WINDOW,
-  SAMPLE_RATE,
-  TICK_DT,
-  baselinePressure,
-  computeMeasured,
-  createInitialVitals,
-  effectiveRate,
-  generateWaveformSample,
-  updateVitals,
-} from './engine';
-import { evaluateAlarms, DEFAULT_ALARM_LIMITS, type Alarm } from './alarms';
+import { BUFFER_SIZE } from './engine';
+import { evaluateAlarms, alarmLimitsFor, type Alarm } from './alarms';
 import { patients, getDefaultAllParams } from './patients';
 
 /**
@@ -89,6 +78,8 @@ export interface ControlSnapshot {
   patient: PatientPhysiology;
   prone: boolean;
   frozen: boolean;
+  /** Increments on every settings or patient change (tutorials require fresh breaths). */
+  revision: number;
 }
 
 // ─── Store ───────────────────────────────────────────────────────────
@@ -97,8 +88,7 @@ const VITALS_NOTIFY_INTERVAL_MS = 250;   // 4 Hz
 const TICK_INTERVAL_MS = 20;             // 50 Hz — matches TICK_DT
 
 class SimulationStore {
-  private time = 0;
-  private cardiac = new CardiacClock();
+  private sim: LiveSimulation;
 
   // Controls
   private allSettings: AllModeParams;
@@ -107,12 +97,6 @@ class SimulationStore {
   private prone = false;
   private frozen = false;
 
-  // Live physiology
-  private vitals: Vitals;
-  private measured: MeasuredValues = {
-    peakPressure: 0, plateauPressure: 0, meanPressure: 0, autoPEEP: 0,
-    measuredTV: 0, minuteVentilation: 0, measuredRR: 14, dynamicCompliance: 0,
-  };
   private alarms: Alarm[] = [];
 
   // Trend rings: 1Hz cadence, 5-minute window (300 samples).
@@ -135,12 +119,6 @@ class SimulationStore {
     capno: new Ring(BUFFER_SIZE),
     aprvMarkers: new Ring(BUFFER_SIZE),
   };
-  /** Simulation time of the last settings/patient change — measured values
-   * are computed only over samples since then, so they track changes within
-   * one breath instead of averaging 10 s of stale waveform. */
-  private measureStartTime = 0;
-  /** After traces are cleared (mode switch), hold vitals until a full breath is recorded. */
-  private warmup = false;
   /** Last APRV cycle phase seen, for detecting the T Low → P High wrap. */
   private prevAprvPhase = 0;
   /** Last APRV cycle length; a change resets phase tracking. */
@@ -163,7 +141,7 @@ class SimulationStore {
     this.patient = patient;
     this.allSettings = getDefaultAllParams(patient);
     this.settings = buildVentSettings(this.allSettings);
-    this.vitals = createInitialVitals(patient);
+    this.sim = new LiveSimulation(this.settings, patient);
     this.waveformSnapshot = this.buildWaveformSnapshot();
     this.vitalsSnapshot = this.buildVitalsSnapshot();
     this.controlSnapshot = {
@@ -172,6 +150,7 @@ class SimulationStore {
       patient: this.patient,
       prone: this.prone,
       frozen: this.frozen,
+      revision: this.sim.revision,
     };
   }
 
@@ -198,18 +177,15 @@ class SimulationStore {
     const modeChanged = 'mode' in patch && patch.mode !== this.allSettings.mode;
     this.allSettings = { ...this.allSettings, ...patch };
     this.settings = buildVentSettings(this.allSettings);
-    this.measureStartTime = this.time;
+    this.sim.setSettings(this.settings, modeChanged);
     if (modeChanged) {
       // A mode switch starts the traces fresh: the loop window spans ~8 s,
       // so leftover breaths from the previous mode would otherwise draw a
       // hybrid loop (e.g. VCV ramps mixed into the APRV box) for several
       // seconds — much longer on throttled/slow timers.
       Object.values(this.rings).forEach(r => r.reset());
-      this.time = 0;
-      this.measureStartTime = 0;
       this.prevAprvPhase = 0;
       this.prevAprvCycle = 0;
-      this.warmup = true;
       this.emitWaveforms();
     }
     this.emitControls();
@@ -222,18 +198,11 @@ class SimulationStore {
     this.settings = buildVentSettings(this.allSettings);
     this.prone = false;
     this.msSinceVitalsNotify = 0;
-    this.vitals = createInitialVitals(patient);
-    this.measured = {
-      peakPressure: 0, plateauPressure: 0, meanPressure: 0, autoPEEP: 0,
-      measuredTV: 0, minuteVentilation: 0, measuredRR: 14, dynamicCompliance: 0,
-    };
+    this.sim.setPatient(patient, this.settings);
     this.alarms = [];
     Object.values(this.rings).forEach(r => r.reset());
     Object.values(this.trendRings).forEach(r => r.reset());
     this.trendCounter = 0;
-    this.time = 0;
-    this.measureStartTime = 0;
-    this.cardiac.reset();
     this.prevAprvPhase = 0;
     this.emitControls();
     this.emitWaveforms();
@@ -290,9 +259,7 @@ class SimulationStore {
 
   private tick() {
     if (this.frozen) return;
-    this.time += TICK_DT;
-
-    const sample = generateWaveformSample(this.time, this.settings, this.patient, this.vitals, this.cardiac.next(this.vitals.hr));
+    const sample = this.sim.step();
     this.rings.pressure.push(sample.pressure);
     this.rings.flow.push(sample.flow);
     this.rings.volume.push(sample.volume);
@@ -305,13 +272,11 @@ class SimulationStore {
     // so the flow trace can mark the moment relative to expiratory flow.
     if (this.settings.mode === 'APRV') {
       const totalCycle = Math.max(0.2, this.settings.tHigh + this.settings.tLow);
-      // If the cycle length changed mid-run the phase comparison is
-      // meaningless — restart it rather than fire a spurious marker.
       if (totalCycle !== this.prevAprvCycle) {
         this.prevAprvCycle = totalCycle;
         this.prevAprvPhase = 0;
       }
-      const phase = this.time % totalCycle;
+      const phase = this.sim.time % totalCycle;
       this.rings.aprvMarkers.push(phase < this.prevAprvPhase ? 1 : 0);
       this.prevAprvPhase = phase;
     } else {
@@ -322,46 +287,22 @@ class SimulationStore {
     // Waveforms notify every tick (50Hz) — canvases need every sample.
     this.emitWaveforms();
 
-    // Recompute measured + vitals + alarms only at the vitals rate (4Hz).
+    // Recompute measured + vitals + alarms only at the vitals rate (4Hz),
+    // from complete breaths (see measurement.ts).
     this.msSinceVitalsNotify += TICK_INTERVAL_MS;
     if (this.msSinceVitalsNotify >= VITALS_NOTIFY_INTERVAL_MS) {
       this.msSinceVitalsNotify = 0;
-      // Measure only over samples since the last settings change, so measured
-      // values track new settings quickly. The window never drops below one
-      // full breath cycle (+10%) so it always contains an inspiration — a
-      // shorter window landing in late expiration would read ~0 mL and trip
-      // a false apnoea alarm / EtCO₂ collapse.
-      const rate = effectiveRate(this.settings, this.patient);
-      const breathSamples = Math.ceil((60 / Math.max(1, rate)) * 1.1 * SAMPLE_RATE);
-      const samplesSinceChange = Math.round((this.time - this.measureStartTime) * SAMPLE_RATE);
-      // Fresh (just-cleared) traces hold less than a breath: measuring them
-      // would read ~0 mL and fake an apnoea / EtCO₂ crash, so keep the
-      // previous readings until a full breath has been recorded.
-      if (this.warmup) {
-        if (samplesSinceChange < Math.min(breathSamples, 6 * SAMPLE_RATE)) { this.emitVitals(); return; }
-        this.warmup = false;
-      }
-      const measureWindow = Math.min(
-        RECENT_WINDOW,
-        Math.max(SAMPLE_RATE, breathSamples, samplesSinceChange),
-      );
-      this.measured = computeMeasured(
-        this.rings.pressure.recent(measureWindow),
-        this.rings.volume.recent(measureWindow),
-        rate,
-        baselinePressure(this.settings),
-        this.patient.compliance,
-      );
-      this.vitals = updateVitals(this.settings, this.patient, this.vitals, this.measured, this.prone, VITALS_NOTIFY_INTERVAL_MS / 20);
-      this.alarms = evaluateAlarms(this.measured, this.vitals, DEFAULT_ALARM_LIMITS);
+      this.sim.update(this.prone, VITALS_NOTIFY_INTERVAL_MS / 20);
+      this.alarms = evaluateAlarms(this.sim.measured, this.sim.displayedVitals(), alarmLimitsFor(this.patient), this.settings, this.patient);
 
       // Trends at 1Hz (every 4th vitals tick @ 250ms).
       this.trendCounter++;
       if (this.trendCounter >= 4) {
         this.trendCounter = 0;
-        this.trendRings.spo2.push(this.vitals.spo2);
-        this.trendRings.map.push((this.vitals.sbp + 2 * this.vitals.dbp) / 3);
-        this.trendRings.etco2.push(this.vitals.etco2 / 7.501); // → kPa
+        const v = this.sim.displayedVitals();
+        this.trendRings.spo2.push(v.spo2);
+        this.trendRings.map.push((v.sbp + 2 * v.dbp) / 3);
+        this.trendRings.etco2.push(v.etco2 / 7.501); // → kPa
       }
 
       this.emitVitals();
@@ -390,8 +331,8 @@ class SimulationStore {
 
   private buildVitalsSnapshot(): VitalsSnapshot {
     return {
-      vitals: this.vitals,
-      measured: this.measured,
+      vitals: this.sim.displayedVitals(),
+      measured: this.sim.measured,
       alarms: this.alarms,
       trends: {
         cadenceSec: SimulationStore.TREND_CADENCE_SEC,
@@ -414,6 +355,7 @@ class SimulationStore {
       patient: this.patient,
       prone: this.prone,
       frozen: this.frozen,
+      revision: this.sim.revision,
     };
     this.controlListeners.forEach(l => l());
   }

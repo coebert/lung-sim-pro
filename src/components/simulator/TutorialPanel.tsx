@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AllModeParams, VentSettings, Vitals, MeasuredValues, PatientPhysiology } from '@/lib/simulation/types';
-import { getTutorialsForPatient } from '@/lib/simulation/tutorials';
+import { getTutorialsForPatient, evaluateStep } from '@/lib/simulation/tutorials';
 import { GraduationCap, ChevronRight, ChevronLeft, X, CheckCircle2, Lightbulb, RotateCcw, Trophy, Timer, Zap, Star } from 'lucide-react';
 
 /* ── Scoring helpers ─────────────────────────────────────────────── */
@@ -12,13 +12,17 @@ interface StepScore {
   stars: number; // 1-3
 }
 
-function gradeStep(timeSeconds: number, adjustments: number): StepScore {
-  // S: ≤15s and ≤3 adjustments, A: ≤30s and ≤6, B: ≤60s and ≤12, C: else
+/**
+ * Grades favour correct interpretation over speed: time is shown but not
+ * scored. Solving without the hint and with few trial-and-error adjustments
+ * earns the most stars.
+ */
+export function gradeStep(timeSeconds: number, adjustments: number, usedHint = false): StepScore {
   let grade: StepScore['grade'] = 'C';
   let stars = 1;
-  if (timeSeconds <= 15 && adjustments <= 3) { grade = 'S'; stars = 3; }
-  else if (timeSeconds <= 30 && adjustments <= 6) { grade = 'A'; stars = 3; }
-  else if (timeSeconds <= 60 && adjustments <= 12) { grade = 'B'; stars = 2; }
+  if (!usedHint && adjustments <= 3) { grade = 'S'; stars = 3; }
+  else if (!usedHint && adjustments <= 8) { grade = 'A'; stars = 3; }
+  else if (adjustments <= 12) { grade = 'B'; stars = 2; }
   return { timeSeconds, adjustments, grade, stars };
 }
 
@@ -66,9 +70,11 @@ interface TutorialPanelProps {
   measured: MeasuredValues;
   onSelectPatient?: (patientId: string) => void;
   onClose: () => void;
+  /** Current settings revision; steps that need ventilation only use measurements from this revision. */
+  settingsRevision?: number;
 }
 
-export function TutorialPanel({ patient, settings, allSettings, vitals, measured, onSelectPatient, onClose }: TutorialPanelProps) {
+export function TutorialPanel({ patient, settings, allSettings, vitals, measured, onSelectPatient, onClose, settingsRevision }: TutorialPanelProps) {
   void settings; void onSelectPatient;
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -78,6 +84,9 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
   // Scoring state
   const [stepScores, setStepScores] = useState<Map<number, StepScore>>(new Map());
   const stepStartTime = useRef(Date.now());
+  const hintUsed = useRef(false);
+  // Fresh = measured values come from complete breaths on the current settings.
+  const fresh = settingsRevision === undefined || measured.freshRevision === undefined || measured.freshRevision === settingsRevision;
   const adjustmentCount = useRef(0);
   const prevSerialized = useRef(JSON.stringify(allSettings));
 
@@ -112,6 +121,7 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
     if (!completedSteps.has(currentStep)) {
       stepStartTime.current = Date.now();
       adjustmentCount.current = 0;
+      hintUsed.current = false;
     }
   }, [currentStep]);
 
@@ -121,9 +131,9 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
     const step = tutorial.steps[Math.min(currentStep, tutorial.steps.length - 1)];
     if (!step || completedSteps.has(currentStep)) return;
 
-    if (step.check(allSettings, vitals, measured)) {
+    if (evaluateStep(step, allSettings, vitals, measured, { fresh })) {
       const elapsed = Math.round((Date.now() - stepStartTime.current) / 1000);
-      const score = gradeStep(elapsed, adjustmentCount.current);
+      const score = gradeStep(elapsed, adjustmentCount.current, hintUsed.current);
 
       setStepScores(prev => {
         const next = new Map(prev);
@@ -137,7 +147,7 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
         return next;
       });
     }
-  }, [allSettings, vitals, measured, currentStep, tutorial, completedSteps]);
+  }, [allSettings, vitals, measured, currentStep, tutorial, completedSteps, fresh]);
 
   // Check if all steps complete
   useEffect(() => {
@@ -179,6 +189,10 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
   const allComplete = completedSteps.size === tutorial.steps.length;
   const progress = (completedSteps.size / tutorial.steps.length) * 100;
   const scoresArray = Array.from(stepScores.values());
+  // Earlier steps that the current settings no longer satisfy (e.g. mode changed).
+  const invalidated = tutorial.steps
+    .map((s, i) => ({ s, i }))
+    .filter(({ s, i }) => completedSteps.has(i) && i !== currentStep && !s.needsVentilation && !evaluateStep(s, allSettings, vitals, measured, { fresh }));
   const overall = overallGrade(scoresArray);
 
   /* ── Completion screen ─────────────────────────────────── */
@@ -322,6 +336,15 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
           ))}
         </div>
 
+        {invalidated.length > 0 && (
+          <div className="mb-2 p-1.5 rounded border border-destructive/40 bg-destructive/10 text-[10px] text-destructive leading-relaxed" role="status">
+            Your current settings no longer meet: {invalidated.map(({ s, i }) => `Step ${i + 1} (${s.title})`).join(', ')}. Review before continuing.
+          </div>
+        )}
+        {!fresh && !isStepComplete && step.needsVentilation && (
+          <div className="mb-2 text-[10px] text-muted-foreground" role="status">Waiting for a complete breath on the new settings…</div>
+        )}
+
         {/* Current step */}
         <div className={`rounded p-2 border transition-colors ${
           isStepComplete ? 'border-green-500/30 bg-green-500/5' : 'border-border bg-background/50'
@@ -361,7 +384,7 @@ export function TutorialPanel({ patient, settings, allSettings, vitals, measured
 
           {!isStepComplete && (
             <button
-              onClick={() => setShowHint(h => !h)}
+              onClick={() => { hintUsed.current = true; setShowHint(h => !h); }}
               className="mt-1.5 ml-5 flex items-center gap-1 text-[10px] text-primary/70 hover:text-primary transition-colors"
             >
               <Lightbulb className="w-3 h-3" />

@@ -1,4 +1,6 @@
-import { MeasuredValues, Vitals } from './types';
+import { MeasuredValues, PatientPhysiology, VentSettings, Vitals } from './types';
+import { prvcInspPressure, PRVC_PMAX_RESERVE } from './waveformGenerators';
+import { APNOEA_TIME_SEC } from './measurement';
 
 export type AlarmSeverity = 'high' | 'medium' | 'low';
 
@@ -21,11 +23,44 @@ export const DEFAULT_ALARM_LIMITS: AlarmLimits = {
   spo2Low: 88, // ARDS target range is 88–95%
 };
 
+/**
+ * Case-appropriate limits. Low exhaled VT is set at 4 mL/kg predicted body
+ * weight, capped at the adult default (200 mL), so a 20 kg child's
+ * 6–8 mL/kg target (120–160 mL) does not trip an adult alarm.
+ */
+export function alarmLimitsFor(patient: PatientPhysiology): AlarmLimits {
+  const pbw = patient.predictedBodyWeight ?? patient.weight;
+  return {
+    ...DEFAULT_ALARM_LIMITS,
+    tvLow: Math.min(DEFAULT_ALARM_LIMITS.tvLow, Math.round(4 * pbw)),
+    pipHigh: pbw < 40 ? 35 : DEFAULT_ALARM_LIMITS.pipHigh,
+  };
+}
+
 export function evaluateAlarms(
   measured: MeasuredValues,
   vitals: Vitals,
-  limits: AlarmLimits
+  limits: AlarmLimits,
+  settings?: VentSettings,
+  patient?: PatientPhysiology,
 ): Alarm[] {
+  const apnoea = measured.apnoea ?? measured.measuredTV < 50;
+  const warming = measured.warmingUp === true;
+  const prvc = settings?.mode === 'PRVC' && patient ? prvcInspPressure(settings, patient) : null;
+  const extra: Alarm[] = prvc ? [
+    {
+      id: 'prvc-conflict',
+      label: `Pmax ${settings!.mode === 'PRVC' ? settings!.pMax : ''} ≤ PEEP + ${PRVC_PMAX_RESERVE}: no breath possible`,
+      severity: 'high',
+      active: prvc.conflict,
+    },
+    {
+      id: 'prvc-target',
+      label: 'Target VT not reached (pressure limited)',
+      severity: 'medium',
+      active: !prvc.conflict && prvc.limited,
+    },
+  ] : [];
   return [
     {
       id: 'pip-high',
@@ -37,13 +72,13 @@ export function evaluateAlarms(
       id: 'tv-low',
       label: `Low VTe (<${limits.tvLow})`,
       severity: 'medium',
-      active: measured.measuredTV >= 50 && measured.measuredTV < limits.tvLow,
+      active: !apnoea && !warming && measured.measuredTV >= 50 && measured.measuredTV < limits.tvLow,
     },
     {
       id: 'apnoea',
-      label: 'Apnoea / no tidal volume',
+      label: `Apnoea (no breath for >${APNOEA_TIME_SEC} s)`,
       severity: 'high',
-      active: measured.measuredTV < 50,
+      active: apnoea,
     },
     {
       id: 'spo2-low',
@@ -51,6 +86,7 @@ export function evaluateAlarms(
       severity: 'high',
       active: vitals.spo2 < limits.spo2Low,
     },
+    ...extra,
   ];
 }
 

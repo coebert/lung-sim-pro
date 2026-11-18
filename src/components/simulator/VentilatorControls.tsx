@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { VentSettings, VentMode, AllModeParams, PatientPhysiology } from '@/lib/simulation/types';
-import { prvcInspPressure, psvInspTime, simvSupportInspTime } from '@/lib/simulation/waveformGenerators';
+import { prvcInspPressure, psvInspTime, simvSupportInspTime, aprvReleaseMetrics, PRVC_PMAX_RESERVE } from '@/lib/simulation/waveformGenerators';
+import { computeIE, type IEMetrics } from '@/lib/simulation/scoring';
 import { StepperControl } from '@/components/simulator/StepperControl';
 import type { ComponentProps } from 'react';
 
@@ -26,17 +26,18 @@ interface VentilatorControlsProps {
 const MODES: VentMode[] = ['VCV', 'PCV', 'PRVC', 'SIMV', 'PSV', 'APRV'];
 
 export function VentilatorControls({ settings, patient, onUpdate }: VentilatorControlsProps) {
-  const [timingMode, setTimingMode] = useState<TimingMode>('ie');
-
-  // Compute I:E and Te from Ti and RR
-  const cycleTime = 60 / settings.respiratoryRate;
-  const ti = timingMode === 'ti' && settings.inspiratoryTime > 0
-    ? settings.inspiratoryTime
-    : cycleTime / (1 + settings.ieRatio);
-  const te = Math.max(0, cycleTime - ti);
-  const eRatio = ti > 0 ? te / ti : 0;
-  const computedIE = `1:${eRatio.toFixed(1)}`;
-  const computedTi = cycleTime / (1 + settings.ieRatio);
+  // Timing basis is stored with the settings (explicit Ti > 0 ⇒ Ti control),
+  // and every readout uses the same calculation the engine applies.
+  const ie = computeIE(settings);
+  const timingMode: TimingMode = ie.basis;
+  const setTimingMode = (m: TimingMode) => {
+    if (m === timingMode) return;
+    if (m === 'ti') onUpdate({ inspiratoryTime: Math.max(0.3, Math.min(3, Math.round(ie.iTime * 10) / 10)) });
+    else onUpdate({ ieRatio: Math.max(0.25, Math.min(4, Math.round(ie.eRatio * 4) / 4)), inspiratoryTime: 0 });
+  };
+  const pbw = patient ? (patient.predictedBodyWeight ?? patient.weight) : 70;
+  const child = pbw < 40;
+  const tvRange = child ? { min: 40, max: 400, step: 5 } : { min: 200, max: 800, step: 10 };
 
   return (
     <div className="flex flex-col gap-2">
@@ -87,7 +88,7 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               label="TV"
               value={settings.tidalVolume}
               unit="mL"
-              min={200} max={800} step={10}
+              min={tvRange.min} max={tvRange.max} step={tvRange.step}
               onChange={(v) => onUpdate({ tidalVolume: v })}
             />
             <SettingControl
@@ -103,9 +104,7 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               ieRatio={settings.ieRatio}
               inspiratoryTime={settings.inspiratoryTime}
               onUpdate={onUpdate}
-              computedIE={computedIE}
-              computedTi={computedTi}
-              te={te}
+              ie={ie}
             />
           </>
         )}
@@ -139,9 +138,7 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               ieRatio={settings.ieRatio}
               inspiratoryTime={settings.inspiratoryTime}
               onUpdate={onUpdate}
-              computedIE={computedIE}
-              computedTi={computedTi}
-              te={te}
+              ie={ie}
             />
           </>
         )}
@@ -152,7 +149,7 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               label="Target TV"
               value={settings.tidalVolume}
               unit="mL"
-              min={200} max={800} step={10}
+              min={tvRange.min} max={tvRange.max} step={tvRange.step}
               onChange={(v) => onUpdate({ tidalVolume: v })}
             />
             <SettingControl
@@ -183,8 +180,8 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
                   label="Pinsp auto"
                   value={(r.pInsp).toFixed(0)}
                   unit="cmH₂O"
-                  warn={r.limited}
-                  note={r.limited ? 'Pmax−5 limit' : 'regulated'}
+                  warn={r.limited || r.conflict}
+                  note={r.conflict ? `Pmax ≤ PEEP+${PRVC_PMAX_RESERVE}: no breath` : r.limited ? `Pmax−${PRVC_PMAX_RESERVE} limit: target VT not reached` : 'regulated'}
                 />
               );
             })()}
@@ -194,9 +191,7 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               ieRatio={settings.ieRatio}
               inspiratoryTime={settings.inspiratoryTime}
               onUpdate={onUpdate}
-              computedIE={computedIE}
-              computedTi={computedTi}
-              te={te}
+              ie={ie}
             />
           </>
         )}
@@ -277,7 +272,7 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               label="P High"
               value={settings.pHigh}
               unit="cmH₂O"
-              min={10} max={40} step={1}
+              min={5} max={40} step={1}
               onChange={(v) => onUpdate({ pHigh: v })}
             />
             <SettingControl
@@ -301,6 +296,19 @@ export function VentilatorControls({ settings, patient, onUpdate }: VentilatorCo
               min={0.1} max={2} step={0.1}
               onChange={(v) => onUpdate({ tLow: v })}
             />
+            {settings.pHigh <= settings.pLow ? (
+              <ReadoutTile label="Release" value="none" unit="P High ≤ P Low" warn note="CPAP only, no mandatory ventilation" />
+            ) : patient && (() => {
+              const r = aprvReleaseMetrics(settings, patient);
+              return (
+                <ReadoutTile
+                  label="End-release flow"
+                  value={`${r.endToPeakFlowPct}`}
+                  unit="% of peak"
+                  note={`release ${Math.round(r.releaseVolume)} mL`}
+                />
+              );
+            })()}
           </>
         )}
       </div>
@@ -316,20 +324,18 @@ function TimingToggleAndControl({
   ieRatio,
   inspiratoryTime,
   onUpdate,
-  computedIE,
-  computedTi,
-  te,
+  ie,
 }: {
   timingMode: TimingMode;
   onTimingModeChange: (m: TimingMode) => void;
   ieRatio: number;
   inspiratoryTime: number;
   onUpdate: (patch: Partial<AllModeParams>) => void;
-  computedIE: string;
-  computedTi: number;
-  te: number;
+  /** Applied timing — identical to what the engine uses. */
+  ie: IEMetrics;
 }) {
-  const isWarning = te < 0.5;
+  const isWarning = ie.eTime < 0.5 || ie.limited;
+  const appliedIE = ie.ieActual <= 1 ? `1:${ie.eRatio.toFixed(1)}` : `${ie.ieActual.toFixed(1)}:1`;
 
   return (
     <>
@@ -379,12 +385,20 @@ function TimingToggleAndControl({
 
       <div className="bg-vent-tile border-2 border-vent-tile-border rounded-md px-2 py-1 flex flex-col items-center justify-center gap-0.5 min-w-[88px]">
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-          {timingMode === 'ie' ? 'Computed Ti' : 'Computed I:E'}
+          {timingMode === 'ie' ? 'Applied Ti' : 'Applied I:E'}
         </span>
         <span className={`monitor-text text-sm font-bold ${isWarning ? 'text-destructive' : 'text-foreground'}`}>
-          {timingMode === 'ie' ? `${computedTi.toFixed(1)}s` : computedIE}
+          {timingMode === 'ie' ? `${ie.iTime.toFixed(2)}s` : appliedIE}
         </span>
-        <span className="text-[9px] text-muted-foreground">Te {te.toFixed(1)}s</span>
+        <span className="text-[9px] text-muted-foreground">Te {ie.eTime.toFixed(2)}s</span>
+        {ie.limited && (
+          <span className="text-[9px] text-destructive text-center leading-tight" role="status">
+            Entered Ti {ie.requestedTi.toFixed(1)}s limited to leave {ie.eTime.toFixed(1)}s expiration
+          </span>
+        )}
+        {!ie.limited && ie.eTime < 0.5 && (
+          <span className="text-[9px] text-destructive text-center leading-tight" role="status">Short expiration — risk of gas trapping</span>
+        )}
       </div>
     </>
   );

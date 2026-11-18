@@ -118,7 +118,12 @@ export interface Vitals {
   sbp: number;
   dbp: number;
   spo2: number;
+  /** Displayed end-tidal CO₂ (mmHg). In the live app this is sampled from the capnogram. */
   etco2: number;
+  /** Modelled alveolar/arterial CO₂ (mmHg) driving the capnogram; not measured by the monitor. */
+  paco2?: number;
+  /** Capnogram quality: plateau reached, no plateau (value under-reads), or no exhaled gas. */
+  etco2Status?: 'plateau' | 'no-plateau' | 'unavailable';
   // NB: respiratory rate lives on `MeasuredValues.measuredRR` — a single source of truth.
 }
 
@@ -132,6 +137,21 @@ export interface MeasuredValues {
   dynamicCompliance: number;
   /** Intrinsic PEEP (cmH₂O): end-expiratory alveolar pressure above set PEEP / P Low from trapped gas. */
   autoPEEP: number;
+  /** Alveolar ventilation (L/min): Σ(VT − dead space) over the observation window. */
+  alveolarVentilation?: number;
+  /** Last mandatory / last supported breath exhaled VT (mL), when present. */
+  vtMandatory?: number;
+  vtSupported?: number;
+  /** Seconds since the last breath started. */
+  secondsSinceBreath?: number;
+  /** True when no breath has started within the apnoea time. */
+  apnoea?: boolean;
+  /** True until a complete breath has been measured on the current settings. */
+  warmingUp?: boolean;
+  /** Settings revision whose complete breaths these values come from. */
+  freshRevision?: number;
+  /** Observation window (s) used for minute ventilation and rate. */
+  windowSec?: number;
 }
 
 /** Named channels for the seven live waveform buffers. */
