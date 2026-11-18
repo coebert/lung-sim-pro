@@ -531,7 +531,7 @@ export const tutorials: TutorialScenario[] = [
       {
         title: 'Accept permissive hypercapnia',
         instruction:
-          'Low tidal volume often raises CO₂. ARDSNet targets arterial pH 7.30–7.45 and raises the rate (up to 35) for acidaemia. This simulator does not model pH or measure PaCO₂, so an EtCO₂ threshold cannot verify either; here we use EtCO₂ ≤ 60 mmHg as a teaching proxy. In this simulation the objective is to keep plateau ≤ 30 cmH₂O while doing so. (The real protocol allows VT up to 8 mL/kg for severe acidaemia, pH < 7.15, which needs arterial pH this simulator cannot provide.)',
+          'Low tidal volume often raises CO₂. ARDSNet targets arterial pH 7.30–7.45 and raises the rate (up to 35) for acidaemia. This simulator does not model pH or measure PaCO₂, so an EtCO₂ threshold cannot verify either; here we use EtCO₂ ≤ 60 mmHg as a teaching proxy. In this simulation the objective is to keep plateau ≤ 30 cmH₂O while doing so. The full ARDSNet protocol has an exception for persistent severe acidaemia after the rate has been adjusted; this simulator cannot evaluate it because it does not model arterial pH. The simulator’s own targets for this step are: VT 4–6 mL/kg PBW (280–440 mL), RR 20–35, plateau ≤ 30 cmH₂O and EtCO₂ ≤ 60 mmHg as the CO₂ proxy.',
         hint: 'Keep EtCO₂ ≤ 60 mmHg (8 kPa) with plateau still ≤ 30, VT 280–440 mL (4–6 mL/kg) and RR 20–35.',
         modes: ['VCV'],
         needsVentilation: true,
@@ -541,7 +541,7 @@ export const tutorials: TutorialScenario[] = [
       },
     ],
     summary:
-      'ARDSNet in brief (teaching subset): VCV, tidal volume 6 mL/kg PBW (4–8), rate up to 35, PEEP paired with FiO₂ from the table, SpO₂ 88–95%, plateau ≤ 30 cmH₂O as this simulation’s objective, pH 7.30–7.45 (not modelled here; the protocol’s severe-acidaemia allowance of VT up to 8 mL/kg therefore cannot be assessed). Plateau ≈ total PEEP + VT ÷ compliance, so when PEEP rises, tidal volume must sometimes fall.',
+      'ARDSNet in brief (teaching subset): VCV, tidal volume 6 mL/kg PBW (4–8), rate up to 35, PEEP paired with FiO₂ from the table, SpO₂ 88–95%, plateau ≤ 30 cmH₂O as this simulation’s objective, pH 7.30–7.45 (not modelled here). The full protocol has an exception for persistent severe acidaemia after rate adjustment, which this simulator cannot evaluate because it does not model arterial pH. The simulator’s own targets: VT 6 mL/kg PBW, plateau ≤ 30 cmH₂O, EtCO₂ ≤ 60 mmHg as a CO₂ proxy, SpO₂ 88–95%. Plateau ≈ total PEEP + VT ÷ compliance, so when PEEP rises, tidal volume must sometimes fall.',
   },
   {
     patientId: 'copd',

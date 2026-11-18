@@ -68,3 +68,4 @@
 - [ ] Clinician review of physiology targets and tutorial wording (paediatric case especially) — needs a clinician
 - [ ] Physical iPhone walkthrough of the next bundled build — needs a device + Xcode
 - [x] Install Meshy lungs/heart/airways GLBs as bundled 3D Lung View (3D default, SVG fallback)
+- [x] Final audit residuals: ARDSNet acidaemia wording, APRV modelled-score labelling, npm lock verified

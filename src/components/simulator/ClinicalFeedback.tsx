@@ -3,7 +3,8 @@ import { useMemo, useState } from 'react';
 import { VentSettings, PatientPhysiology, Vitals, MeasuredValues } from '@/lib/simulation/types';
 import { computeAPRV, computeInverseRatio, computeShunt } from '@/lib/simulation/scoring';
 import { prvcInspPressure, psvInspTime, simvSupportInspTime } from '@/lib/simulation/waveformGenerators';
-import { AlertTriangle, ChevronDown, ChevronUp, CircleAlert, CircleCheck, Zap } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, CircleAlert, CircleCheck, Info, Zap } from 'lucide-react';
+import { aprvRecruitmentText } from '@/lib/presentation/aprvLabels';
 
 interface ClinicalFeedbackProps {
   settings: VentSettings;
@@ -15,7 +16,7 @@ interface ClinicalFeedbackProps {
 
 interface Insight {
   text: string;
-  severity: 'good' | 'warn' | 'danger';
+  severity: 'good' | 'warn' | 'danger' | 'info';
 }
 
 export function ClinicalFeedback({ settings, patient, vitals, measured, prone = false }: ClinicalFeedbackProps) {
@@ -304,14 +305,8 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
         list.push({ text: `P Low is 0 cmH₂O — correct for APRV. Auto-PEEP from short T Low maintains end-expiratory pressure.`, severity: 'good' });
       }
 
-      // Overall recruitment assessment
-      if (recruitmentScore > 0.8) {
-        list.push({ text: `APRV settings are well-optimised (recruitment score ${Math.round(recruitmentScore * 100)}%). Expect progressive alveolar recruitment.`, severity: 'good' });
-      } else if (recruitmentScore > 0.4) {
-        list.push({ text: `APRV recruitment is partial (score ${Math.round(recruitmentScore * 100)}%). Adjust settings above to improve.`, severity: 'warn' });
-      } else {
-        list.push({ text: `APRV recruitment is poor (score ${Math.round(recruitmentScore * 100)}%). Current settings are unlikely to recruit collapsed lung. Review all parameters.`, severity: 'danger' });
-      }
+      // Modelled score only: labelled, no treatment advice derived from it.
+      list.push({ text: aprvRecruitmentText(recruitmentScore), severity: 'info' });
 
       // Mean airway pressure
       list.push({ text: `Mean airway pressure: ${meanAP.toFixed(1)} cmH₂O. ${meanAP > 25 ? 'High — monitor haemodynamics.' : meanAP > 15 ? 'Moderate — adequate for recruitment.' : 'Low — may be insufficient for oxygenation.'}`, severity: meanAP > 30 ? 'warn' : meanAP > 12 ? 'good' : 'warn' });
@@ -371,8 +366,8 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
       {!collapsed && (
         <div className="max-h-[200px] overflow-y-auto p-1.5 space-y-1">
           {insights.map((insight, i) => {
-            const Icon = insight.severity === 'danger' ? CircleAlert : insight.severity === 'warn' ? Zap : CircleCheck;
-            const label = insight.severity === 'danger' ? 'Danger' : insight.severity === 'warn' ? 'Warning' : 'OK';
+            const Icon = insight.severity === 'danger' ? CircleAlert : insight.severity === 'warn' ? Zap : insight.severity === 'info' ? Info : CircleCheck;
+            const label = insight.severity === 'danger' ? 'Danger' : insight.severity === 'warn' ? 'Warning' : insight.severity === 'info' ? 'Information' : 'OK';
             return (
               <div
                 key={i}
@@ -381,6 +376,8 @@ export function ClinicalFeedback({ settings, patient, vitals, measured, prone = 
                     ? 'bg-destructive/15 text-destructive border border-destructive/30'
                     : insight.severity === 'warn'
                     ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                    : insight.severity === 'info'
+                    ? 'bg-muted text-muted-foreground border border-border'
                     : 'bg-green-500/10 text-green-400 border border-green-500/20'
                 }`}
               >

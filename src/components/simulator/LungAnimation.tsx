@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { breathDrive, cardiacDrive, lungPose3D, lungShape, smoothStep } from '@/lib/presentation/lungMotion';
 import { canUse3D } from './lungView3DSupport';
+import { APRV_RECRUITMENT_LABEL, APRV_RECRUITMENT_QUALIFIER } from '@/lib/presentation/aprvLabels';
 
 const LungView3D = lazy(() => import('./LungView3D'));
 import { PatientPhysiology, VentSettings, Vitals, WaveformBuffers } from '@/lib/simulation/types';
@@ -177,7 +178,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
           {ready3D && (
             <div className="pointer-events-none absolute inset-x-0 bottom-1 flex flex-col items-center gap-0.5 font-mono text-[9px] font-bold">
               {settings.mode === 'APRV' && aprvRecruitment !== null && (
-                <span style={{ color: aprvRecruitment > 0.7 ? '#4ade80' : aprvRecruitment > 0.4 ? '#eab308' : '#ef4444' }}>Recruitment {Math.round(aprvRecruitment * 100)}%</span>
+                <span className="text-center text-muted-foreground" data-testid="aprv-recruitment-label">{APRV_RECRUITMENT_LABEL} {Math.round(aprvRecruitment * 100)}%<br /><span className="font-normal">{APRV_RECRUITMENT_QUALIFIER}</span></span>
               )}
               {statusText && <span style={{ color: statusColor }}>{statusText}</span>}
             </div>
@@ -767,19 +768,19 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 <rect x="30" y="196" width="140" height="6" rx="3" fill="#1a1a2e" stroke="#333" strokeWidth="0.5" />
                 {/* Fill bar — color transitions from red → yellow → green */}
                 <rect x="30" y="196" width={140 * aprvRecruitment} height="6" rx="3"
-                  fill={aprvRecruitment > 0.7 ? '#4ade80' : aprvRecruitment > 0.4 ? '#eab308' : '#ef4444'}
+                  fill="#8a94a6"
                   opacity="0.85"
                 />
                 {/* Tick marks at 40% and 80% */}
                 <line x1={30 + 140 * 0.4} y1="195.5" x2={30 + 140 * 0.4} y2="202.5" stroke="#555" strokeWidth="0.4" />
                 <line x1={30 + 140 * 0.8} y1="195.5" x2={30 + 140 * 0.8} y2="202.5" stroke="#555" strokeWidth="0.4" />
                 {/* Label */}
-                <text x="100" y="194" textAnchor="middle" fill={aprvRecruitment > 0.7 ? '#4ade80' : aprvRecruitment > 0.4 ? '#eab308' : '#ef4444'} fontSize="6" fontFamily="monospace" fontWeight="bold">
-                  Recruitment {Math.round(aprvRecruitment * 100)}%
+                <text x="100" y="194" textAnchor="middle" fill="#9aa3b2" fontSize="5.5" fontFamily="monospace" fontWeight="bold">
+                  {APRV_RECRUITMENT_LABEL} {Math.round(aprvRecruitment * 100)}%
                 </text>
                 {/* Qualitative label */}
-                <text x="100" y="210" textAnchor="middle" fill="#888" fontSize="5" fontFamily="monospace">
-                  {aprvRecruitment > 0.8 ? 'Good — alveoli recruiting' : aprvRecruitment > 0.5 ? 'Partial — adjust settings' : 'Poor — review P High, T High, T Low'}
+                <text x="100" y="210" textAnchor="middle" fill="#888" fontSize="4" fontFamily="monospace">
+                  {APRV_RECRUITMENT_QUALIFIER}
                 </text>
               </g>
             )}

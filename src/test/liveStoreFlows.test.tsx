@@ -10,6 +10,8 @@ import { TutorialPanel } from '@/components/simulator/TutorialPanel';
 import { ClinicalFeedback } from '@/components/simulator/ClinicalFeedback';
 import { TrendStrip } from '@/components/simulator/TrendStrip';
 import { etco2Display } from '@/lib/simulation/etco2Display';
+import { LungAnimation } from '@/components/simulator/LungAnimation';
+import { useWaveforms } from '@/lib/simulation/simulationStore';
 
 const P = (id: string) => patients.find(p => p.id === id)!;
 
@@ -199,4 +201,24 @@ describe('live feedback wording (#4, labels)', () => {
     expect(screen.queryByText(/Lung-protective strategy in place/)).toBeNull();
     expect(screen.queryByText(/Delivered tidal volume is protective/)).toBeNull();
   });
+});
+
+describe('APRV recruitment value is a labelled modelled score with no advice (#9/#12)', () => {
+  function Lung() {
+    const c = useControls(); const b = useWaveforms(); const { vitals } = useVitalsSnapshot();
+    return <LungAnimation patient={c.patient} settings={c.settings} buffers={b} vitals={vitals} />;
+  }
+  for (const id of ['ards', 'healthy-spont']) {
+    it(`${id}: feedback and Lung View label the score and give no score-based advice`, () => {
+      act(() => { simulationStore.setPatient(P(id)); simulationStore.updateSettings({ mode: 'APRV', pHigh: 28, pLow: 0, tHigh: 5, tLow: 0.5 }); });
+      render(<><Harness tutorial={false} /><Lung /></>);
+      run(30);
+      const text = document.body.textContent ?? '';
+      expect(screen.getAllByText(/Modelled recruitment score \d+% \(passive-model estimate, not adjusted for spontaneous effort/).length).toBe(1);
+      expect(text).toMatch(/Modelled recruitment score \d+%passive-model estimate, not adjusted for spontaneous effort/);
+      for (const old of [/well-optimised/, /Expect progressive alveolar recruitment/, /Adjust settings above/, /unlikely to recruit collapsed lung/, /alveoli recruiting/, /Partial — adjust settings/, /Poor — review P High/]) {
+        expect(text).not.toMatch(old);
+      }
+    });
+  }
 });

@@ -98,6 +98,21 @@ describe('lesson wording matches capability', () => {
     expect(all).not.toMatch(/Never raise tidal volume/);
     expect(all).toMatch(/severe acidaemia/);
   });
+
+  it('ARDSNet lesson and summary describe the severe-acidaemia exception without the old 8 mL/kg claim', () => {
+    const ardsnet = tutorials.filter(t => /ARDSNet/.test(JSON.stringify(t)));
+    expect(ardsnet.length).toBeGreaterThan(0);
+    const steps = JSON.stringify(ardsnet.map(t => [t.introduction ?? '', t.steps.map(s => [s.instruction, s.hint ?? ""])]));
+    const summaries = JSON.stringify(ardsnet.map(t => t.summary ?? ''));
+    for (const text of [steps, summaries]) {
+      expect(text).toMatch(/persistent severe acidaemia after (the )?rate (has been )?adjust/);
+      expect(text).toMatch(/does not model arterial pH/);
+      expect(text).toMatch(/plateau ≤ 30 cmH₂O/);
+      expect(text).not.toMatch(/up to 8 mL\/kg for severe acidaemia/);
+      expect(text).not.toMatch(/allowance of VT up to 8 mL\/kg/);
+      expect(text).not.toMatch(/acidaemia[^"]{0,80}8 mL\/kg|8 mL\/kg[^"]{0,80}acidaemia/);
+    }
+  });
 });
 
 describe('dead space and CO₂ production assumptions', () => {
