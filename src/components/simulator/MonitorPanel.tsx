@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { etco2Display } from '@/lib/simulation/etco2Display';
 import { WaveformCanvas } from './WaveformCanvas';
 import { WaveformBuffers, Vitals } from '@/lib/simulation/types';
@@ -12,8 +13,21 @@ interface MonitorPanelProps {
   layout?: 'row' | 'grid';
 }
 
-/** ECG lane shows the last 5 s (50 Hz) so P-QRS-T is not compressed; other lanes keep the full buffer. */
+/** ECG lane shows the last 5 s (3 s on narrow phone screens) at 50 Hz so P-QRS-T is
+ * not compressed; other lanes keep the full buffer. */
 const ECG_WINDOW_SAMPLES = 250;
+const ECG_WINDOW_SAMPLES_NARROW = 150;
+function useNarrowScreen() {
+  const q = '(max-width: 639px)';
+  const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia(q).matches);
+  useEffect(() => {
+    const m = window.matchMedia(q);
+    const on = () => setNarrow(m.matches);
+    m.addEventListener('change', on);
+    return () => m.removeEventListener('change', on);
+  }, []);
+  return narrow;
+}
 
 export function MonitorPanel({ buffers, vitals, compact = false, layout = 'row' }: MonitorPanelProps) {
   const spo2C = spo2Color(vitals.spo2);
@@ -26,6 +40,7 @@ export function MonitorPanel({ buffers, vitals, compact = false, layout = 'row' 
   const labelSize = compact ? 'text-[9px]' : 'text-[10px]';
   const subSize = compact ? 'text-[9px]' : 'text-[10px]';
 
+  const narrowScreen = useNarrowScreen();
   const numBoxes = [
     { key: 'HR',    label: 'HR',    unit: 'bpm',  color: VITAL_COLOR.hr,    valueColor: hrC,  value: Math.round(vitals.hr).toString(),           bigClass: bigNum },
     { key: 'ABP',   label: 'ABP',   unit: 'mmHg', color: VITAL_COLOR.abp,                     value: `${Math.round(vitals.sbp)}/${Math.round(vitals.dbp)}`, sub: `(${map})`, bigClass: midNum },
@@ -36,7 +51,7 @@ export function MonitorPanel({ buffers, vitals, compact = false, layout = 'row' 
   const waves = (
     <>
       <WaveformLane>
-        <WaveformCanvas data={buffers.ecg.slice(-ECG_WINDOW_SAMPLES)} color={WAVE_COLOR.ecg} label="II" unit="ECG"
+        <WaveformCanvas data={buffers.ecg.slice(-(narrowScreen ? ECG_WINDOW_SAMPLES_NARROW : ECG_WINDOW_SAMPLES))} color={WAVE_COLOR.ecg} label="II" unit="ECG"
           minValue={-0.5} maxValue={1.5} autoHeight />
       </WaveformLane>
       <WaveformLane>
