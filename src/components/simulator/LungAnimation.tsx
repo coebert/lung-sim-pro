@@ -163,6 +163,7 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
       {!collapsed && (
         <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center bg-monitor-bg p-1" data-lung-view={ready3D ? '3d' : 'svg'} data-pathology={pathology} data-atel={atel.toFixed(2)} data-trap={drive.trapFrac.toFixed(2)}>
           {use3D && (
+            <div className={ready3D ? 'relative w-full flex-1 min-h-0' : 'absolute inset-0'}>
             <Suspense fallback={null}>
               <LungView3D
                 right={lungPose3D(drive, shape, atel)}
@@ -174,9 +175,10 @@ export function LungAnimation({ patient, settings, buffers, vitals, compact = fa
                 onError={() => { setFailed3D(true); setReady3D(false); }}
               />
             </Suspense>
+            </div>
           )}
           {ready3D && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-1 flex flex-col items-center gap-0.5 font-mono text-[9px] font-bold">
+            <div className="pointer-events-none w-full shrink-0 flex flex-col items-center gap-0.5 px-1 pb-0.5 text-center font-mono text-[9px] font-bold leading-tight">
               {settings.mode === 'APRV' && aprvRecruitment !== null && (
                 <span className="text-center text-muted-foreground" data-testid="aprv-recruitment-label">{APRV_RECRUITMENT_LABEL} {Math.round(aprvRecruitment * 100)}%<br /><span className="font-normal">{APRV_RECRUITMENT_QUALIFIER}</span></span>
               )}
