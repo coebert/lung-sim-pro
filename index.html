@@ -3,6 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      // Forward former hosted web links and keep the packaged native app local.
+      if (location.protocol === 'https:' && location.hostname.endsWith('.lovable.app') && !location.hostname.startsWith('id-preview--')) {
+        const destination = new URL('https://migrated-from-lovable-d539663e.base44.app/');
+        const routes = ['/', '/bedside', '/ventilator', '/learn', '/privacy', '/support'];
+        const route = location.pathname.replace(/\/$/, '') || '/';
+        if (routes.includes(route)) destination.pathname = route;
+        try {
+          if (localStorage.getItem('lungsim.onboarded.v2') === '1') destination.hash = 'welcome-complete';
+        } catch { /* Storage can be unavailable in private browsing. */ }
+        location.replace(destination.href);
+      }
+    </script>
     <title>Lung Sim Pro — ICU Ventilator Simulator</title>
     <link rel="icon" href="/favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="/favicon.png">
